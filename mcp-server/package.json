@@ -1,0 +1,56 @@
+{
+  "name": "@vertikon/mcp-ultra",
+  "version": "1.0.0",
+  "description": "MCP Ultra - Complete GitHub automation template with MCP server, auto-commit tools, and testing suite",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "setup": "npm run build && npm run test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "@octokit/rest": "^20.0.2",
+    "@octokit/graphql": "^7.0.2",
+    "@octokit/auth-token": "^4.0.0",
+    "dotenv": "^16.3.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "tsx": "^4.6.1",
+    "typescript": "^5.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vertikon/mcp-ultra.git"
+  },
+  "keywords": [
+    "mcp",
+    "github",
+    "automation",
+    "vertikon",
+    "model-context-protocol",
+    "template",
+    "devops",
+    "ci-cd"
+  ],
+  "author": "Vertikon Team <dev@vertikon.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/vertikon/mcp-ultra#readme",
+  "bugs": {
+    "url": "https://github.com/vertikon/mcp-ultra/issues"
+  }
+}

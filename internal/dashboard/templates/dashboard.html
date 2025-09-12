@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/dashboard.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>
+                {{.Title}}
+            </a>
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item">
+                    <span class="navbar-text me-3">
+                        <i class="fas fa-circle text-success me-1"></i>
+                        <span id="connection-status">Connected</span>
+                    </span>
+                </div>
+                <div class="nav-item">
+                    <span class="navbar-text">
+                        <i class="fas fa-clock me-1"></i>
+                        <span id="last-update">--</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-sticky">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#overview" data-section="overview">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        Overview
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#system" data-section="system">
+                        <i class="fas fa-server me-2"></i>
+                        System Metrics
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#performance" data-section="performance">
+                        <i class="fas fa-rocket me-2"></i>
+                        Performance
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#business" data-section="business">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Business Metrics
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#features" data-section="features">
+                        <i class="fas fa-toggle-on me-2"></i>
+                        Feature Flags
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#cache" data-section="cache">
+                        <i class="fas fa-database me-2"></i>
+                        Cache Status
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#ratelimit" data-section="ratelimit">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Rate Limiting
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#tracing" data-section="tracing">
+                        <i class="fas fa-route me-2"></i>
+                        Tracing
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#alerts" data-section="alerts">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Alerts
+                        <span id="alert-count" class="badge bg-danger ms-2" style="display: none;">0</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container-fluid">
+            <!-- Overview Section -->
+            <section id="overview-section" class="dashboard-section">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2><i class="fas fa-tachometer-alt me-2"></i>System Overview</h2>
+                    </div>
+                </div>
+                
+                <!-- Status Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card status-card text-white bg-success">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">System Health</h6>
+                                        <h3 id="system-health">100%</h3>
+                                        <small id="system-status">All systems operational</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-heartbeat fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card status-card text-white bg-primary">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Request Rate</h6>
+                                        <h3 id="request-rate">0</h3>
+                                        <small>requests/sec</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-exchange-alt fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card status-card text-white bg-warning">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Error Rate</h6>
+                                        <h3 id="error-rate">0%</h3>
+                                        <small>last 5 minutes</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-exclamation-circle fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card status-card text-white bg-info">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Active Sessions</h6>
+                                        <h3 id="active-sessions">0</h3>
+                                        <small>concurrent users</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-users fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row mb-4">
+                    <div class="col-xl-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Response Time Trends</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="response-time-chart" height="100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Traffic Sources</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="traffic-sources-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Components Status -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Component Status</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="components-status" class="row">
+                                    <!-- Component status cards will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Metrics Section -->
+            <section id="system-section" class="dashboard-section" style="display: none;">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2><i class="fas fa-server me-2"></i>System Metrics</h2>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-xl-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">CPU Usage</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="cpu-chart" height="100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Memory Usage</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="memory-chart" height="100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-xl-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Disk I/O</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="disk-chart" height="100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Network Traffic</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="network-chart" height="100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance Section -->
+            <section id="performance-section" class="dashboard-section" style="display: none;">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2><i class="fas fa-rocket me-2"></i>Performance Metrics</h2>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-xl-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Response Time Distribution</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="latency-distribution-chart" height="100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Performance Metrics</h5>
+                            </div>
+                            <div class="card-body" id="performance-metrics">
+                                <!-- Performance metrics will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Business Metrics Section -->
+            <section id="business-section" class="dashboard-section" style="display: none;">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2><i class="fas fa-chart-bar me-2"></i>Business Metrics</h2>
+                    </div>
+                </div>
+
+                <div class="row mb-4" id="business-metrics">
+                    <!-- Business metrics cards will be populated here -->
+                </div>
+            </section>
+
+            <!-- Alerts Section -->
+            <section id="alerts-section" class="dashboard-section" style="display: none;">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2><i class="fas fa-exclamation-triangle me-2"></i>Active Alerts</h2>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div id="alerts-list">
+                                    <!-- Alerts will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Other sections would be similar... -->
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="/static/js/dashboard.js"></script>
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            const dashboard = new Dashboard({
+                apiEndpoint: '/api/v1',
+                websocketEndpoint: '/ws',
+                refreshInterval: {{.Config.RefreshInterval.Seconds}},
+                auth: {{.Config.EnableAuth}}
+            });
+            dashboard.init();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir)",
+      "Read(//e/vertikon/business/SaaS/templates/validador-mcp-ultra/**)",
+      "Bash(./validator.exe validate:*)",
+      "Bash(powershell:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
