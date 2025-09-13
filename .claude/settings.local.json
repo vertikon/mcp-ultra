@@ -4,7 +4,13 @@
       "Bash(dir)",
       "Read(//e/vertikon/business/SaaS/templates/validador-mcp-ultra/**)",
       "Bash(./validator.exe validate:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(dir:*)",
+      "Bash(go test:*)",
+      "Read(//e/vertikon/business/CPaaS/WhatsApp/moda-b2b-platform/documentacao-full/01-arquitetura/**)",
+      "Read(//e/vertikon/business/CPaaS/WhatsApp/moda-b2b-platform/documentacao-full/02-apis/**)",
+      "Read(//e/vertikon/business/CPaaS/WhatsApp/moda-b2b-platform/documentacao-full/03-guias/**)",
+      "Read(//e/vertikon/business/CPaaS/WhatsApp/moda-b2b-platform/documentacao-full/04-seguranca/**)"
     ],
     "deny": [],
     "ask": []

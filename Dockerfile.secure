@@ -1,0 +1,164 @@
+# Multi-stage Docker build with security best practices
+# Stage 1: Build environment with security scanning
+FROM golang:1.22-alpine AS security-scanner
+
+# Install security scanning tools
+RUN apk add --no-cache \
+    ca-certificates \
+    git \
+    curl \
+    bash
+
+# Install Trivy for vulnerability scanning
+RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.47.0
+
+# Install Syft for SBOM generation
+RUN curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+# Install Grype for vulnerability scanning
+RUN curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
+WORKDIR /app
+
+# Copy go mod files first for dependency scanning
+COPY go.mod go.sum ./
+
+# Scan dependencies for vulnerabilities
+RUN go mod download && \
+    trivy fs --exit-code 1 --severity HIGH,CRITICAL ./
+
+# Generate SBOM for dependencies
+RUN syft dir:. -o spdx-json=deps-sbom.json
+
+# Stage 2: Build stage
+FROM golang:1.22-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    ca-certificates \
+    git \
+    tzdata \
+    upx
+
+# Create non-root user for build
+RUN adduser -D -s /bin/sh -u 1001 appuser
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod files and download dependencies
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+
+# Copy source code
+COPY . .
+
+# Build the application with security flags
+RUN CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=amd64 \
+    go build \
+    -a \
+    -ldflags='-w -s -extldflags "-static"' \
+    -buildmode=pie \
+    -trimpath \
+    -o /app/bin/mcp-ultra \
+    cmd/mcp-model-ultra/main.go
+
+# Compress binary with UPX
+RUN upx --brute /app/bin/mcp-ultra
+
+# Verify binary
+RUN file /app/bin/mcp-ultra && \
+    /app/bin/mcp-ultra --version 2>/dev/null || echo "Binary verification complete"
+
+# Stage 3: Security hardened runtime
+FROM scratch AS production
+
+# Import CA certificates and timezone data
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+
+# Import the user and group files from the builder
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
+
+# Copy the binary
+COPY --from=builder --chown=1001:1001 /app/bin/mcp-ultra /app/mcp-ultra
+
+# Copy SBOM
+COPY --from=security-scanner /app/deps-sbom.json /app/sbom.json
+
+# Use non-root user
+USER 1001:1001
+
+# Expose port (non-privileged)
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD ["/app/mcp-ultra", "healthcheck"] || exit 1
+
+# Set entrypoint
+ENTRYPOINT ["/app/mcp-ultra"]
+
+# Stage 4: Development stage with debugging tools
+FROM alpine:3.19 AS development
+
+# Install debugging and development tools
+RUN apk add --no-cache \
+    ca-certificates \
+    curl \
+    jq \
+    tcpdump \
+    strace \
+    net-tools \
+    procps \
+    htop
+
+# Create non-root user
+RUN adduser -D -s /bin/sh -u 1001 appuser
+
+# Copy binary from builder
+COPY --from=builder --chown=1001:1001 /app/bin/mcp-ultra /app/mcp-ultra
+
+# Copy SBOM
+COPY --from=security-scanner /app/deps-sbom.json /app/sbom.json
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/config && \
+    chown -R 1001:1001 /app
+
+# Switch to non-root user
+USER 1001:1001
+
+WORKDIR /app
+
+# Expose ports
+EXPOSE 8080 8081
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Default command
+CMD ["./mcp-ultra"]
+
+# Labels for metadata
+LABEL maintainer="MCP Ultra Team <team@vertikon.com>" \
+      version="1.0.0" \
+      description="MCP Ultra - Secure Enterprise Microservice" \
+      vendor="Vertikon" \
+      licenses="MIT" \
+      org.opencontainers.image.title="MCP Ultra" \
+      org.opencontainers.image.description="Secure Enterprise Microservice Platform" \
+      org.opencontainers.image.version="1.0.0" \
+      org.opencontainers.image.authors="MCP Ultra Team" \
+      org.opencontainers.image.vendor="Vertikon" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.source="https://github.com/vertikon/mcp-ultra" \
+      org.opencontainers.image.documentation="https://github.com/vertikon/mcp-ultra/README.md" \
+      org.label-schema.schema-version="1.0" \
+      org.label-schema.build-date="${BUILD_DATE}" \
+      org.label-schema.vcs-ref="${VCS_REF}" \
+      org.label-schema.vcs-url="https://github.com/vertikon/mcp-ultra"

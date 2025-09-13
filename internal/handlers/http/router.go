@@ -18,6 +18,7 @@ import (
 func NewRouter(
 	taskService *services.TaskService,
 	flagManager *features.FlagManager,
+	healthService *HealthService,
 	logger *zap.Logger,
 ) *chi.Mux {
 	r := chi.NewRouter()
@@ -40,9 +41,14 @@ func NewRouter(
 		MaxAge:           300,
 	}))
 
-	// Health endpoints
-	r.Get("/healthz", healthCheck)
-	r.Get("/readyz", readinessCheck)
+	// Health endpoints using comprehensive health service
+	if healthService != nil {
+		healthService.RegisterRoutes(r)
+	} else {
+		// Fallback to basic health checks
+		r.Get("/healthz", healthCheck)
+		r.Get("/readyz", readinessCheck)
+	}
 
 	// API routes
 	r.Route("/api/v1", func(r chi.Router) {

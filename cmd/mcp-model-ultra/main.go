@@ -207,20 +207,22 @@ func main() {
 		zapLogger.Fatal("Failed to initialize gRPC server", zap.Error(err))
 	}
 
-	// Setup HTTP router with security and observability middleware
-	router := httphandlers.NewRouter(taskService, flagManager, zapLogger)
+	// Initialize comprehensive health service
+	healthService := httphandlers.NewHealthService(version.Version, cfg.Environment, zapLogger)
 	
-	// Add lifecycle endpoints
-	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		report := healthMonitor.GetHealth(r.Context())
-		w.Header().Set("Content-Type", "application/json")
-		if report.Status == lifecycle.HealthStatusHealthy {
-			w.WriteHeader(http.StatusOK)
-		} else {
-			w.WriteHeader(http.StatusServiceUnavailable)
-		}
-		// TODO: Add JSON encoder for the report
-	})
+	// Register health checkers for all dependencies
+	healthService.RegisterChecker("database", httphandlers.NewDatabaseHealthChecker("postgresql", func(ctx context.Context) error {
+		return db.PingContext(ctx)
+	}))
+	healthService.RegisterChecker("redis", httphandlers.NewRedisHealthChecker(func(ctx context.Context) error {
+		return redis.Ping(cacheClient)
+	}))
+	healthService.RegisterChecker("nats", httphandlers.NewNATSHealthChecker(func() bool {
+		return eventBus != nil // TODO: Add proper connection status check
+	}))
+
+	// Setup HTTP router with security and observability middleware
+	router := httphandlers.NewRouter(taskService, flagManager, healthService, zapLogger)
 	
 	router.HandleFunc("/lifecycle/status", func(w http.ResponseWriter, r *http.Request) {
 		metrics := lifecycleManager.GetMetrics()

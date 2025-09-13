@@ -8,15 +8,21 @@ on:
   workflow_dispatch:
 
 env:
-  GO_VERSION: '1.21'
+  GO_VERSION: '1.22'
+  GOLANGCI_LINT_VERSION: v1.55.2
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 permissions:
   contents: read
   packages: write
   security-events: write
   actions: read
+  checks: write
+  pull-requests: write
+  statuses: write
 
 jobs:
   # Static Code Analysis
@@ -261,6 +267,25 @@ jobs:
         REDIS_ADDR: localhost:6379
         NATS_URL: nats://localhost:4222
 
+    # Generate coverage report
+    - name: Generate coverage report
+      run: |
+        COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+        echo "Coverage: $COVERAGE%"
+        echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
+        
+        # Enforce minimum coverage
+        if (( $(echo "$COVERAGE < 95" | bc -l) )); then
+          echo "❌ Coverage below target (95%): $COVERAGE%"
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "❌ Coverage below minimum (80%): $COVERAGE%"
+            exit 1
+          fi
+          echo "⚠️  Coverage below target but acceptable"
+        else
+          echo "✅ Coverage meets target: $COVERAGE%"
+        fi
+
     # Upload coverage to Codecov
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -268,6 +293,15 @@ jobs:
         file: ./coverage.out
         flags: unittests
         name: codecov-umbrella
+        token: ${{ env.CODECOV_TOKEN }}
+        fail_ci_if_error: false
+        verbose: true
+
+    # Coverage badge
+    - name: Create coverage badge
+      if: github.ref == 'refs/heads/main'
+      run: |
+        curl -X POST "https://img.shields.io/badge/coverage-${COVERAGE}%25-$([ $(echo "$COVERAGE >= 95" | bc -l) -eq 1 ] && echo 'brightgreen' || [ $(echo "$COVERAGE >= 80" | bc -l) -eq 1 ] && echo 'yellow' || echo 'red')" > coverage-badge.svg
 
   # Protocol Buffer Validation
   protobuf-check:
