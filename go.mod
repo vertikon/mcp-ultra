@@ -35,7 +35,6 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.53.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/lib/pq/otelpq v0.53.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/go-redis/redis/v8/otelredis v0.53.0
-	go.opentelemetry.io/otel/semconv/v1.21.0 v1.21.0
 	
 	// Other dependencies
 	github.com/cespare/xxhash/v2 v2.2.0
