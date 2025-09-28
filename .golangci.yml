@@ -1,0 +1,313 @@
+# MCP Ultra - golangci-lint configuration
+# Comprehensive linting with security focus
+
+run:
+  timeout: 5m
+  tests: true
+  build-tags:
+    - integration
+    - unit
+  skip-dirs:
+    - vendor
+    - third_party
+    - testdata
+    - examples
+    - mocks
+  skip-files:
+    - ".*\\.pb\\.go$"
+    - ".*\\.gen\\.go$"
+    - "mock_.*\\.go$"
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+
+linters:
+  enable-all: false
+  enable:
+    # Security
+    - gosec
+    - gocritic
+
+    # Bugs
+    - staticcheck
+    - typecheck
+    - nilnil
+    - exhaustive
+    - bodyclose
+    - noctx
+    - durationcheck
+    - errorlint
+    - sqlclosecheck
+
+    # Performance
+    - prealloc
+    - maligned
+    - govet
+
+    # Style & Convention
+    - gofmt
+    - goimports
+    - gci
+    - goconst
+    - misspell
+    - unparam
+    - dogsled
+    - nakedret
+    - stylecheck
+    - revive
+
+    # Complexity
+    - funlen
+    - gocognit
+    - gocyclo
+    - cyclop
+    - nestif
+    - maintidx
+
+    # Dependencies
+    - depguard
+    - gomodguard
+
+    # Documentation
+    - godot
+    - godox
+
+  disable:
+    - wsl
+    - wrapcheck
+    - testpackage
+    - paralleltest
+    - tparallel
+    - gomnd
+    - lll
+    - dupl
+    - gochecknoglobals
+    - gochecknoinits
+    - interfacer
+    - scopelint
+    - golint
+    - maligned
+    - exhaustivestruct
+    - nlreturn
+    - nolintlint
+    - forbidigo
+
+linters-settings:
+  # Security - gosec
+  gosec:
+    severity: medium
+    confidence: medium
+    excludes:
+      - G101 # Hardcoded credentials - handled by gitleaks
+      - G401 # Use of weak crypto - acceptable for non-sensitive
+      - G501 # Imported blacklisted crypto - md5 for checksums ok
+    config:
+      G101:
+        pattern: "(?i)passwd|pass|password|pwd|secret|token|key|api"
+      G104:
+        exclude:
+          - "os.Remove"
+          - "io.Copy"
+          - "fmt.Printf"
+          - "fmt.Fprintf"
+
+  # Code Quality
+  govet:
+    check-shadowing: true
+    enable-all: true
+    disable:
+      - fieldalignment # too many false positives
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - performance
+      - style
+      - opinionated
+    disabled-checks:
+      - commentedOutCode
+      - whyNoLint
+      - paramTypeCombine
+
+  staticcheck:
+    go: "1.22"
+    checks: ["all", "-ST1000", "-ST1003"]
+
+  stylecheck:
+    go: "1.22"
+    checks: ["all", "-ST1000", "-ST1003"]
+
+  revive:
+    severity: warning
+    enable-all-rules: false
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unreachable-code
+      - name: redefines-builtin-id
+
+  # Formatting
+  gofmt:
+    simplify: true
+
+  goimports:
+    local-prefixes: github.com/vertikon/mcp-ultra
+
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/vertikon/mcp-ultra)
+    skip-generated: true
+
+  # Complexity
+  funlen:
+    lines: 100
+    statements: 60
+
+  gocognit:
+    min-complexity: 20
+
+  gocyclo:
+    min-complexity: 15
+
+  cyclop:
+    max-complexity: 15
+    package-average: 10
+    skip-tests: true
+
+  nestif:
+    min-complexity: 4
+
+  # Error handling
+  errorlint:
+    errorf: true
+    asserts: true
+    comparison: true
+
+  # Performance
+  prealloc:
+    simple: true
+    range-loops: true
+    for-loops: true
+
+  # Dependencies
+  depguard:
+    list-type: blacklist
+    include-go-root: false
+    packages:
+      - github.com/sirupsen/logrus # use go.uber.org/zap
+      - github.com/pkg/errors # use stdlib errors with %w
+
+  gomodguard:
+    blocked:
+      modules:
+        - github.com/pkg/errors:
+            recommendations:
+              - errors
+              - fmt
+            reason: "use stdlib error handling"
+      versions:
+        - github.com/docker/docker:
+            version: "< 20.10.0"
+            reason: "security vulnerabilities"
+
+  # Other
+  nakedret:
+    max-func-lines: 30
+
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+
+  misspell:
+    locale: US
+
+  unparam:
+    check-exported: false
+
+  dogsled:
+    max-blank-identifiers: 2
+
+  godot:
+    scope: declarations
+    capital: true
+    period: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false
+  exclude-use-default: false
+
+  exclude-rules:
+    # Exclude test files from some linters
+    - path: _test\.go
+      linters:
+        - gosec
+        - funlen
+        - gocognit
+        - gocyclo
+        - errcheck
+        - dupl
+        - goconst
+
+    # Exclude generated files
+    - path: \.(pb|gen)\.go
+      linters:
+        - all
+
+    # Exclude vendored files
+    - path: vendor
+      linters:
+        - all
+
+    # Allow TODOs in code
+    - linters:
+        - godox
+      text: "TODO|FIXME|BUG"
+
+    # Allow long lines in generated files
+    - path: \.(gen|pb)\.go
+      linters:
+        - lll
+
+    # Exclude certain security rules in test
+    - path: _test\.go
+      text: "G404" # Insecure random for tests
+
+severity:
+  default-severity: warning
+  case-sensitive: false
+  rules:
+    - linters:
+        - gosec
+      severity: error
+    - linters:
+        - staticcheck
+        - typecheck
+      severity: error
+    - linters:
+        - govet
+        - errcheck
+      severity: error
