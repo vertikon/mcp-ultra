@@ -14,33 +14,33 @@ func DefaultSLOs() []*SLO {
 			Type:        SLOTypeAvailability,
 			Service:     "mcp-ultra",
 			Component:   "api",
-			
+
 			Target:            99.9,
 			WarningThreshold:  99.5,
 			CriticalThreshold: 99.0,
-			
+
 			Query: `(
 				sum(rate(http_requests_total{job="mcp-ultra", code!~"5.."}[5m])) /
 				sum(rate(http_requests_total{job="mcp-ultra"}[5m]))
 			) * 100`,
-			
+
 			ErrorBudgetQuery: `(
 				(1 - (
 					sum(rate(http_requests_total{job="mcp-ultra", code!~"5.."}[30d])) /
 					sum(rate(http_requests_total{job="mcp-ultra"}[30d]))
 				)) * 100
 			) / 0.1 * 100`, // 0.1% error budget for 99.9% target
-			
+
 			BurnRateQuery: `(
 				1 - (
 					sum(rate(http_requests_total{job="mcp-ultra", code!~"5.."}[1h])) /
 					sum(rate(http_requests_total{job="mcp-ultra"}[1h]))
 				)
 			) / 0.001`, // Burn rate relative to 99.9% target
-			
+
 			EvaluationWindow: 5 * time.Minute,
 			ComplianceWindow: 30 * 24 * time.Hour,
-			
+
 			AlertingRules: []AlertRule{
 				{
 					Name:       "SLOErrorBudgetLow",
@@ -77,16 +77,16 @@ func DefaultSLOs() []*SLO {
 					Enabled: true,
 				},
 			},
-			
+
 			Tags: map[string]string{
 				"team":        "platform",
 				"tier":        "1",
 				"criticality": "high",
 			},
-			
+
 			Enabled: true,
 		},
-		
+
 		// API Latency SLO - 95% of requests under 500ms
 		{
 			Name:        "api_latency_p95",
@@ -94,20 +94,20 @@ func DefaultSLOs() []*SLO {
 			Type:        SLOTypeLatency,
 			Service:     "mcp-ultra",
 			Component:   "api",
-			
+
 			Target:            95.0,
 			WarningThreshold:  90.0,
 			CriticalThreshold: 85.0,
-			
+
 			Query: `(
 				histogram_quantile(0.95, 
 					sum(rate(http_request_duration_seconds_bucket{job="mcp-ultra"}[5m])) by (le)
 				) < 0.5
 			) * 100`,
-			
+
 			EvaluationWindow: 5 * time.Minute,
 			ComplianceWindow: 7 * 24 * time.Hour, // Weekly window for latency
-			
+
 			AlertingRules: []AlertRule{
 				{
 					Name:       "SLOLatencyDegraded",
@@ -127,16 +127,16 @@ func DefaultSLOs() []*SLO {
 					Enabled: true,
 				},
 			},
-			
+
 			Tags: map[string]string{
 				"team":        "platform",
 				"tier":        "2",
 				"criticality": "medium",
 			},
-			
+
 			Enabled: true,
 		},
-		
+
 		// gRPC Availability SLO - 99.9% success rate
 		{
 			Name:        "grpc_availability",
@@ -144,19 +144,19 @@ func DefaultSLOs() []*SLO {
 			Type:        SLOTypeAvailability,
 			Service:     "mcp-ultra",
 			Component:   "grpc",
-			
+
 			Target:            99.9,
 			WarningThreshold:  99.5,
 			CriticalThreshold: 99.0,
-			
+
 			Query: `(
 				sum(rate(grpc_server_handled_total{job="mcp-ultra", grpc_code="OK"}[5m])) /
 				sum(rate(grpc_server_handled_total{job="mcp-ultra"}[5m]))
 			) * 100`,
-			
+
 			EvaluationWindow: 5 * time.Minute,
 			ComplianceWindow: 30 * 24 * time.Hour,
-			
+
 			AlertingRules: []AlertRule{
 				{
 					Name:       "SLOgRPCErrorBudgetLow",
@@ -176,16 +176,16 @@ func DefaultSLOs() []*SLO {
 					Enabled: true,
 				},
 			},
-			
+
 			Tags: map[string]string{
 				"team":        "platform",
 				"tier":        "1",
 				"criticality": "high",
 			},
-			
+
 			Enabled: true,
 		},
-		
+
 		// Database Connection Health SLO - 99.5% availability
 		{
 			Name:        "database_availability",
@@ -193,19 +193,19 @@ func DefaultSLOs() []*SLO {
 			Type:        SLOTypeAvailability,
 			Service:     "mcp-ultra",
 			Component:   "database",
-			
+
 			Target:            99.5,
 			WarningThreshold:  99.0,
 			CriticalThreshold: 98.0,
-			
+
 			Query: `(
 				up{job="postgres"} and 
 				on (instance) pg_up{job="postgres"}
 			) * 100`,
-			
+
 			EvaluationWindow: 1 * time.Minute,
 			ComplianceWindow: 30 * 24 * time.Hour,
-			
+
 			AlertingRules: []AlertRule{
 				{
 					Name:       "SLODatabaseDown",
@@ -225,16 +225,16 @@ func DefaultSLOs() []*SLO {
 					Enabled: true,
 				},
 			},
-			
+
 			Tags: map[string]string{
 				"team":        "platform",
 				"tier":        "1",
 				"criticality": "critical",
 			},
-			
+
 			Enabled: true,
 		},
-		
+
 		// Cache Hit Rate SLO - 90% cache hit rate
 		{
 			Name:        "cache_hit_rate",
@@ -242,20 +242,20 @@ func DefaultSLOs() []*SLO {
 			Type:        SLOTypeAccuracy,
 			Service:     "mcp-ultra",
 			Component:   "cache",
-			
+
 			Target:            90.0,
 			WarningThreshold:  85.0,
 			CriticalThreshold: 80.0,
-			
+
 			Query: `(
 				sum(rate(redis_keyspace_hits_total{job="redis"}[5m])) /
 				(sum(rate(redis_keyspace_hits_total{job="redis"}[5m])) + 
 				 sum(rate(redis_keyspace_misses_total{job="redis"}[5m])))
 			) * 100`,
-			
+
 			EvaluationWindow: 5 * time.Minute,
 			ComplianceWindow: 7 * 24 * time.Hour,
-			
+
 			AlertingRules: []AlertRule{
 				{
 					Name:       "SLOCacheHitRateLow",
@@ -275,16 +275,16 @@ func DefaultSLOs() []*SLO {
 					Enabled: true,
 				},
 			},
-			
+
 			Tags: map[string]string{
 				"team":        "platform",
 				"tier":        "3",
 				"criticality": "low",
 			},
-			
+
 			Enabled: true,
 		},
-		
+
 		// Task Processing Throughput SLO - 1000 tasks/minute
 		{
 			Name:        "task_processing_throughput",
@@ -292,18 +292,18 @@ func DefaultSLOs() []*SLO {
 			Type:        SLOTypeThroughput,
 			Service:     "mcp-ultra",
 			Component:   "task_processor",
-			
+
 			Target:            95.0, // 95% of target throughput
 			WarningThreshold:  90.0,
 			CriticalThreshold: 80.0,
-			
+
 			Query: `(
 				sum(rate(task_processed_total{job="mcp-ultra"}[5m])) * 60 >= 950
 			) * 100`, // At least 950 tasks/minute (95% of 1000)
-			
+
 			EvaluationWindow: 5 * time.Minute,
 			ComplianceWindow: 24 * time.Hour, // Daily window for throughput
-			
+
 			AlertingRules: []AlertRule{
 				{
 					Name:       "SLOThroughputLow",
@@ -323,16 +323,16 @@ func DefaultSLOs() []*SLO {
 					Enabled: true,
 				},
 			},
-			
+
 			Tags: map[string]string{
 				"team":        "platform",
 				"tier":        "2",
 				"criticality": "medium",
 			},
-			
+
 			Enabled: true,
 		},
-		
+
 		// Compliance Data Processing SLO - 99.9% accuracy
 		{
 			Name:        "compliance_accuracy",
@@ -340,19 +340,19 @@ func DefaultSLOs() []*SLO {
 			Type:        SLOTypeAccuracy,
 			Service:     "mcp-ultra",
 			Component:   "compliance",
-			
+
 			Target:            99.9,
 			WarningThreshold:  99.5,
 			CriticalThreshold: 99.0,
-			
+
 			Query: `(
 				sum(rate(compliance_events_processed_total{job="mcp-ultra", status="success"}[5m])) /
 				sum(rate(compliance_events_processed_total{job="mcp-ultra"}[5m]))
 			) * 100`,
-			
+
 			EvaluationWindow: 5 * time.Minute,
 			ComplianceWindow: 30 * 24 * time.Hour,
-			
+
 			AlertingRules: []AlertRule{
 				{
 					Name:       "SLOComplianceAccuracyDegraded",
@@ -372,13 +372,13 @@ func DefaultSLOs() []*SLO {
 					Enabled: true,
 				},
 			},
-			
+
 			Tags: map[string]string{
 				"team":        "compliance",
 				"tier":        "1",
 				"criticality": "critical",
 			},
-			
+
 			Enabled: true,
 		},
 	}

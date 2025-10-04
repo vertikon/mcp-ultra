@@ -303,7 +303,7 @@ curl -H "Authorization: Bearer <token>" \
 ```bash
 # Autenticação
 POST /api/v1/auth/login
-{"email": "user@example.com", "password": "password123"}
+{"email": "user@example.com", "password": "secure_example_password"}
 
 # Listar {{entities}}
 GET /api/v1/{{entities}}?page=1&limit=10

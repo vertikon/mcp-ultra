@@ -69,49 +69,49 @@ func TestTaskUpdateStatus(t *testing.T) {
 
 func TestTaskIsValidStatus(t *testing.T) {
 	tests := []struct {
-		name        string
+		name          string
 		currentStatus TaskStatus
 		newStatus     TaskStatus
 		expected      bool
 	}{
 		{
-			name:        "Pending to InProgress",
+			name:          "Pending to InProgress",
 			currentStatus: TaskStatusPending,
 			newStatus:     TaskStatusInProgress,
 			expected:      true,
 		},
 		{
-			name:        "Pending to Cancelled",
+			name:          "Pending to Cancelled",
 			currentStatus: TaskStatusPending,
 			newStatus:     TaskStatusCancelled,
 			expected:      true,
 		},
 		{
-			name:        "Pending to Completed",
+			name:          "Pending to Completed",
 			currentStatus: TaskStatusPending,
 			newStatus:     TaskStatusCompleted,
 			expected:      false,
 		},
 		{
-			name:        "InProgress to Completed",
+			name:          "InProgress to Completed",
 			currentStatus: TaskStatusInProgress,
 			newStatus:     TaskStatusCompleted,
 			expected:      true,
 		},
 		{
-			name:        "InProgress to Cancelled",
+			name:          "InProgress to Cancelled",
 			currentStatus: TaskStatusInProgress,
 			newStatus:     TaskStatusCancelled,
 			expected:      true,
 		},
 		{
-			name:        "Completed to InProgress",
+			name:          "Completed to InProgress",
 			currentStatus: TaskStatusCompleted,
 			newStatus:     TaskStatusInProgress,
 			expected:      false,
 		},
 		{
-			name:        "Cancelled to InProgress",
+			name:          "Cancelled to InProgress",
 			currentStatus: TaskStatusCancelled,
 			newStatus:     TaskStatusInProgress,
 			expected:      false,

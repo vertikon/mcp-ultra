@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/vertikon/mcp-ultra/internal/config"
 	_ "github.com/lib/pq"
+	"github.com/vertikon/mcp-ultra/internal/config"
 )
 
 // Connect creates a PostgreSQL database connection

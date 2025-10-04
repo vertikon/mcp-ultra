@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -131,7 +130,7 @@ func (h *TaskHandlers) DeleteTask(w http.ResponseWriter, r *http.Request) {
 // ListTasks handles task listing with filters
 func (h *TaskHandlers) ListTasks(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseTaskFilter(r)
-	
+
 	tasks, total, err := h.taskService.ListTasks(r.Context(), filter)
 	if err != nil {
 		h.logger.Error("Failed to list tasks", zap.Error(err))
@@ -249,7 +248,7 @@ func (h *TaskHandlers) parseTaskFilter(r *http.Request) domain.TaskFilter {
 func (h *TaskHandlers) writeJSONResponse(w http.ResponseWriter, statusCode int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	
+
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		h.logger.Error("Failed to encode JSON response", zap.Error(err))
 	}

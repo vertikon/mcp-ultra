@@ -37,7 +37,7 @@ func TestComplianceFrameworkIntegration(t *testing.T) {
 		DataRetention: config.DataRetentionConfig{
 			Enabled:       true,
 			DefaultPeriod: time.Hour * 24 * 365 * 2, // 2 years
-			AutoDelete:    false, // Disable for testing
+			AutoDelete:    false,                    // Disable for testing
 		},
 		AuditLogging: config.AuditLoggingConfig{
 			Enabled:           true,
@@ -106,11 +106,11 @@ func TestComplianceFrameworkIntegration(t *testing.T) {
 	t.Run("FrameworkHealthCheck", func(t *testing.T) {
 		status, err := framework.GetComplianceStatus(ctx)
 		require.NoError(t, err)
-		
+
 		assert.True(t, status["enabled"].(bool))
 		assert.Equal(t, "BR", status["default_region"])
 		assert.True(t, status["lgpd_enabled"].(bool))
-		
+
 		components := status["components"].(map[string]interface{})
 		assert.True(t, components["pii_detection"].(bool))
 		assert.True(t, components["consent_mgmt"].(bool))
@@ -237,7 +237,7 @@ func TestComplianceFrameworkIntegration(t *testing.T) {
 // TestPIIManagerStandalone tests PII detection capabilities
 func TestPIIManagerStandalone(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
-	
+
 	config := compliance.PIIDetectionConfig{
 		Enabled:    true,
 		Confidence: 0.8,
@@ -262,10 +262,10 @@ func TestPIIManagerStandalone(t *testing.T) {
 
 		// Valid email should be detected and anonymized
 		assert.NotEqual(t, data["user_email"], processed["user_email"])
-		
+
 		// Invalid email should remain unchanged
 		assert.Equal(t, data["contact_email"], processed["contact_email"])
-		
+
 		// Non-email field should remain unchanged
 		assert.Equal(t, data["description"], processed["description"])
 	})
@@ -284,7 +284,7 @@ func TestPIIManagerStandalone(t *testing.T) {
 		if config.AutoMask {
 			assert.NotEqual(t, data["cpf"], processed["cpf"])
 		}
-		
+
 		// Other fields should remain unchanged
 		assert.Equal(t, data["other_field"], processed["other_field"])
 	})
@@ -302,7 +302,7 @@ func TestPIIManagerStandalone(t *testing.T) {
 // TestConsentManagerStandalone tests consent management capabilities
 func TestConsentManagerStandalone(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
-	
+
 	config := compliance.ConsentConfig{
 		Enabled:         true,
 		TTL:             time.Hour * 24, // 1 day for testing
@@ -393,7 +393,7 @@ func TestConsentManagerStandalone(t *testing.T) {
 
 	t.Run("ConsentHistory", func(t *testing.T) {
 		historySubjectID := subjectID + "-history"
-		
+
 		// Grant initial consent
 		request1 := compliance.ConsentRequest{
 			SubjectID:     historySubjectID,
@@ -433,7 +433,7 @@ func TestConsentManagerStandalone(t *testing.T) {
 // BenchmarkComplianceFramework benchmarks the performance impact of compliance processing
 func BenchmarkComplianceFramework(b *testing.B) {
 	logger, _ := zap.NewDevelopment()
-	
+
 	config := compliance.ComplianceConfig{
 		Enabled: true,
 		PIIDetection: compliance.PIIDetectionConfig{
@@ -452,7 +452,7 @@ func BenchmarkComplianceFramework(b *testing.B) {
 	// Grant consent for benchmarking
 	ctx := context.Background()
 	subjectID := "benchmark-user"
-	
+
 	consentReq := compliance.ConsentRequest{
 		SubjectID:     subjectID,
 		Purpose:       "service_provision",
@@ -472,7 +472,7 @@ func BenchmarkComplianceFramework(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	
+
 	b.Run("DataProcessing", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			_, err := framework.ProcessData(ctx, subjectID, testData, "service_provision")

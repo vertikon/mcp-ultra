@@ -35,10 +35,10 @@ func (m *MockOPAService) EvaluatePolicy(ctx context.Context, input interface{}) 
 
 func TestNewAuthService(t *testing.T) {
 	config := AuthConfig{
-		Mode:         "jwt",
-		Issuer:       "test-issuer",
-		Audience:     "test-audience",
-		TokenExpiry:  time.Hour,
+		Mode:          "jwt",
+		Issuer:        "test-issuer",
+		Audience:      "test-audience",
+		TokenExpiry:   time.Hour,
 		RefreshExpiry: time.Hour * 24,
 	}
 	logger := zap.NewNop()
@@ -590,9 +590,9 @@ func TestAuthService_JWKToRSA(t *testing.T) {
 	}{
 		{
 			name: "valid JWK parameters",
-			// These are example values - in real tests you'd use actual JWK values
-			n:           "AM7nTbTKe9LMZuWWZSlbgWyA", // Base64url encoded
-			e:           "AQAB",                    // Standard RSA exponent (65537)
+			// TEST ONLY: These are example values for testing JWK validation
+			n:           "AM7nTbTKe9LMZuWWZSlbgWyA", // TEST_RSA_MODULUS - Base64url encoded test value
+			e:           "AQAB",                     // TEST_RSA_EXPONENT - Standard RSA exponent (65537)
 			expectError: false,
 		},
 		{
@@ -603,19 +603,19 @@ func TestAuthService_JWKToRSA(t *testing.T) {
 		},
 		{
 			name:        "invalid exponent encoding",
-			n:           "AM7nTbTKe9LMZuWWZSlbgWyA",
+			n:           "AM7nTbTKe9LMZuWWZSlbgWyA", // TEST_RSA_MODULUS - test value
 			e:           "invalid-base64url!!!",
 			expectError: true,
 		},
 		{
 			name:        "empty modulus",
 			n:           "",
-			e:           "AQAB",
+			e:           "AQAB", // TEST_RSA_EXPONENT
 			expectError: true,
 		},
 		{
 			name:        "empty exponent",
-			n:           "AM7nTbTKe9LMZuWWZSlbgWyA",
+			n:           "AM7nTbTKe9LMZuWWZSlbgWyA", // TEST_RSA_MODULUS - test value
 			e:           "",
 			expectError: true,
 		},
@@ -652,7 +652,7 @@ func TestAuthService_ConcurrentAccess(t *testing.T) {
 	// Add a test key
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
-	
+
 	keyID := "test-key"
 	authService.publicKeys[keyID] = &privateKey.PublicKey
 

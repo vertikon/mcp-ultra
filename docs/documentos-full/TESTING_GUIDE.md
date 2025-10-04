@@ -655,7 +655,7 @@ jobs:
     - name: Run integration tests
       run: make test-integration
       env:
-        DATABASE_URL: postgres://postgres:test@localhost:5432/testdb?sslmode=disable
+        DATABASE_URL: postgres://postgres:${TEST_DB_PASSWORD}@localhost:5432/testdb?sslmode=disable
         REDIS_URL: redis://localhost:6379
         
     - name: Generate coverage

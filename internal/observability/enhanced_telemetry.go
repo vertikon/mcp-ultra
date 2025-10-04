@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"runtime"
+	goruntime "runtime"
 	"sync"
 	"time"
 
@@ -15,62 +15,61 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/jaeger"
-	"go.opentelemetry.io/otel/exporters/prometheus"
+	promexporter "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/instrumentation"
 	metricSDK "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/semconv/v1.21.0/semconv"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 // EnhancedTelemetryService provides comprehensive observability
 type EnhancedTelemetryService struct {
-	config          TelemetryConfig
-	logger          *zap.Logger
-	tracer          oteltrace.Tracer
-	meter           metric.Meter
-	resource        *resource.Resource
-	
+	config   TelemetryConfig
+	logger   *zap.Logger
+	tracer   oteltrace.Tracer
+	meter    metric.Meter
+	resource *resource.Resource
+
 	// Prometheus metrics
-	httpDuration     prometheus.HistogramVec
-	httpRequests     prometheus.CounterVec
+	httpDuration      prometheus.HistogramVec
+	httpRequests      prometheus.CounterVec
 	activeConnections prometheus.Gauge
-	dbConnections    prometheus.GaugeVec
-	cacheHitRatio    prometheus.GaugeVec
-	
+	dbConnections     prometheus.GaugeVec
+	cacheHitRatio     prometheus.GaugeVec
+
 	// OpenTelemetry metrics
-	requestCounter       metric.Int64Counter
-	requestDuration      metric.Float64Histogram
-	errorCounter         metric.Int64Counter
-	cpuUsage            metric.Float64ObservableGauge
-	memoryUsage         metric.Int64ObservableGauge
-	goroutineCount      metric.Int64ObservableGauge
-	
+	requestCounter  metric.Int64Counter
+	requestDuration metric.Float64Histogram
+	errorCounter    metric.Int64Counter
+	cpuUsage        metric.Float64ObservableGauge
+	memoryUsage     metric.Int64ObservableGauge
+	goroutineCount  metric.Int64ObservableGauge
+
 	// Custom business metrics
-	taskCounter         metric.Int64Counter
-	userActiveGauge     metric.Int64ObservableGauge
-	
+	taskCounter     metric.Int64Counter
+	userActiveGauge metric.Int64ObservableGauge
+
 	// Metric collection
-	metricCollectors    map[string]MetricCollector
-	collectorMutex      sync.RWMutex
-	
+	metricCollectors map[string]MetricCollector
+	collectorMutex   sync.RWMutex
+
 	// Service health
-	healthCheckers      map[string]HealthChecker
-	healthMutex         sync.RWMutex
-	lastHealthCheck     map[string]HealthResult
-	
+	healthCheckers  map[string]HealthChecker
+	healthMutex     sync.RWMutex
+	lastHealthCheck map[string]HealthResult
+
 	// Tracing
-	activeSpans         map[string]oteltrace.Span
-	spanMutex           sync.RWMutex
-	
+	activeSpans map[string]oteltrace.Span
+	spanMutex   sync.RWMutex
+
 	// Alerting
-	alertRules          map[string]AlertRule
-	alertMutex          sync.RWMutex
-	alertNotifications  chan AlertNotification
+	alertRules         map[string]AlertRule
+	alertMutex         sync.RWMutex
+	alertNotifications chan AlertNotification
 }
 
 // MetricCollector interface for custom metric collection
@@ -87,10 +86,10 @@ type HealthChecker interface {
 
 // HealthResult represents the result of a health check
 type HealthResult struct {
-	Status    string    `json:"status"`
-	Message   string    `json:"message"`
-	Duration  time.Duration `json:"duration"`
-	Timestamp time.Time `json:"timestamp"`
+	Status    string                 `json:"status"`
+	Message   string                 `json:"message"`
+	Duration  time.Duration          `json:"duration"`
+	Timestamp time.Time              `json:"timestamp"`
 	Metadata  map[string]interface{} `json:"metadata,omitempty"`
 }
 
@@ -108,10 +107,10 @@ type AlertRule struct {
 
 // AlertNotification represents an alert notification
 type AlertNotification struct {
-	Rule        AlertRule     `json:"rule"`
-	Value       float64       `json:"value"`
-	Timestamp   time.Time     `json:"timestamp"`
-	Labels      map[string]string `json:"labels"`
+	Rule      AlertRule         `json:"rule"`
+	Value     float64           `json:"value"`
+	Timestamp time.Time         `json:"timestamp"`
+	Labels    map[string]string `json:"labels"`
 }
 
 // NewEnhancedTelemetryService creates a new enhanced telemetry service
@@ -132,15 +131,15 @@ func NewEnhancedTelemetryService(config TelemetryConfig, logger *zap.Logger) (*E
 	}
 
 	service := &EnhancedTelemetryService{
-		config:              config,
-		logger:              logger,
-		resource:            res,
-		metricCollectors:    make(map[string]MetricCollector),
-		healthCheckers:      make(map[string]HealthChecker),
-		lastHealthCheck:     make(map[string]HealthResult),
-		activeSpans:         make(map[string]oteltrace.Span),
-		alertRules:          make(map[string]AlertRule),
-		alertNotifications:  make(chan AlertNotification, 1000),
+		config:             config,
+		logger:             logger,
+		resource:           res,
+		metricCollectors:   make(map[string]MetricCollector),
+		healthCheckers:     make(map[string]HealthChecker),
+		lastHealthCheck:    make(map[string]HealthResult),
+		activeSpans:        make(map[string]oteltrace.Span),
+		alertRules:         make(map[string]AlertRule),
+		alertNotifications: make(chan AlertNotification, 1000),
 	}
 
 	// Initialize tracing
@@ -207,7 +206,7 @@ func (ets *EnhancedTelemetryService) initTracing() error {
 // initMetrics initializes OpenTelemetry metrics
 func (ets *EnhancedTelemetryService) initMetrics() error {
 	// Create Prometheus exporter
-	promExporter, err := prometheus.New()
+	promExporter, err := promexporter.New()
 	if err != nil {
 		return fmt.Errorf("creating prometheus exporter: %w", err)
 	}
@@ -375,14 +374,14 @@ func (ets *EnhancedTelemetryService) initPrometheusMetrics() {
 
 // collectRuntimeMetrics collects runtime metrics
 func (ets *EnhancedTelemetryService) collectRuntimeMetrics(ctx context.Context, observer metric.Observer) error {
-	var m runtime.MemStats
-	runtime.ReadMemStats(&m)
+	var m goruntime.MemStats
+	goruntime.ReadMemStats(&m)
 
 	// Memory metrics
 	observer.ObserveInt64(ets.memoryUsage, int64(m.Alloc))
-	
+
 	// Goroutine count
-	observer.ObserveInt64(ets.goroutineCount, int64(runtime.NumGoroutine()))
+	observer.ObserveInt64(ets.goroutineCount, int64(goruntime.NumGoroutine()))
 
 	// CPU usage (simplified - in production use proper CPU monitoring)
 	observer.ObserveFloat64(ets.cpuUsage, 50.0) // Placeholder
@@ -577,7 +576,7 @@ func (ets *EnhancedTelemetryService) CreateSpanWithError(ctx context.Context, na
 func (ets *EnhancedTelemetryService) HTTPMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		
+
 		// Create span for the request
 		ctx, span := ets.StartSpan(r.Context(), fmt.Sprintf("%s %s", r.Method, r.URL.Path))
 		defer span.End()
@@ -593,16 +592,16 @@ func (ets *EnhancedTelemetryService) HTTPMiddleware(next http.Handler) http.Hand
 
 		// Wrap response writer to capture status
 		wrapped := &responseWriter{ResponseWriter: w, statusCode: 200}
-		
+
 		// Execute request with tracing context
 		next.ServeHTTP(wrapped, r.WithContext(ctx))
 
 		// Record metrics
 		duration := time.Since(start)
 		status := fmt.Sprintf("%d", wrapped.statusCode)
-		
+
 		ets.RecordRequest(r.Method, r.URL.Path, status, duration)
-		
+
 		// Update span with response info
 		span.SetAttributes(
 			attribute.Int("http.status_code", wrapped.statusCode),

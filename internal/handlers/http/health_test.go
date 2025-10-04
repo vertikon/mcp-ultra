@@ -26,7 +26,7 @@ func TestHealthService_RegisterRoutes(t *testing.T) {
 		req := httptest.NewRequest("GET", route, nil)
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
-		
+
 		// Should not return 404 (route exists)
 		assert.NotEqual(t, http.StatusNotFound, w.Code, "Route %s should be registered", route)
 	}

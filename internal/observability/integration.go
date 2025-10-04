@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"
 
 	"github.com/vertikon/mcp-ultra/internal/config"
@@ -33,32 +34,32 @@ func NewService(cfg config.TelemetryConfig, logger *zap.Logger) (*Service, error
 		ServiceVersion: cfg.ServiceVersion,
 		Environment:    cfg.Environment,
 		Debug:          cfg.Debug,
-		
+
 		// Tracing configuration
-		TracingEnabled: cfg.Tracing.Enabled,
+		TracingEnabled:    cfg.Tracing.Enabled,
 		TracingSampleRate: cfg.Tracing.SampleRate,
-		TracingMaxSpans: cfg.Tracing.MaxSpans,
-		TracingBatchSize: cfg.Tracing.BatchSize,
-		TracingTimeout: cfg.Tracing.Timeout,
-		
+		TracingMaxSpans:   cfg.Tracing.MaxSpans,
+		TracingBatchSize:  cfg.Tracing.BatchSize,
+		TracingTimeout:    cfg.Tracing.Timeout,
+
 		// Metrics configuration
-		MetricsEnabled: cfg.Metrics.Enabled,
-		MetricsPort: cfg.Metrics.Port,
-		MetricsPath: cfg.Metrics.Path,
-		MetricsInterval: cfg.Metrics.CollectInterval,
+		MetricsEnabled:   cfg.Metrics.Enabled,
+		MetricsPort:      cfg.Metrics.Port,
+		MetricsPath:      cfg.Metrics.Path,
+		MetricsInterval:  cfg.Metrics.CollectInterval,
 		HistogramBuckets: cfg.Metrics.HistogramBuckets,
-		
+
 		// Exporters configuration
-		JaegerEnabled: cfg.Exporters.Jaeger.Enabled,
+		JaegerEnabled:  cfg.Exporters.Jaeger.Enabled,
 		JaegerEndpoint: cfg.Exporters.Jaeger.Endpoint,
-		JaegerUser: cfg.Exporters.Jaeger.User,
+		JaegerUser:     cfg.Exporters.Jaeger.User,
 		JaegerPassword: cfg.Exporters.Jaeger.Password,
-		
-		OTLPEnabled: cfg.Exporters.OTLP.Enabled,
+
+		OTLPEnabled:  cfg.Exporters.OTLP.Enabled,
 		OTLPEndpoint: cfg.Exporters.OTLP.Endpoint,
 		OTLPInsecure: cfg.Exporters.OTLP.Insecure,
-		OTLPHeaders: cfg.Exporters.OTLP.Headers,
-		
+		OTLPHeaders:  cfg.Exporters.OTLP.Headers,
+
 		ConsoleEnabled: cfg.Exporters.Console.Enabled,
 	}
 
@@ -154,7 +155,12 @@ func (s *Service) RecordTaskOperation(ctx context.Context, operation, taskID str
 		return fn(ctx)
 	}
 
-	return s.telemetry.TaskOperation(ctx, operation, taskID, fn)
+	// Use BusinessOperation with task-specific attributes
+	attrs := []attribute.KeyValue{
+		attribute.String("task_id", taskID),
+		attribute.String("operation", operation),
+	}
+	return s.telemetry.BusinessOperation(ctx, "task."+operation, attrs, fn)
 }
 
 // RecordDatabaseOperation records a database operation for telemetry

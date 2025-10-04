@@ -197,10 +197,10 @@ func createTestTask() *domain.Task {
 // Test cases
 func TestTaskService_CreateTask_Success(t *testing.T) {
 	service, taskRepo, userRepo, eventRepo, cacheRepo, eventBus := createTestTaskService()
-	
+
 	creator := createTestUser()
 	assignee := createTestUser()
-	
+
 	req := CreateTaskRequest{
 		Title:       "New Task",
 		Description: "Task Description",
@@ -242,7 +242,7 @@ func TestTaskService_CreateTask_Success(t *testing.T) {
 
 func TestTaskService_CreateTask_ValidationError(t *testing.T) {
 	service, _, _, _, _, _ := createTestTaskService()
-	
+
 	req := CreateTaskRequest{
 		Title:     "", // Empty title should cause validation error
 		CreatedBy: uuid.New(),
@@ -261,7 +261,7 @@ func TestTaskService_CreateTask_ValidationError(t *testing.T) {
 
 func TestTaskService_CreateTask_CreatorNotFound(t *testing.T) {
 	service, _, userRepo, _, _, _ := createTestTaskService()
-	
+
 	creatorID := uuid.New()
 	req := CreateTaskRequest{
 		Title:     "Test Task",
@@ -286,10 +286,10 @@ func TestTaskService_CreateTask_CreatorNotFound(t *testing.T) {
 
 func TestTaskService_CreateTask_AssigneeNotFound(t *testing.T) {
 	service, _, userRepo, _, _, _ := createTestTaskService()
-	
+
 	creator := createTestUser()
 	assigneeID := uuid.New()
-	
+
 	req := CreateTaskRequest{
 		Title:      "Test Task",
 		CreatedBy:  creator.ID,
@@ -315,13 +315,13 @@ func TestTaskService_CreateTask_AssigneeNotFound(t *testing.T) {
 
 func TestTaskService_UpdateTask_Success(t *testing.T) {
 	service, taskRepo, userRepo, _, cacheRepo, eventBus := createTestTaskService()
-	
+
 	existingTask := createTestTask()
 	assignee := createTestUser()
-	
+
 	newTitle := "Updated Task"
 	newPriority := domain.PriorityLow
-	
+
 	req := UpdateTaskRequest{
 		Title:      &newTitle,
 		Priority:   &newPriority,
@@ -356,7 +356,7 @@ func TestTaskService_UpdateTask_Success(t *testing.T) {
 
 func TestTaskService_UpdateTask_TaskNotFound(t *testing.T) {
 	service, taskRepo, _, _, _, _ := createTestTaskService()
-	
+
 	taskID := uuid.New()
 	req := UpdateTaskRequest{}
 

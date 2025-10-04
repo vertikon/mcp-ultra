@@ -6,10 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 	"github.com/vertikon/mcp-ultra/internal/domain"
 )
 

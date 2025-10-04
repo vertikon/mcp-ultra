@@ -463,7 +463,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-changeme}
     volumes:
       - grafana-storage:/var/lib/grafana
       - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards

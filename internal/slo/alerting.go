@@ -26,28 +26,28 @@ const (
 type AlertChannel string
 
 const (
-	ChannelSlack      AlertChannel = "slack"
-	ChannelEmail      AlertChannel = "email"
-	ChannelPagerDuty  AlertChannel = "pagerduty"
-	ChannelWebhook    AlertChannel = "webhook"
-	ChannelDiscord    AlertChannel = "discord"
-	ChannelMSTeams    AlertChannel = "msteams"
+	ChannelSlack     AlertChannel = "slack"
+	ChannelEmail     AlertChannel = "email"
+	ChannelPagerDuty AlertChannel = "pagerduty"
+	ChannelWebhook   AlertChannel = "webhook"
+	ChannelDiscord   AlertChannel = "discord"
+	ChannelMSTeams   AlertChannel = "msteams"
 )
 
 // AlertingConfig holds configuration for the alerting system
 type AlertingConfig struct {
-	Enabled             bool                    `json:"enabled"`
-	DefaultChannels     []AlertChannel          `json:"default_channels"`
-	SeverityRouting     map[string][]AlertChannel `json:"severity_routing"`
-	ChannelConfigs      map[string]ChannelConfig  `json:"channel_configs"`
-	RateLimiting        RateLimitConfig         `json:"rate_limiting"`
-	EscalationPolicies  []EscalationPolicy      `json:"escalation_policies"`
-	SilenceRules        []SilenceRule           `json:"silence_rules"`
+	Enabled            bool                      `json:"enabled"`
+	DefaultChannels    []AlertChannel            `json:"default_channels"`
+	SeverityRouting    map[string][]AlertChannel `json:"severity_routing"`
+	ChannelConfigs     map[string]ChannelConfig  `json:"channel_configs"`
+	RateLimiting       RateLimitConfig           `json:"rate_limiting"`
+	EscalationPolicies []EscalationPolicy        `json:"escalation_policies"`
+	SilenceRules       []SilenceRule             `json:"silence_rules"`
 }
 
 // ChannelConfig holds configuration for specific alert channels
 type ChannelConfig struct {
-	Type       AlertChannel       `json:"type"`
+	Type       AlertChannel      `json:"type"`
 	Endpoint   string            `json:"endpoint"`
 	Headers    map[string]string `json:"headers"`
 	Templates  TemplateConfig    `json:"templates"`
@@ -58,61 +58,61 @@ type ChannelConfig struct {
 
 // TemplateConfig holds message templates for different channels
 type TemplateConfig struct {
-	Title       string `json:"title"`
-	Message     string `json:"message"`
-	Color       string `json:"color"`
-	IconEmoji   string `json:"icon_emoji"`
-	Username    string `json:"username"`
+	Title     string `json:"title"`
+	Message   string `json:"message"`
+	Color     string `json:"color"`
+	IconEmoji string `json:"icon_emoji"`
+	Username  string `json:"username"`
 }
 
 // RateLimitConfig configures rate limiting for alerts
 type RateLimitConfig struct {
-	Enabled       bool          `json:"enabled"`
-	WindowSize    time.Duration `json:"window_size"`
-	MaxAlerts     int           `json:"max_alerts"`
-	BurstLimit    int           `json:"burst_limit"`
+	Enabled    bool          `json:"enabled"`
+	WindowSize time.Duration `json:"window_size"`
+	MaxAlerts  int           `json:"max_alerts"`
+	BurstLimit int           `json:"burst_limit"`
 }
 
 // EscalationPolicy defines how alerts should be escalated
 type EscalationPolicy struct {
-	Name        string            `json:"name"`
-	Conditions  []string          `json:"conditions"`
-	Steps       []EscalationStep  `json:"steps"`
-	Enabled     bool              `json:"enabled"`
+	Name       string           `json:"name"`
+	Conditions []string         `json:"conditions"`
+	Steps      []EscalationStep `json:"steps"`
+	Enabled    bool             `json:"enabled"`
 }
 
 // EscalationStep defines a single step in an escalation policy
 type EscalationStep struct {
-	Duration time.Duration   `json:"duration"`
-	Channels []AlertChannel  `json:"channels"`
-	Message  string          `json:"message"`
+	Duration time.Duration  `json:"duration"`
+	Channels []AlertChannel `json:"channels"`
+	Message  string         `json:"message"`
 }
 
 // SilenceRule defines when alerts should be silenced
 type SilenceRule struct {
-	Name        string            `json:"name"`
-	Conditions  map[string]string `json:"conditions"`
-	StartTime   string            `json:"start_time"`
-	EndTime     string            `json:"end_time"`
-	Weekdays    []time.Weekday    `json:"weekdays"`
-	Enabled     bool              `json:"enabled"`
+	Name       string            `json:"name"`
+	Conditions map[string]string `json:"conditions"`
+	StartTime  string            `json:"start_time"`
+	EndTime    string            `json:"end_time"`
+	Weekdays   []time.Weekday    `json:"weekdays"`
+	Enabled    bool              `json:"enabled"`
 }
 
 // AlertManager manages SLO-based alerting
 type AlertManager struct {
-	config      AlertingConfig
-	logger      *zap.Logger
-	httpClient  *http.Client
-	
+	config     AlertingConfig
+	logger     *zap.Logger
+	httpClient *http.Client
+
 	// State management
 	alertHistory map[string][]AlertEvent
 	rateLimiter  map[string][]time.Time
 	silences     map[string]time.Time
 	mu           sync.RWMutex
-	
+
 	// Channels
-	alertChan   chan AlertEvent
-	stopChan    chan struct{}
+	alertChan chan AlertEvent
+	stopChan  chan struct{}
 }
 
 // NewAlertManager creates a new alert manager
@@ -135,15 +135,15 @@ func (am *AlertManager) Start(ctx context.Context) error {
 		am.logger.Info("Alert manager is disabled")
 		return nil
 	}
-	
+
 	am.logger.Info("Starting alert manager")
-	
+
 	// Start alert processing goroutine
 	go am.processAlerts(ctx)
-	
+
 	// Start cleanup goroutine
 	go am.cleanup(ctx)
-	
+
 	return nil
 }
 
@@ -157,7 +157,7 @@ func (am *AlertManager) SendAlert(alert AlertEvent) {
 	select {
 	case am.alertChan <- alert:
 	default:
-		am.logger.Warn("Alert channel full, dropping alert", 
+		am.logger.Warn("Alert channel full, dropping alert",
 			zap.String("slo", alert.SLOName),
 			zap.String("type", alert.Type))
 	}
@@ -193,7 +193,7 @@ func (am *AlertManager) processAlert(alert AlertEvent) error {
 			zap.String("type", alert.Type))
 		return nil
 	}
-	
+
 	// Apply rate limiting
 	if am.isRateLimited(alert) {
 		am.logger.Debug("Alert rate limited",
@@ -201,13 +201,13 @@ func (am *AlertManager) processAlert(alert AlertEvent) error {
 			zap.String("type", alert.Type))
 		return nil
 	}
-	
+
 	// Store in history
 	am.storeAlertHistory(alert)
-	
+
 	// Determine channels based on severity
 	channels := am.getChannelsForSeverity(alert.Severity)
-	
+
 	// Send to each channel
 	var errors []error
 	for _, channel := range channels {
@@ -215,26 +215,26 @@ func (am *AlertManager) processAlert(alert AlertEvent) error {
 			errors = append(errors, fmt.Errorf("channel %s: %w", channel, err))
 		}
 	}
-	
+
 	// Start escalation if configured
 	am.startEscalation(alert)
-	
+
 	if len(errors) > 0 {
 		return fmt.Errorf("failed to send to some channels: %v", errors)
 	}
-	
+
 	return nil
 }
 
 // shouldSilence checks if an alert should be silenced
 func (am *AlertManager) shouldSilence(alert AlertEvent) bool {
 	now := time.Now()
-	
+
 	for _, rule := range am.config.SilenceRules {
 		if !rule.Enabled {
 			continue
 		}
-		
+
 		// Check conditions
 		matches := true
 		for key, value := range rule.Conditions {
@@ -253,11 +253,11 @@ func (am *AlertManager) shouldSilence(alert AlertEvent) bool {
 				}
 			}
 		}
-		
+
 		if !matches {
 			continue
 		}
-		
+
 		// Check time windows
 		if len(rule.Weekdays) > 0 {
 			found := false
@@ -271,7 +271,7 @@ func (am *AlertManager) shouldSilence(alert AlertEvent) bool {
 				continue
 			}
 		}
-		
+
 		// Check time of day
 		if rule.StartTime != "" && rule.EndTime != "" {
 			start, err := time.Parse("15:04", rule.StartTime)
@@ -282,20 +282,20 @@ func (am *AlertManager) shouldSilence(alert AlertEvent) bool {
 			if err != nil {
 				continue
 			}
-			
+
 			currentTime := time.Date(0, 1, 1, now.Hour(), now.Minute(), 0, 0, time.UTC)
 			startTime := time.Date(0, 1, 1, start.Hour(), start.Minute(), 0, 0, time.UTC)
 			endTime := time.Date(0, 1, 1, end.Hour(), end.Minute(), 0, 0, time.UTC)
-			
+
 			if currentTime.Before(startTime) || currentTime.After(endTime) {
 				continue
 			}
 		}
-		
+
 		// Rule matches, silence the alert
 		return true
 	}
-	
+
 	return false
 }
 
@@ -304,14 +304,14 @@ func (am *AlertManager) isRateLimited(alert AlertEvent) bool {
 	if !am.config.RateLimiting.Enabled {
 		return false
 	}
-	
+
 	am.mu.Lock()
 	defer am.mu.Unlock()
-	
+
 	key := fmt.Sprintf("%s:%s", alert.SLOName, alert.Type)
 	now := time.Now()
 	windowStart := now.Add(-am.config.RateLimiting.WindowSize)
-	
+
 	// Clean old entries
 	var recentAlerts []time.Time
 	for _, alertTime := range am.rateLimiter[key] {
@@ -319,16 +319,16 @@ func (am *AlertManager) isRateLimited(alert AlertEvent) bool {
 			recentAlerts = append(recentAlerts, alertTime)
 		}
 	}
-	
+
 	// Check if we're at the limit
 	if len(recentAlerts) >= am.config.RateLimiting.MaxAlerts {
 		return true
 	}
-	
+
 	// Add current alert
 	recentAlerts = append(recentAlerts, now)
 	am.rateLimiter[key] = recentAlerts
-	
+
 	return false
 }
 
@@ -336,10 +336,10 @@ func (am *AlertManager) isRateLimited(alert AlertEvent) bool {
 func (am *AlertManager) storeAlertHistory(alert AlertEvent) {
 	am.mu.Lock()
 	defer am.mu.Unlock()
-	
+
 	key := alert.SLOName
 	am.alertHistory[key] = append(am.alertHistory[key], alert)
-	
+
 	// Keep only recent history (last 100 alerts per SLO)
 	if len(am.alertHistory[key]) > 100 {
 		am.alertHistory[key] = am.alertHistory[key][len(am.alertHistory[key])-100:]
@@ -361,7 +361,7 @@ func (am *AlertManager) sendToChannel(alert AlertEvent, channel AlertChannel) er
 	if !exists || !config.Enabled {
 		return fmt.Errorf("channel %s not configured or disabled", channel)
 	}
-	
+
 	switch channel {
 	case ChannelSlack:
 		return am.sendToSlack(alert, config)
@@ -386,10 +386,10 @@ func (am *AlertManager) sendToSlack(alert AlertEvent, config ChannelConfig) erro
 	if config.Templates.Color != "" {
 		color = config.Templates.Color
 	}
-	
+
 	title := am.renderTemplate(config.Templates.Title, alert)
 	message := am.renderTemplate(config.Templates.Message, alert)
-	
+
 	payload := map[string]interface{}{
 		"username":   config.Templates.Username,
 		"icon_emoji": config.Templates.IconEmoji,
@@ -419,7 +419,7 @@ func (am *AlertManager) sendToSlack(alert AlertEvent, config ChannelConfig) erro
 			},
 		},
 	}
-	
+
 	return am.sendHTTPPayload(config.Endpoint, payload, config.Headers, config.Timeout)
 }
 
@@ -428,7 +428,7 @@ func (am *AlertManager) sendToDiscord(alert AlertEvent, config ChannelConfig) er
 	color := am.getSeverityColorInt(alert.Severity)
 	title := am.renderTemplate(config.Templates.Title, alert)
 	message := am.renderTemplate(config.Templates.Message, alert)
-	
+
 	payload := map[string]interface{}{
 		"username": config.Templates.Username,
 		"embeds": []map[string]interface{}{
@@ -457,7 +457,7 @@ func (am *AlertManager) sendToDiscord(alert AlertEvent, config ChannelConfig) er
 			},
 		},
 	}
-	
+
 	return am.sendHTTPPayload(config.Endpoint, payload, config.Headers, config.Timeout)
 }
 
@@ -472,7 +472,7 @@ func (am *AlertManager) sendToWebhook(alert AlertEvent, config ChannelConfig) er
 		"labels":      alert.Labels,
 		"annotations": alert.Annotations,
 	}
-	
+
 	return am.sendHTTPPayload(config.Endpoint, payload, config.Headers, config.Timeout)
 }
 
@@ -506,28 +506,28 @@ func (am *AlertManager) sendHTTPPayload(endpoint string, payload interface{}, he
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
-	
+
 	client := &http.Client{Timeout: timeout}
 	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
-	
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("HTTP error: %s", resp.Status)
 	}
-	
+
 	return nil
 }
 
@@ -537,18 +537,18 @@ func (am *AlertManager) startEscalation(alert AlertEvent) {
 		if !policy.Enabled {
 			continue
 		}
-		
+
 		// Check if alert matches escalation conditions
 		matches := false
 		for _, condition := range policy.Conditions {
-			if strings.Contains(condition, alert.SLOName) || 
-			   strings.Contains(condition, alert.Severity) ||
-			   strings.Contains(condition, alert.Type) {
+			if strings.Contains(condition, alert.SLOName) ||
+				strings.Contains(condition, alert.Severity) ||
+				strings.Contains(condition, alert.Type) {
 				matches = true
 				break
 			}
 		}
-		
+
 		if matches {
 			go am.executeEscalation(alert, policy)
 			break // Only one escalation policy per alert
@@ -563,15 +563,15 @@ func (am *AlertManager) executeEscalation(alert AlertEvent, policy EscalationPol
 		if i > 0 {
 			time.Sleep(step.Duration)
 		}
-		
+
 		// Check if alert is resolved
 		// TODO: Implement resolution checking
-		
+
 		// Send escalation alert
 		escalationAlert := alert
 		escalationAlert.Message = step.Message
 		escalationAlert.Type = fmt.Sprintf("%s_escalation_step_%d", alert.Type, i+1)
-		
+
 		for _, channel := range step.Channels {
 			if err := am.sendToChannel(escalationAlert, channel); err != nil {
 				am.logger.Error("Failed to send escalation alert",
@@ -588,7 +588,7 @@ func (am *AlertManager) executeEscalation(alert AlertEvent, policy EscalationPol
 func (am *AlertManager) cleanup(ctx context.Context) {
 	ticker := time.NewTicker(1 * time.Hour)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -605,10 +605,10 @@ func (am *AlertManager) cleanup(ctx context.Context) {
 func (am *AlertManager) performCleanup() {
 	am.mu.Lock()
 	defer am.mu.Unlock()
-	
+
 	now := time.Now()
 	cutoff := now.Add(-24 * time.Hour) // Keep 24 hours of data
-	
+
 	// Cleanup rate limiter
 	for key, alerts := range am.rateLimiter {
 		var recent []time.Time
@@ -619,7 +619,7 @@ func (am *AlertManager) performCleanup() {
 		}
 		am.rateLimiter[key] = recent
 	}
-	
+
 	// Cleanup silences
 	for key, silenceTime := range am.silences {
 		if silenceTime.Before(cutoff) {
@@ -634,7 +634,7 @@ func (am *AlertManager) renderTemplate(template string, alert AlertEvent) string
 	if template == "" {
 		return fmt.Sprintf("[%s] %s: %s", alert.Severity, alert.SLOName, alert.Message)
 	}
-	
+
 	// Simple template rendering - replace placeholders
 	result := template
 	result = strings.ReplaceAll(result, "{{.SLOName}}", alert.SLOName)
@@ -642,7 +642,7 @@ func (am *AlertManager) renderTemplate(template string, alert AlertEvent) string
 	result = strings.ReplaceAll(result, "{{.Severity}}", alert.Severity)
 	result = strings.ReplaceAll(result, "{{.Message}}", alert.Message)
 	result = strings.ReplaceAll(result, "{{.Timestamp}}", alert.Timestamp.Format(time.RFC3339))
-	
+
 	return result
 }
 
@@ -676,7 +676,7 @@ func (am *AlertManager) getSeverityColorInt(severity string) int {
 func (am *AlertManager) GetAlertHistory(sloName string) []AlertEvent {
 	am.mu.RLock()
 	defer am.mu.RUnlock()
-	
+
 	return am.alertHistory[sloName]
 }
 
@@ -684,7 +684,7 @@ func (am *AlertManager) GetAlertHistory(sloName string) []AlertEvent {
 func (am *AlertManager) GetAllAlertHistory() map[string][]AlertEvent {
 	am.mu.RLock()
 	defer am.mu.RUnlock()
-	
+
 	result := make(map[string][]AlertEvent)
 	for key, alerts := range am.alertHistory {
 		result[key] = alerts

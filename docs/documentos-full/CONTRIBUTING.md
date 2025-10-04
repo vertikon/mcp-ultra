@@ -272,7 +272,7 @@ func TestUserService_CreateUser(t *testing.T) {
     service := NewUserService(userRepo)
     
     // Act
-    user, err := service.CreateUser(ctx, "john@example.com", "password123")
+    user, err := service.CreateUser(ctx, "john@example.com", "secure_example_password")
     
     // Assert
     assert.NoError(t, err)

@@ -47,6 +47,12 @@ config/secrets.yaml
 *.pem
 *.crt
 
+# Security Scanner Exclusions
+# Exclude files that contain template/example secrets (not real secrets)
+scripts/generate-secrets.go
+deploy/k8s/secrets.template.yaml
+secrets-inventory.txt
+
 # Log files
 *.log
 logs/

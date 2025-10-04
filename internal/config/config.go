@@ -28,16 +28,16 @@ type Config struct {
 
 // ComplianceConfig holds all compliance-related configuration
 type ComplianceConfig struct {
-	Enabled          bool                    `yaml:"enabled" envconfig:"COMPLIANCE_ENABLED" default:"true"`
-	DefaultRegion    string                  `yaml:"default_region" envconfig:"DEFAULT_REGION" default:"BR"`
-	PIIDetection     PIIDetectionConfig      `yaml:"pii_detection"`
-	Consent          ConsentConfig           `yaml:"consent"`
-	DataRetention    DataRetentionConfig     `yaml:"data_retention"`
-	AuditLogging     AuditLoggingConfig      `yaml:"audit_logging"`
-	LGPD             LGPDConfig              `yaml:"lgpd"`
-	GDPR             GDPRConfig              `yaml:"gdpr"`
-	Anonymization    AnonymizationConfig     `yaml:"anonymization"`
-	DataRights       DataRightsConfig        `yaml:"data_rights"`
+	Enabled       bool                `yaml:"enabled" envconfig:"COMPLIANCE_ENABLED" default:"true"`
+	DefaultRegion string              `yaml:"default_region" envconfig:"DEFAULT_REGION" default:"BR"`
+	PIIDetection  PIIDetectionConfig  `yaml:"pii_detection"`
+	Consent       ConsentConfig       `yaml:"consent"`
+	DataRetention DataRetentionConfig `yaml:"data_retention"`
+	AuditLogging  AuditLoggingConfig  `yaml:"audit_logging"`
+	LGPD          LGPDConfig          `yaml:"lgpd"`
+	GDPR          GDPRConfig          `yaml:"gdpr"`
+	Anonymization AnonymizationConfig `yaml:"anonymization"`
+	DataRights    DataRightsConfig    `yaml:"data_rights"`
 }
 
 // PIIDetectionConfig configures PII detection and classification
@@ -59,11 +59,11 @@ type ConsentConfig struct {
 
 // DataRetentionConfig configures data retention policies
 type DataRetentionConfig struct {
-	Enabled         bool                         `yaml:"enabled" default:"true"`
-	DefaultPeriod   time.Duration                `yaml:"default_period" default:"2y"`
-	CategoryPeriods map[string]time.Duration     `yaml:"category_periods"`
-	AutoDelete      bool                         `yaml:"auto_delete" default:"true"`
-	BackupRetention time.Duration                `yaml:"backup_retention" default:"7y"`
+	Enabled         bool                     `yaml:"enabled" default:"true"`
+	DefaultPeriod   time.Duration            `yaml:"default_period" default:"2y"`
+	CategoryPeriods map[string]time.Duration `yaml:"category_periods"`
+	AutoDelete      bool                     `yaml:"auto_delete" default:"true"`
+	BackupRetention time.Duration            `yaml:"backup_retention" default:"7y"`
 }
 
 // AuditLoggingConfig configures compliance audit logging
@@ -78,21 +78,21 @@ type AuditLoggingConfig struct {
 
 // LGPDConfig specific configuration for Brazilian LGPD compliance
 type LGPDConfig struct {
-	Enabled         bool     `yaml:"enabled" default:"true"`
-	DPOContact      string   `yaml:"dpo_contact"`
-	LegalBasis      []string `yaml:"legal_basis"`
-	DataCategories  []string `yaml:"data_categories"`
-	SharedThirdParty bool    `yaml:"shared_third_party" default:"false"`
+	Enabled          bool     `yaml:"enabled" default:"true"`
+	DPOContact       string   `yaml:"dpo_contact"`
+	LegalBasis       []string `yaml:"legal_basis"`
+	DataCategories   []string `yaml:"data_categories"`
+	SharedThirdParty bool     `yaml:"shared_third_party" default:"false"`
 }
 
 // GDPRConfig specific configuration for European GDPR compliance
 type GDPRConfig struct {
-	Enabled           bool     `yaml:"enabled" default:"true"`
-	DPOContact        string   `yaml:"dpo_contact"`
-	LegalBasis        []string `yaml:"legal_basis"`
-	DataCategories    []string `yaml:"data_categories"`
-	CrossBorderTransfer bool   `yaml:"cross_border_transfer" default:"false"`
-	AdequacyDecisions []string `yaml:"adequacy_decisions"`
+	Enabled             bool     `yaml:"enabled" default:"true"`
+	DPOContact          string   `yaml:"dpo_contact"`
+	LegalBasis          []string `yaml:"legal_basis"`
+	DataCategories      []string `yaml:"data_categories"`
+	CrossBorderTransfer bool     `yaml:"cross_border_transfer" default:"false"`
+	AdequacyDecisions   []string `yaml:"adequacy_decisions"`
 }
 
 // AnonymizationConfig configures data anonymization
@@ -107,11 +107,11 @@ type AnonymizationConfig struct {
 
 // DataRightsConfig configures individual data rights handling
 type DataRightsConfig struct {
-	Enabled          bool          `yaml:"enabled" default:"true"`
-	ResponseTime     time.Duration `yaml:"response_time" default:"720h"` // 30 days
-	AutoFulfillment  bool          `yaml:"auto_fulfillment" default:"false"`
-	VerificationRequired bool      `yaml:"verification_required" default:"true"`
-	NotificationChannels []string  `yaml:"notification_channels"`
+	Enabled              bool          `yaml:"enabled" default:"true"`
+	ResponseTime         time.Duration `yaml:"response_time" default:"720h"` // 30 days
+	AutoFulfillment      bool          `yaml:"auto_fulfillment" default:"false"`
+	VerificationRequired bool          `yaml:"verification_required" default:"true"`
+	NotificationChannels []string      `yaml:"notification_channels"`
 }
 
 // ServerConfig holds HTTP server configuration
@@ -124,11 +124,11 @@ type ServerConfig struct {
 
 // GRPCConfig holds gRPC server configuration
 type GRPCConfig struct {
-	Port               int           `yaml:"port" envconfig:"GRPC_PORT" default:"9656"`
-	MaxRecvMessageSize int           `yaml:"max_recv_message_size" default:"4194304"` // 4MB
-	MaxSendMessageSize int           `yaml:"max_send_message_size" default:"4194304"` // 4MB
-	ConnectionTimeout  time.Duration `yaml:"connection_timeout" default:"30s"`
-	ShutdownTimeout    time.Duration `yaml:"shutdown_timeout" default:"30s"`
+	Port               int             `yaml:"port" envconfig:"GRPC_PORT" default:"9656"`
+	MaxRecvMessageSize int             `yaml:"max_recv_message_size" default:"4194304"` // 4MB
+	MaxSendMessageSize int             `yaml:"max_send_message_size" default:"4194304"` // 4MB
+	ConnectionTimeout  time.Duration   `yaml:"connection_timeout" default:"30s"`
+	ShutdownTimeout    time.Duration   `yaml:"shutdown_timeout" default:"30s"`
 	Keepalive          KeepaliveConfig `yaml:"keepalive"`
 }
 
@@ -179,48 +179,48 @@ type NATSConfig struct {
 
 // TelemetryConfig holds comprehensive telemetry configuration
 type TelemetryConfig struct {
-	Enabled       bool          `yaml:"enabled" envconfig:"TELEMETRY_ENABLED" default:"true"`
-	ServiceName   string        `yaml:"service_name" envconfig:"SERVICE_NAME" default:"mcp-ultra"`
-	ServiceVersion string       `yaml:"service_version" envconfig:"SERVICE_VERSION" default:"1.0.0"`
-	Environment   string        `yaml:"environment" envconfig:"ENVIRONMENT" default:"development"`
-	Debug         bool          `yaml:"debug" envconfig:"TELEMETRY_DEBUG" default:"false"`
-	
+	Enabled        bool   `yaml:"enabled" envconfig:"TELEMETRY_ENABLED" default:"true"`
+	ServiceName    string `yaml:"service_name" envconfig:"SERVICE_NAME" default:"mcp-ultra"`
+	ServiceVersion string `yaml:"service_version" envconfig:"SERVICE_VERSION" default:"1.0.0"`
+	Environment    string `yaml:"environment" envconfig:"ENVIRONMENT" default:"development"`
+	Debug          bool   `yaml:"debug" envconfig:"TELEMETRY_DEBUG" default:"false"`
+
 	// Tracing configuration
-	Tracing       TracingConfig `yaml:"tracing"`
-	
+	Tracing TracingConfig `yaml:"tracing"`
+
 	// Metrics configuration
-	Metrics       MetricsConfig `yaml:"metrics"`
-	
+	Metrics MetricsConfig `yaml:"metrics"`
+
 	// Export configuration
-	Exporters     ExportersConfig `yaml:"exporters"`
+	Exporters ExportersConfig `yaml:"exporters"`
 }
 
 // TracingConfig holds distributed tracing configuration
 type TracingConfig struct {
-	Enabled     bool    `yaml:"enabled" envconfig:"TRACING_ENABLED" default:"true"`
-	SampleRate  float64 `yaml:"sample_rate" envconfig:"TRACING_SAMPLE_RATE" default:"0.1"`
-	MaxSpans    int     `yaml:"max_spans" envconfig:"TRACING_MAX_SPANS" default:"1000"`
-	BatchSize   int     `yaml:"batch_size" envconfig:"TRACING_BATCH_SIZE" default:"512"`
-	Timeout     time.Duration `yaml:"timeout" envconfig:"TRACING_TIMEOUT" default:"5s"`
+	Enabled    bool          `yaml:"enabled" envconfig:"TRACING_ENABLED" default:"true"`
+	SampleRate float64       `yaml:"sample_rate" envconfig:"TRACING_SAMPLE_RATE" default:"0.1"`
+	MaxSpans   int           `yaml:"max_spans" envconfig:"TRACING_MAX_SPANS" default:"1000"`
+	BatchSize  int           `yaml:"batch_size" envconfig:"TRACING_BATCH_SIZE" default:"512"`
+	Timeout    time.Duration `yaml:"timeout" envconfig:"TRACING_TIMEOUT" default:"5s"`
 }
 
 // MetricsConfig holds metrics collection configuration
 type MetricsConfig struct {
-	Enabled         bool          `yaml:"enabled" envconfig:"METRICS_ENABLED" default:"true"`
-	Port            int           `yaml:"port" envconfig:"METRICS_PORT" default:"9090"`
-	Path            string        `yaml:"path" envconfig:"METRICS_PATH" default:"/metrics"`
-	CollectInterval time.Duration `yaml:"collect_interval" envconfig:"METRICS_INTERVAL" default:"15s"`
-	HistogramBuckets []float64    `yaml:"histogram_buckets"`
+	Enabled          bool          `yaml:"enabled" envconfig:"METRICS_ENABLED" default:"true"`
+	Port             int           `yaml:"port" envconfig:"METRICS_PORT" default:"9090"`
+	Path             string        `yaml:"path" envconfig:"METRICS_PATH" default:"/metrics"`
+	CollectInterval  time.Duration `yaml:"collect_interval" envconfig:"METRICS_INTERVAL" default:"15s"`
+	HistogramBuckets []float64     `yaml:"histogram_buckets"`
 }
 
 // ExportersConfig holds exporter configurations
 type ExportersConfig struct {
 	// Jaeger exporter (deprecated but still supported)
 	Jaeger JaegerConfig `yaml:"jaeger"`
-	
+
 	// OTLP exporter (recommended)
-	OTLP   OTLPConfig   `yaml:"otlp"`
-	
+	OTLP OTLPConfig `yaml:"otlp"`
+
 	// Console exporter (for debugging)
 	Console ConsoleConfig `yaml:"console"`
 }
@@ -235,9 +235,9 @@ type JaegerConfig struct {
 
 // OTLPConfig holds OTLP exporter configuration
 type OTLPConfig struct {
-	Enabled  bool   `yaml:"enabled" envconfig:"OTLP_ENABLED" default:"true"`
-	Endpoint string `yaml:"endpoint" envconfig:"OTLP_ENDPOINT" default:"http://localhost:4317"`
-	Insecure bool   `yaml:"insecure" envconfig:"OTLP_INSECURE" default:"true"`
+	Enabled  bool              `yaml:"enabled" envconfig:"OTLP_ENABLED" default:"true"`
+	Endpoint string            `yaml:"endpoint" envconfig:"OTLP_ENDPOINT" default:"http://localhost:4317"`
+	Insecure bool              `yaml:"insecure" envconfig:"OTLP_INSECURE" default:"true"`
 	Headers  map[string]string `yaml:"headers" envconfig:"OTLP_HEADERS"`
 }
 
@@ -248,16 +248,16 @@ type ConsoleConfig struct {
 
 // FeaturesConfig holds feature flags configuration
 type FeaturesConfig struct {
-	RefreshInterval   time.Duration `yaml:"flags_refresh_interval" default:"30s"`
-	ExperimentsEnabled bool         `yaml:"experiments_enabled" default:"true"`
+	RefreshInterval    time.Duration `yaml:"flags_refresh_interval" default:"30s"`
+	ExperimentsEnabled bool          `yaml:"experiments_enabled" default:"true"`
 }
 
 // SecurityConfig holds all security-related configuration
 type SecurityConfig struct {
-	Auth   security.AuthConfig   `yaml:"auth"`
-	OPA    security.OPAConfig    `yaml:"opa"`
-	Vault  security.VaultConfig  `yaml:"vault"`
-	TLS    security.TLSConfig    `yaml:"tls"`
+	Auth  security.AuthConfig  `yaml:"auth"`
+	OPA   security.OPAConfig   `yaml:"opa"`
+	Vault security.VaultConfig `yaml:"vault"`
+	TLS   security.TLSConfig   `yaml:"tls"`
 }
 
 // Load loads configuration from file and environment variables

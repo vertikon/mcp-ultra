@@ -8,18 +8,18 @@ import (
 
 // Task represents a task in the system
 type Task struct {
-	ID          uuid.UUID  `json:"id" db:"id"`
-	Title       string     `json:"title" db:"title"`
-	Description string     `json:"description" db:"description"`
-	Status      TaskStatus `json:"status" db:"status"`
-	Priority    Priority   `json:"priority" db:"priority"`
-	AssigneeID  *uuid.UUID `json:"assignee_id" db:"assignee_id"`
-	CreatedBy   uuid.UUID  `json:"created_by" db:"created_by"`
-	CreatedAt   time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at"`
-	CompletedAt *time.Time `json:"completed_at" db:"completed_at"`
-	DueDate     *time.Time `json:"due_date" db:"due_date"`
-	Tags        []string   `json:"tags" db:"tags"`
+	ID          uuid.UUID              `json:"id" db:"id"`
+	Title       string                 `json:"title" db:"title"`
+	Description string                 `json:"description" db:"description"`
+	Status      TaskStatus             `json:"status" db:"status"`
+	Priority    Priority               `json:"priority" db:"priority"`
+	AssigneeID  *uuid.UUID             `json:"assignee_id" db:"assignee_id"`
+	CreatedBy   uuid.UUID              `json:"created_by" db:"created_by"`
+	CreatedAt   time.Time              `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at" db:"updated_at"`
+	CompletedAt *time.Time             `json:"completed_at" db:"completed_at"`
+	DueDate     *time.Time             `json:"due_date" db:"due_date"`
+	Tags        []string               `json:"tags" db:"tags"`
 	Metadata    map[string]interface{} `json:"metadata" db:"metadata"`
 }
 
@@ -27,10 +27,10 @@ type Task struct {
 type TaskStatus string
 
 const (
-	TaskStatusPending     TaskStatus = "pending"
-	TaskStatusInProgress  TaskStatus = "in_progress"
-	TaskStatusCompleted   TaskStatus = "completed"
-	TaskStatusCancelled   TaskStatus = "cancelled"
+	TaskStatusPending    TaskStatus = "pending"
+	TaskStatusInProgress TaskStatus = "in_progress"
+	TaskStatusCompleted  TaskStatus = "completed"
+	TaskStatusCancelled  TaskStatus = "cancelled"
 )
 
 // Priority represents task priority

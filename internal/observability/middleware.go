@@ -24,17 +24,17 @@ func (ts *TelemetryService) HTTPTelemetryMiddleware(next http.Handler) http.Hand
 	return otelhttp.NewHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
-			
+
 			// Increment active connections
 			ts.IncrementActiveConnections()
 			defer ts.DecrementActiveConnections()
 
 			// Create custom response writer to capture status code
-			rw := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
-			
+			rw := &middlewareResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+
 			// Get trace span from context
 			span := trace.SpanFromContext(r.Context())
-			
+
 			// Add request attributes to span
 			span.SetAttributes(
 				attribute.String("http.method", r.Method),
@@ -59,28 +59,28 @@ func (ts *TelemetryService) HTTPTelemetryMiddleware(next http.Handler) http.Hand
 
 			// Call next handler
 			next.ServeHTTP(rw, r)
-			
+
 			duration := time.Since(start)
 			statusCode := rw.statusCode
 			statusStr := strconv.Itoa(statusCode)
-			
+
 			// Add response attributes to span
 			span.SetAttributes(
 				attribute.Int("http.status_code", statusCode),
 				attribute.Int64("http.response_content_length", rw.bytesWritten),
 				attribute.Float64("http.duration_ms", float64(duration.Nanoseconds())/1000000),
 			)
-			
+
 			// Set span status based on HTTP status code
 			if statusCode >= 400 {
 				span.SetStatus(codes.Error, http.StatusText(statusCode))
 			} else {
 				span.SetStatus(codes.Ok, "")
 			}
-			
+
 			// Record metrics
 			ts.RecordHTTPRequest(r.Method, r.URL.Path, statusStr, duration)
-			
+
 			// Log request (structured logging)
 			fields := []zap.Field{
 				zap.String("method", r.Method),
@@ -90,14 +90,14 @@ func (ts *TelemetryService) HTTPTelemetryMiddleware(next http.Handler) http.Hand
 				zap.String("remote_addr", r.RemoteAddr),
 				zap.String("user_agent", r.UserAgent()),
 			}
-			
+
 			if userID := r.Header.Get("X-User-ID"); userID != "" {
 				fields = append(fields, zap.String("user_id", userID))
 			}
 			if tenantID := r.Header.Get("X-Tenant-ID"); tenantID != "" {
 				fields = append(fields, zap.String("tenant_id", tenantID))
 			}
-			
+
 			if statusCode >= 400 {
 				ts.logger.Warn("HTTP request completed with error", fields...)
 			} else if ts.config.Debug {
@@ -113,19 +113,19 @@ func (ts *TelemetryService) HTTPTelemetryMiddleware(next http.Handler) http.Hand
 	)
 }
 
-// responseWriter wraps http.ResponseWriter to capture response data
-type responseWriter struct {
+// middlewareResponseWriter wraps http.ResponseWriter to capture response data
+type middlewareResponseWriter struct {
 	http.ResponseWriter
 	statusCode   int
 	bytesWritten int64
 }
 
-func (rw *responseWriter) WriteHeader(code int) {
+func (rw *middlewareResponseWriter) WriteHeader(code int) {
 	rw.statusCode = code
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-func (rw *responseWriter) Write(data []byte) (int, error) {
+func (rw *middlewareResponseWriter) Write(data []byte) (int, error) {
 	n, err := rw.ResponseWriter.Write(data)
 	rw.bytesWritten += int64(n)
 	return n, err
@@ -312,7 +312,7 @@ func (ts *TelemetryService) LogEvent(ctx context.Context, level string, message 
 	// Add trace context to log fields
 	span := trace.SpanFromContext(ctx)
 	spanContext := span.SpanContext()
-	
+
 	if spanContext.IsValid() {
 		fields = append(fields,
 			zap.String("trace_id", spanContext.TraceID().String()),

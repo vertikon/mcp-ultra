@@ -2,7 +2,6 @@ package compliance
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -28,58 +27,58 @@ type ConsentRepository interface {
 
 // ConsentRecord represents a consent record in storage
 type ConsentRecord struct {
-	ID              string                 `json:"id" db:"id"`
-	SubjectID       string                 `json:"subject_id" db:"subject_id"`
-	Purpose         string                 `json:"purpose" db:"purpose"`
-	Granted         bool                   `json:"granted" db:"granted"`
-	LegalBasis      string                 `json:"legal_basis" db:"legal_basis"`
-	ConsentSource   ConsentSource          `json:"consent_source" db:"consent_source"`
-	Timestamp       time.Time              `json:"timestamp" db:"timestamp"`
-	ExpiresAt       *time.Time             `json:"expires_at,omitempty" db:"expires_at"`
-	WithdrawnAt     *time.Time             `json:"withdrawn_at,omitempty" db:"withdrawn_at"`
-	IPAddress       string                 `json:"ip_address" db:"ip_address"`
-	UserAgent       string                 `json:"user_agent" db:"user_agent"`
-	ConsentString   string                 `json:"consent_string" db:"consent_string"`
-	Metadata        map[string]interface{} `json:"metadata" db:"metadata"`
-	Version         int                    `json:"version" db:"version"`
-	CreatedAt       time.Time              `json:"created_at" db:"created_at"`
-	UpdatedAt       time.Time              `json:"updated_at" db:"updated_at"`
+	ID            string                 `json:"id" db:"id"`
+	SubjectID     string                 `json:"subject_id" db:"subject_id"`
+	Purpose       string                 `json:"purpose" db:"purpose"`
+	Granted       bool                   `json:"granted" db:"granted"`
+	LegalBasis    string                 `json:"legal_basis" db:"legal_basis"`
+	ConsentSource ConsentSource          `json:"consent_source" db:"consent_source"`
+	Timestamp     time.Time              `json:"timestamp" db:"timestamp"`
+	ExpiresAt     *time.Time             `json:"expires_at,omitempty" db:"expires_at"`
+	WithdrawnAt   *time.Time             `json:"withdrawn_at,omitempty" db:"withdrawn_at"`
+	IPAddress     string                 `json:"ip_address" db:"ip_address"`
+	UserAgent     string                 `json:"user_agent" db:"user_agent"`
+	ConsentString string                 `json:"consent_string" db:"consent_string"`
+	Metadata      map[string]interface{} `json:"metadata" db:"metadata"`
+	Version       int                    `json:"version" db:"version"`
+	CreatedAt     time.Time              `json:"created_at" db:"created_at"`
+	UpdatedAt     time.Time              `json:"updated_at" db:"updated_at"`
 }
 
 // ConsentSource represents where the consent was obtained
 type ConsentSource string
 
 const (
-	ConsentSourceWeb     ConsentSource = "web"
-	ConsentSourceMobile  ConsentSource = "mobile"
-	ConsentSourceAPI     ConsentSource = "api"
-	ConsentSourcePhone   ConsentSource = "phone"
-	ConsentSourceEmail   ConsentSource = "email"
-	ConsentSourcePaper   ConsentSource = "paper"
-	ConsentSourceImport  ConsentSource = "import"
+	ConsentSourceWeb    ConsentSource = "web"
+	ConsentSourceMobile ConsentSource = "mobile"
+	ConsentSourceAPI    ConsentSource = "api"
+	ConsentSourcePhone  ConsentSource = "phone"
+	ConsentSourceEmail  ConsentSource = "email"
+	ConsentSourcePaper  ConsentSource = "paper"
+	ConsentSourceImport ConsentSource = "import"
 )
 
 // ConsentRequest represents a request to grant or update consent
 type ConsentRequest struct {
-	SubjectID       string                 `json:"subject_id"`
-	Purpose         string                 `json:"purpose"`
-	Granted         bool                   `json:"granted"`
-	LegalBasis      string                 `json:"legal_basis"`
-	ConsentSource   ConsentSource          `json:"consent_source"`
-	ExpirationDays  *int                   `json:"expiration_days,omitempty"`
-	IPAddress       string                 `json:"ip_address"`
-	UserAgent       string                 `json:"user_agent"`
-	ConsentString   string                 `json:"consent_string"`
-	Metadata        map[string]interface{} `json:"metadata,omitempty"`
+	SubjectID      string                 `json:"subject_id"`
+	Purpose        string                 `json:"purpose"`
+	Granted        bool                   `json:"granted"`
+	LegalBasis     string                 `json:"legal_basis"`
+	ConsentSource  ConsentSource          `json:"consent_source"`
+	ExpirationDays *int                   `json:"expiration_days,omitempty"`
+	IPAddress      string                 `json:"ip_address"`
+	UserAgent      string                 `json:"user_agent"`
+	ConsentString  string                 `json:"consent_string"`
+	Metadata       map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // ConsentValidationResult represents the result of consent validation
 type ConsentValidationResult struct {
-	Valid           bool               `json:"valid"`
-	Consent         *ConsentRecord     `json:"consent,omitempty"`
-	Reason          string             `json:"reason,omitempty"`
-	RequiredActions []string           `json:"required_actions,omitempty"`
-	ExpiresIn       *time.Duration     `json:"expires_in,omitempty"`
+	Valid           bool           `json:"valid"`
+	Consent         *ConsentRecord `json:"consent,omitempty"`
+	Reason          string         `json:"reason,omitempty"`
+	RequiredActions []string       `json:"required_actions,omitempty"`
+	ExpiresIn       *time.Duration `json:"expires_in,omitempty"`
 }
 
 // LegalBasis represents the legal basis for processing personal data
@@ -87,23 +86,23 @@ type LegalBasis string
 
 const (
 	// GDPR Legal Bases (Article 6)
-	LegalBasisConsent            LegalBasis = "consent"              // Article 6(1)(a)
-	LegalBasisContract           LegalBasis = "contract"             // Article 6(1)(b)
-	LegalBasisLegalObligation    LegalBasis = "legal_obligation"     // Article 6(1)(c)
-	LegalBasisVitalInterests     LegalBasis = "vital_interests"      // Article 6(1)(d)
-	LegalBasisPublicTask         LegalBasis = "public_task"          // Article 6(1)(e)
+	LegalBasisConsent             LegalBasis = "consent"              // Article 6(1)(a)
+	LegalBasisContract            LegalBasis = "contract"             // Article 6(1)(b)
+	LegalBasisLegalObligation     LegalBasis = "legal_obligation"     // Article 6(1)(c)
+	LegalBasisVitalInterests      LegalBasis = "vital_interests"      // Article 6(1)(d)
+	LegalBasisPublicTask          LegalBasis = "public_task"          // Article 6(1)(e)
 	LegalBasisLegitimateInterests LegalBasis = "legitimate_interests" // Article 6(1)(f)
 
 	// LGPD Legal Bases (Article 7)
-	LegalBasisLGPDConsent        LegalBasis = "lgpd_consent"         // Article 7(I)
-	LegalBasisLGPDCompliance     LegalBasis = "lgpd_compliance"      // Article 7(II)
-	LegalBasisLGPDPublicAdmin    LegalBasis = "lgpd_public_admin"    // Article 7(III)
-	LegalBasisLGPDStudies        LegalBasis = "lgpd_studies"         // Article 7(IV)
-	LegalBasisLGPDContractual    LegalBasis = "lgpd_contractual"     // Article 7(V)
-	LegalBasisLGPDJudicial       LegalBasis = "lgpd_judicial"        // Article 7(VI)
-	LegalBasisLGPDHealthLife     LegalBasis = "lgpd_health_life"     // Article 7(VII)
-	LegalBasisLGPDHealthSecure   LegalBasis = "lgpd_health_secure"   // Article 7(VIII)
-	LegalBasisLGPDLegitimate     LegalBasis = "lgpd_legitimate"      // Article 7(IX)
+	LegalBasisLGPDConsent          LegalBasis = "lgpd_consent"           // Article 7(I)
+	LegalBasisLGPDCompliance       LegalBasis = "lgpd_compliance"        // Article 7(II)
+	LegalBasisLGPDPublicAdmin      LegalBasis = "lgpd_public_admin"      // Article 7(III)
+	LegalBasisLGPDStudies          LegalBasis = "lgpd_studies"           // Article 7(IV)
+	LegalBasisLGPDContractual      LegalBasis = "lgpd_contractual"       // Article 7(V)
+	LegalBasisLGPDJudicial         LegalBasis = "lgpd_judicial"          // Article 7(VI)
+	LegalBasisLGPDHealthLife       LegalBasis = "lgpd_health_life"       // Article 7(VII)
+	LegalBasisLGPDHealthSecure     LegalBasis = "lgpd_health_secure"     // Article 7(VIII)
+	LegalBasisLGPDLegitimate       LegalBasis = "lgpd_legitimate"        // Article 7(IX)
 	LegalBasisLGPDCreditProtection LegalBasis = "lgpd_credit_protection" // Article 7(X)
 )
 
@@ -204,8 +203,8 @@ func (cm *ConsentManager) ValidateConsent(ctx context.Context, subjectID, purpos
 	consent, err := cm.repository.GetConsent(ctx, subjectID, purpose)
 	if err != nil {
 		return ConsentValidationResult{
-			Valid:  false,
-			Reason: "consent not found",
+			Valid:           false,
+			Reason:          "consent not found",
 			RequiredActions: []string{"obtain_consent"},
 		}
 	}
@@ -213,9 +212,9 @@ func (cm *ConsentManager) ValidateConsent(ctx context.Context, subjectID, purpos
 	// Check if consent was granted
 	if !consent.Granted {
 		return ConsentValidationResult{
-			Valid:   false,
-			Consent: consent,
-			Reason:  "consent not granted",
+			Valid:           false,
+			Consent:         consent,
+			Reason:          "consent not granted",
 			RequiredActions: []string{"request_consent"},
 		}
 	}
@@ -223,9 +222,9 @@ func (cm *ConsentManager) ValidateConsent(ctx context.Context, subjectID, purpos
 	// Check if consent was withdrawn
 	if consent.WithdrawnAt != nil {
 		return ConsentValidationResult{
-			Valid:   false,
-			Consent: consent,
-			Reason:  "consent withdrawn",
+			Valid:           false,
+			Consent:         consent,
+			Reason:          "consent withdrawn",
 			RequiredActions: []string{"obtain_new_consent"},
 		}
 	}
@@ -233,9 +232,9 @@ func (cm *ConsentManager) ValidateConsent(ctx context.Context, subjectID, purpos
 	// Check if consent has expired
 	if consent.ExpiresAt != nil && time.Now().After(*consent.ExpiresAt) {
 		return ConsentValidationResult{
-			Valid:   false,
-			Consent: consent,
-			Reason:  "consent expired",
+			Valid:           false,
+			Consent:         consent,
+			Reason:          "consent expired",
 			RequiredActions: []string{"renew_consent"},
 		}
 	}
@@ -306,9 +305,9 @@ func (cm *ConsentManager) HealthCheck(ctx context.Context) map[string]interface{
 	return map[string]interface{}{
 		"enabled":          cm.config.Enabled,
 		"default_purposes": cm.config.DefaultPurposes,
-		"ttl":             cm.config.TTL.String(),
+		"ttl":              cm.config.TTL.String(),
 		"granular_level":   cm.config.GranularLevel,
-		"status":          "healthy",
+		"status":           "healthy",
 	}
 }
 
@@ -385,7 +384,7 @@ func (r *InMemoryConsentRepository) GetConsent(ctx context.Context, subjectID, p
 
 func (r *InMemoryConsentRepository) GetAllConsents(ctx context.Context, subjectID string) ([]ConsentRecord, error) {
 	var allConsents []ConsentRecord
-	for key, consents := range r.consents {
+	for _, consents := range r.consents {
 		if len(consents) > 0 && consents[0].SubjectID == subjectID {
 			// Return the most recent consent for each purpose
 			allConsents = append(allConsents, consents[len(consents)-1])

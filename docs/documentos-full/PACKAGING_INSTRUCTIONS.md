@@ -459,8 +459,8 @@ data:
   database-url: cG9zdGdyZXM6Ly9wb3N0Z3JlczpwYXNzd29yZEBwb3N0Z3JlczppNTQzMi9tY3BfdWx0cmE/c3NsbW9kZT1kaXNhYmxl
   redis-url: cmVkaXM6Ly9yZWRpczoyNjM3OS8w
   nats-url: bmF0czovL25hdHM6NDIyMg==
-  jwt-secret: c3VwZXJfc2VjcmV0X2p3dF9rZXlfaGVyZQ==
-  api-key: YXBpX2tleV9mb3JfYXV0aGVudGljYXRpb24=
+  jwt-secret: ""  # Generate: echo -n 'your-jwt-secret' | base64
+  api-key: ""  # Generate: echo -n 'your-api-key' | base64
 ```
 
 ### 2. Advanced Kubernetes Resources

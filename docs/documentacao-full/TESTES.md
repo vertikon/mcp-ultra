@@ -194,7 +194,7 @@ Testa fluxos completos do usuário
 // cypress/integration/{{entity}}_flow.spec.js
 describe('{{Entity}} Management Flow', () => {
   beforeEach(() => {
-    cy.login('test@example.com', 'password123');
+    cy.login('test@example.com', 'secure_test_password');
   });
 
   it('should create, edit and delete {{entity}}', () => {

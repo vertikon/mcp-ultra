@@ -11,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -63,7 +64,7 @@ func (a *AuthMiddleware) JWTAuth(next http.Handler) http.Handler {
 		// Extract token from Authorization header
 		token := a.extractToken(r)
 		if token == "" {
-			span.SetStatus(trace.SpanStatusError, "missing authorization token")
+			span.SetStatus(codes.Error, "missing authorization token")
 			a.logger.Warn("Missing authorization token",
 				zap.String("path", r.URL.Path),
 				zap.String("method", r.Method),
@@ -75,7 +76,7 @@ func (a *AuthMiddleware) JWTAuth(next http.Handler) http.Handler {
 		// Validate JWT token
 		claims, err := a.validateJWT(token)
 		if err != nil {
-			span.SetStatus(trace.SpanStatusError, fmt.Sprintf("invalid token: %v", err))
+			span.SetStatus(codes.Error, fmt.Sprintf("invalid token: %v", err))
 			a.logger.Warn("Invalid JWT token",
 				zap.String("token_prefix", token[:min(len(token), 10)]),
 				zap.String("path", r.URL.Path),
@@ -124,14 +125,14 @@ func (a *AuthMiddleware) APIKeyAuth(validAPIKeys map[string]string) func(http.Ha
 
 			apiKey := r.Header.Get(a.config.APIKeyHeader)
 			if apiKey == "" {
-				span.SetStatus(trace.SpanStatusError, "missing api key")
+				span.SetStatus(codes.Error, "missing api key")
 				http.Error(w, "Unauthorized: missing API key", http.StatusUnauthorized)
 				return
 			}
 
 			clientName, exists := validAPIKeys[apiKey]
 			if !exists {
-				span.SetStatus(trace.SpanStatusError, "invalid api key")
+				span.SetStatus(codes.Error, "invalid api key")
 				a.logger.Warn("Invalid API key",
 					zap.String("key_prefix", apiKey[:min(len(apiKey), 8)]),
 					zap.String("path", r.URL.Path))
@@ -161,12 +162,12 @@ func (a *AuthMiddleware) APIKeyAuth(validAPIKeys map[string]string) func(http.Ha
 func (a *AuthMiddleware) RequireRole(requiredRole string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx, span := a.tracer.Start(r.Context(), "auth.role_check")
+			_, span := a.tracer.Start(r.Context(), "auth.role_check")
 			defer span.End()
 
 			claims, ok := r.Context().Value("auth_claims").(*AuthClaims)
 			if !ok {
-				span.SetStatus(trace.SpanStatusError, "missing auth claims")
+				span.SetStatus(codes.Error, "missing auth claims")
 				http.Error(w, "Forbidden: authentication required", http.StatusForbidden)
 				return
 			}
@@ -180,7 +181,7 @@ func (a *AuthMiddleware) RequireRole(requiredRole string) func(http.Handler) htt
 			}
 
 			if !hasRole {
-				span.SetStatus(trace.SpanStatusError, "insufficient permissions")
+				span.SetStatus(codes.Error, "insufficient permissions")
 				a.logger.Warn("Access denied - insufficient role",
 					zap.String("user_id", claims.UserID),
 					zap.String("required_role", requiredRole),
@@ -203,7 +204,7 @@ func (a *AuthMiddleware) RequireRole(requiredRole string) func(http.Handler) htt
 func (a *AuthMiddleware) RateLimitByUser(maxRequests int, window time.Duration) func(http.Handler) http.Handler {
 	// Simple in-memory rate limiter (for production, use Redis)
 	userLimits := make(map[string]*rateLimitInfo)
-	
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userID := r.Context().Value("user_id")
@@ -300,7 +301,7 @@ func (a *AuthMiddleware) shouldSkipAuth(path string) bool {
 	}
 
 	allSkipPaths := append(defaultSkipPaths, a.config.SkipPaths...)
-	
+
 	for _, skipPath := range allSkipPaths {
 		if strings.HasPrefix(path, skipPath) {
 			return true
@@ -334,12 +335,12 @@ func min(a, b int) int {
 // GenerateJWT creates a new JWT token for a user
 func (a *AuthMiddleware) GenerateJWT(userID, username, email string, roles []string) (string, error) {
 	now := time.Now()
-	
+
 	claims := &AuthClaims{
-		UserID:   userID,
-		Username: username,
-		Email:    email,
-		Roles:    roles,
+		UserID:    userID,
+		Username:  username,
+		Email:     email,
+		Roles:     roles,
 		SessionID: fmt.Sprintf("sess_%d_%s", now.Unix(), userID),
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    a.config.JWTIssuer,

@@ -76,7 +76,7 @@ scrape_configs:
 
 # Remote write configuration for external systems (optional)
 # remote_write:
-#   - url: "https://your-remote-prometheus-endpoint/api/v1/write"
+#   - url: "${REMOTE_PROMETHEUS_URL}"
 #     basic_auth:
-#       username: "your-username"
-#       password: "your-password"
+#       username: "${REMOTE_PROMETHEUS_USER}"
+#       password: "${REMOTE_PROMETHEUS_PASSWORD}"

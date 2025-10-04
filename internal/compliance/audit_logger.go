@@ -3,9 +3,11 @@ package compliance
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -48,19 +50,19 @@ type AuditEvent struct {
 type AuditEventType string
 
 const (
-	AuditEventDataProcessing    AuditEventType = "data_processing"
-	AuditEventConsentGrant      AuditEventType = "consent_grant"
-	AuditEventConsentWithdraw   AuditEventType = "consent_withdraw"
-	AuditEventDataAccess        AuditEventType = "data_access"
-	AuditEventDataExport        AuditEventType = "data_export"
-	AuditEventDataDelete        AuditEventType = "data_delete"
-	AuditEventDataRectify       AuditEventType = "data_rectify"
-	AuditEventRightsRequest     AuditEventType = "rights_request"
-	AuditEventPIIDetection      AuditEventType = "pii_detection"
-	AuditEventAnonymization     AuditEventType = "anonymization"
-	AuditEventRetentionPolicy   AuditEventType = "retention_policy"
-	AuditEventSecurityIncident  AuditEventType = "security_incident"
-	AuditEventComplianceCheck   AuditEventType = "compliance_check"
+	AuditEventDataProcessing   AuditEventType = "data_processing"
+	AuditEventConsentGrant     AuditEventType = "consent_grant"
+	AuditEventConsentWithdraw  AuditEventType = "consent_withdraw"
+	AuditEventDataAccess       AuditEventType = "data_access"
+	AuditEventDataExport       AuditEventType = "data_export"
+	AuditEventDataDelete       AuditEventType = "data_delete"
+	AuditEventDataRectify      AuditEventType = "data_rectify"
+	AuditEventRightsRequest    AuditEventType = "rights_request"
+	AuditEventPIIDetection     AuditEventType = "pii_detection"
+	AuditEventAnonymization    AuditEventType = "anonymization"
+	AuditEventRetentionPolicy  AuditEventType = "retention_policy"
+	AuditEventSecurityIncident AuditEventType = "security_incident"
+	AuditEventComplianceCheck  AuditEventType = "compliance_check"
 )
 
 // AuditResult represents the result of an audited operation
@@ -86,7 +88,7 @@ func NewAuditLogger(config AuditLoggingConfig, logger *zap.Logger) (*AuditLogger
 	// Create dedicated audit logger with structured output
 	auditConfig := zap.NewProductionConfig()
 	auditConfig.OutputPaths = []string{"stdout"}
-	
+
 	if config.ExternalLogging && config.ExternalEndpoint != "" {
 		// In a real implementation, you would configure external logging here
 		// For now, we'll just log to stdout with a special format
@@ -117,8 +119,30 @@ func NewAuditLogger(config AuditLoggingConfig, logger *zap.Logger) (*AuditLogger
 	// Generate encryption key if encryption is enabled
 	var encryptionKey []byte
 	if config.EncryptionEnabled {
-		// In production, this should come from a secure key management system
-		encryptionKey = []byte("audit-encryption-key-32-bytes!") // 32 bytes for AES-256
+		// Get encryption key from environment variable or secure key management system
+		keyStr := os.Getenv("AUDIT_ENCRYPTION_KEY")
+		if keyStr == "" {
+			return nil, fmt.Errorf("AUDIT_ENCRYPTION_KEY environment variable must be set when encryption is enabled")
+		}
+
+		// Decode key from base64 or hex
+		if len(keyStr) == 64 { // Hex encoded 32 bytes
+			encryptionKey, err = hex.DecodeString(keyStr)
+			if err != nil {
+				return nil, fmt.Errorf("failed to decode hex encryption key: %w", err)
+			}
+		} else {
+			// Try base64
+			encryptionKey, err = base64.StdEncoding.DecodeString(keyStr)
+			if err != nil {
+				return nil, fmt.Errorf("failed to decode base64 encryption key: %w", err)
+			}
+		}
+
+		// Validate key length for AES-256
+		if len(encryptionKey) != 32 {
+			return nil, fmt.Errorf("encryption key must be 32 bytes for AES-256, got %d bytes", len(encryptionKey))
+		}
 	}
 
 	return &AuditLogger{
@@ -237,8 +261,8 @@ func (al *AuditLogger) LogPIIDetection(ctx context.Context, subjectID string, cl
 		SubjectID: subjectID,
 		Result:    AuditResultSuccess,
 		Details: map[string]interface{}{
-			"pii_count":        len(classifications),
-			"classifications":  al.sanitizeClassifications(classifications),
+			"pii_count":       len(classifications),
+			"classifications": al.sanitizeClassifications(classifications),
 		},
 		ComplianceFlags: []string{"pii_detected"},
 		Service:         "mcp-ultra",
@@ -405,26 +429,26 @@ func (al *AuditLogger) hashData(data map[string]interface{}) string {
 
 func (al *AuditLogger) sanitizeData(data map[string]interface{}) map[string]interface{} {
 	sanitized := make(map[string]interface{})
-	
+
 	for key, value := range data {
 		// Remove or mask sensitive fields
 		keyLower := strings.ToLower(key)
 		if strings.Contains(keyLower, "password") ||
-		   strings.Contains(keyLower, "secret") ||
-		   strings.Contains(keyLower, "token") ||
-		   strings.Contains(keyLower, "key") {
+			strings.Contains(keyLower, "secret") ||
+			strings.Contains(keyLower, "token") ||
+			strings.Contains(keyLower, "key") {
 			sanitized[key] = "[REDACTED]"
 		} else {
 			sanitized[key] = value
 		}
 	}
-	
+
 	return sanitized
 }
 
 func (al *AuditLogger) sanitizeClassifications(classifications []PIIClassification) []map[string]interface{} {
 	sanitized := make([]map[string]interface{}, len(classifications))
-	
+
 	for i, c := range classifications {
 		sanitized[i] = map[string]interface{}{
 			"field_name":  c.FieldName,
@@ -435,7 +459,7 @@ func (al *AuditLogger) sanitizeClassifications(classifications []PIIClassificati
 			"timestamp":   c.Timestamp,
 		}
 	}
-	
+
 	return sanitized
 }
 

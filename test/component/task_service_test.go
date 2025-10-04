@@ -20,12 +20,12 @@ import (
 // TaskServiceTestSuite provides isolated testing for TaskService
 type TaskServiceTestSuite struct {
 	suite.Suite
-	service     *services.TaskService
-	taskRepo    *mocks.MockTaskRepository
-	cacheRepo   *mocks.MockCacheRepository
-	eventBus    *mocks.MockEventBus
-	validator   *mocks.MockValidator
-	logger      *zap.Logger
+	service   *services.TaskService
+	taskRepo  *mocks.MockTaskRepository
+	cacheRepo *mocks.MockCacheRepository
+	eventBus  *mocks.MockEventBus
+	validator *mocks.MockValidator
+	logger    *zap.Logger
 }
 
 func (suite *TaskServiceTestSuite) SetupTest() {
@@ -56,7 +56,7 @@ func (suite *TaskServiceTestSuite) TearDownTest() {
 func (suite *TaskServiceTestSuite) TestCreateTask_Success() {
 	ctx := context.Background()
 	userID := uuid.New()
-	
+
 	req := &services.CreateTaskRequest{
 		Title:       "Test Task",
 		Description: "Test Description",
@@ -86,11 +86,11 @@ func (suite *TaskServiceTestSuite) TestCreateTask_Success() {
 			task.Priority == req.Priority &&
 			task.CreatedBy == userID
 	})).Return(expectedTask, nil)
-	
+
 	suite.cacheRepo.On("Delete", ctx, mock.MatchedBy(func(key string) bool {
 		return key == "tasks:user:"+userID.String()
 	})).Return(nil)
-	
+
 	suite.eventBus.On("Publish", ctx, "task.created", mock.AnythingOfType("*events.TaskCreatedEvent")).Return(nil)
 
 	// Execute
@@ -109,7 +109,7 @@ func (suite *TaskServiceTestSuite) TestCreateTask_Success() {
 func (suite *TaskServiceTestSuite) TestCreateTask_ValidationError() {
 	ctx := context.Background()
 	userID := uuid.New()
-	
+
 	req := &services.CreateTaskRequest{
 		Title:       "", // Invalid empty title
 		Description: "Test Description",
@@ -261,10 +261,10 @@ func (suite *TaskServiceTestSuite) TestUpdateTask_Success() {
 	suite.taskRepo.On("Update", ctx, mock.MatchedBy(func(task *domain.Task) bool {
 		return task.ID == taskID && task.Title == req.Title
 	})).Return(updatedTask, nil)
-	
+
 	suite.cacheRepo.On("Delete", ctx, "task:"+taskID.String()).Return(nil)
 	suite.cacheRepo.On("Delete", ctx, "tasks:user:"+userID.String()).Return(nil)
-	
+
 	suite.eventBus.On("Publish", ctx, "task.updated", mock.AnythingOfType("*events.TaskUpdatedEvent")).Return(nil)
 
 	// Execute
@@ -303,10 +303,10 @@ func (suite *TaskServiceTestSuite) TestCompleteTask_Success() {
 	suite.taskRepo.On("Update", ctx, mock.MatchedBy(func(t *domain.Task) bool {
 		return t.ID == taskID && t.Status == domain.TaskStatusCompleted
 	})).Return(completedTask, nil)
-	
+
 	suite.cacheRepo.On("Delete", ctx, "task:"+taskID.String()).Return(nil)
 	suite.cacheRepo.On("Delete", ctx, "tasks:user:"+userID.String()).Return(nil)
-	
+
 	suite.eventBus.On("Publish", ctx, "task.completed", mock.AnythingOfType("*events.TaskCompletedEvent")).Return(nil)
 
 	// Execute
@@ -366,7 +366,7 @@ func (suite *TaskServiceTestSuite) TestListTasks_WithFilters() {
 		},
 		{
 			ID:        uuid.New(),
-			Title:     "Important Task 2", 
+			Title:     "Important Task 2",
 			CreatedBy: userID,
 			Status:    domain.TaskStatusPending,
 			Tags:      []string{"important"},
@@ -378,13 +378,13 @@ func (suite *TaskServiceTestSuite) TestListTasks_WithFilters() {
 	// Setup mocks
 	cacheKey := "tasks:user:" + userID.String() + ":page:1:limit:10:status:pending:tags:important"
 	suite.cacheRepo.On("Get", ctx, cacheKey).Return(nil, services.ErrNotFound)
-	
+
 	suite.taskRepo.On("List", ctx, mock.MatchedBy(func(filter *domain.TaskFilter) bool {
 		return filter.UserID == userID &&
 			filter.Status == domain.TaskStatusPending &&
 			len(filter.Tags) == 1 && filter.Tags[0] == "important"
 	})).Return(expectedTasks, totalCount, nil)
-	
+
 	suite.cacheRepo.On("Set", ctx, cacheKey, mock.Anything, 60).Return(nil)
 
 	// Execute
@@ -417,10 +417,10 @@ func (suite *TaskServiceTestSuite) TestDeleteTask_AdminSuccess() {
 	// Setup mocks
 	suite.taskRepo.On("GetByID", ctx, taskID).Return(task, nil)
 	suite.taskRepo.On("Delete", ctx, taskID).Return(nil)
-	
+
 	suite.cacheRepo.On("Delete", ctx, "task:"+taskID.String()).Return(nil)
 	suite.cacheRepo.On("Delete", ctx, "tasks:user:"+taskOwnerID.String()).Return(nil)
-	
+
 	suite.eventBus.On("Publish", ctx, "task.deleted", mock.AnythingOfType("*events.TaskDeletedEvent")).Return(nil)
 
 	// Execute

@@ -272,7 +272,7 @@ func TestComplianceFramework_AuditLogging(t *testing.T) {
 	action := "data_access"
 	details := map[string]interface{}{
 		"requested_fields": []string{"name", "email"},
-		"reason":          "compliance_request",
+		"reason":           "compliance_request",
 	}
 
 	// Log audit event
@@ -322,11 +322,11 @@ func TestComplianceFramework_ValidateCompliance(t *testing.T) {
 
 	// Validate compliance for data processing
 	result, err := framework.ValidateCompliance(ctx, ComplianceValidationRequest{
-		UserID:      userID,
-		Action:      "process_data",
-		DataType:    "personal",
-		Purpose:     "processing",
-		LegalBasis:  "consent",
+		UserID:       userID,
+		Action:       "process_data",
+		DataType:     "personal",
+		Purpose:      "processing",
+		LegalBasis:   "consent",
 		Jurisdiction: "BR",
 	})
 	assert.NoError(t, err)
@@ -336,11 +336,11 @@ func TestComplianceFramework_ValidateCompliance(t *testing.T) {
 
 	// Test validation without consent
 	result, err = framework.ValidateCompliance(ctx, ComplianceValidationRequest{
-		UserID:      uuid.New(), // Different user without consent
-		Action:      "process_data",
-		DataType:    "personal",
-		Purpose:     "processing",
-		LegalBasis:  "consent",
+		UserID:       uuid.New(), // Different user without consent
+		Action:       "process_data",
+		DataType:     "personal",
+		Purpose:      "processing",
+		LegalBasis:   "consent",
 		Jurisdiction: "BR",
 	})
 	assert.NoError(t, err)

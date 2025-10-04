@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -109,7 +110,7 @@ func (h *HealthService) HealthHandler(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 
 	response := h.performHealthChecks(ctx)
-	
+
 	// Determine HTTP status code
 	var statusCode int
 	switch response.Status {
@@ -130,7 +131,7 @@ func (h *HealthService) HealthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.WriteHeader(statusCode)
-	
+
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		h.logger.Error("Failed to encode health response", zap.Error(err))
 	}
@@ -142,9 +143,9 @@ func (h *HealthService) HealthzHandler(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 
 	response := h.performHealthChecks(ctx)
-	
+
 	if response.Status == StatusUnhealthy {
-		span.SetStatus(trace.SpanStatusError, "service unhealthy")
+		span.SetStatus(codes.Error, "service unhealthy")
 		http.Error(w, "Service Unavailable", http.StatusServiceUnavailable)
 		return
 	}
@@ -180,7 +181,7 @@ func (h *HealthService) ReadinessHandler(w http.ResponseWriter, r *http.Request)
 	h.mutex.RUnlock()
 
 	if !isReady {
-		span.SetStatus(trace.SpanStatusError, "service not ready")
+		span.SetStatus(codes.Error, "service not ready")
 		http.Error(w, "Service Not Ready", http.StatusServiceUnavailable)
 		return
 	}
@@ -192,7 +193,7 @@ func (h *HealthService) ReadinessHandler(w http.ResponseWriter, r *http.Request)
 
 // LivenessHandler checks if service is alive
 func (h *HealthService) LivenessHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, span := h.tracer.Start(r.Context(), "health.liveness_check")
+	_, span := h.tracer.Start(r.Context(), "health.liveness_check")
 	defer span.End()
 
 	// Simple liveness check - if we can respond, we're alive
@@ -207,7 +208,7 @@ func (h *HealthService) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 
 	response := h.performHealthChecks(ctx)
-	
+
 	// Add additional status information
 	statusResponse := struct {
 		HealthResponse
@@ -222,7 +223,7 @@ func (h *HealthService) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.WriteHeader(http.StatusOK)
-	
+
 	if err := json.NewEncoder(w).Encode(statusResponse); err != nil {
 		h.logger.Error("Failed to encode status response", zap.Error(err))
 	}
@@ -230,7 +231,7 @@ func (h *HealthService) StatusHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *HealthService) performHealthChecks(ctx context.Context) HealthResponse {
 	start := time.Now()
-	
+
 	h.mutex.RLock()
 	checkers := make(map[string]HealthChecker, len(h.checkers))
 	for name, checker := range h.checkers {
@@ -247,12 +248,12 @@ func (h *HealthService) performHealthChecks(ctx context.Context) HealthResponse 
 		wg.Add(1)
 		go func(name string, checker HealthChecker) {
 			defer wg.Done()
-			
+
 			checkCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 			defer cancel()
-			
+
 			result := checker.Check(checkCtx)
-			
+
 			mu.Lock()
 			checkResults[name] = result
 			h.lastResults[name] = result
@@ -275,7 +276,7 @@ func (h *HealthService) performHealthChecks(ctx context.Context) HealthResponse 
 
 	// Get system information
 	sysInfo := h.getSystemInfo()
-	
+
 	response := HealthResponse{
 		Status:      overallStatus,
 		Version:     h.version,

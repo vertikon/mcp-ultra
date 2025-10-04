@@ -335,7 +335,7 @@ jobs:
         
     - name: Run tests
       env:
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/mcp_ultra_test?sslmode=disable
+        DATABASE_URL: postgres://postgres:test_secure_password@localhost:5432/mcp_ultra_test?sslmode=disable
         REDIS_URL: redis://localhost:6379
         NATS_URL: nats://localhost:4222
       run: |
@@ -1274,7 +1274,7 @@ SHUTDOWN_TIMEOUT=30s
 # Database Configuration
 # ===========================================
 # PostgreSQL
-DATABASE_URL=postgres://postgres:password@localhost:5432/mcp_ultra?sslmode=disable
+DATABASE_URL=postgres://postgres:${DB_PASSWORD}@localhost:5432/mcp_ultra?sslmode=disable
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
 DATABASE_NAME=mcp_ultra
@@ -1415,7 +1415,7 @@ PROFILING_ENABLED=false
 LOAD_TEST_ENABLED=false
 
 # Test Database
-TEST_DATABASE_URL=postgres://postgres:password@localhost:5432/mcp_ultra_test?sslmode=disable
+TEST_DATABASE_URL=postgres://postgres:${TEST_DB_PASSWORD}@localhost:5432/mcp_ultra_test?sslmode=disable
 
 # ===========================================
 # Performance Tuning

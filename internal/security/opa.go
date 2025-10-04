@@ -31,18 +31,18 @@ type AuthzRequest struct {
 
 // AuthzInput contains the authorization input data
 type AuthzInput struct {
-	User   *Claims `json:"user"`
-	Method string  `json:"method"`
-	Path   string  `json:"path"`
-	Resource string `json:"resource,omitempty"`
-	Action   string `json:"action,omitempty"`
+	User     *Claims `json:"user"`
+	Method   string  `json:"method"`
+	Path     string  `json:"path"`
+	Resource string  `json:"resource,omitempty"`
+	Action   string  `json:"action,omitempty"`
 }
 
 // AuthzResponse represents OPA authorization response
 type AuthzResponse struct {
 	Result struct {
-		Allow bool   `json:"allow"`
-		Deny  bool   `json:"deny,omitempty"`
+		Allow  bool   `json:"allow"`
+		Deny   bool   `json:"deny,omitempty"`
 		Reason string `json:"reason,omitempty"`
 	} `json:"result"`
 }
@@ -100,7 +100,7 @@ func (opa *OPAService) IsAuthorized(ctx context.Context, claims *Claims, method,
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		opa.logger.Warn("OPA returned non-200 status", 
+		opa.logger.Warn("OPA returned non-200 status",
 			zap.Int("status", resp.StatusCode),
 			zap.String("user_id", claims.UserID),
 			zap.String("path", path))

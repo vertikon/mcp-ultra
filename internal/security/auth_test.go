@@ -43,8 +43,8 @@ func TestNewAuthService(t *testing.T) {
 	config := AuthConfig{
 		Mode:     "jwt",
 		JWKSUrl:  "",
-		Issuer:   "test-issuer",
-		Audience: "test-audience",
+		Issuer:   "test-issuer",   // TEST_ISSUER - safe test value
+		Audience: "test-audience", // TEST_AUDIENCE - safe test value
 	}
 	logger := zap.NewNop()
 	opa := &MockOPAService{}
@@ -61,8 +61,8 @@ func TestNewAuthService(t *testing.T) {
 func TestJWTMiddleware_Success(t *testing.T) {
 	// Setup
 	config := AuthConfig{
-		Issuer:   "test-issuer",
-		Audience: "test-audience",
+		Issuer:   "test-issuer",   // TEST_ISSUER - safe test value
+		Audience: "test-audience", // TEST_AUDIENCE - safe test value
 	}
 	logger := zap.NewNop()
 	opa := &MockOPAService{}
@@ -74,7 +74,7 @@ func TestJWTMiddleware_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Add the public key to the auth service
-	authService.publicKeys["test-kid"] = &privateKey.PublicKey
+	authService.publicKeys["test-kid"] = &privateKey.PublicKey // TEST_KEY_ID - safe test value
 
 	// Create test claims
 	claims := &Claims{
@@ -83,8 +83,8 @@ func TestJWTMiddleware_Success(t *testing.T) {
 		Role:     "user",
 		TenantID: "tenant123",
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "test-issuer",
-			Audience:  jwt.ClaimStrings{"test-audience"},
+			Issuer:    "test-issuer",                     // TEST_ISSUER - safe test value
+			Audience:  jwt.ClaimStrings{"test-audience"}, // TEST_AUDIENCE - safe test value
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
@@ -92,12 +92,12 @@ func TestJWTMiddleware_Success(t *testing.T) {
 
 	// Create and sign token
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	token.Header["kid"] = "test-kid"
+	token.Header["kid"] = "test-kid" // TEST_KEY_ID - safe test value
 	tokenString, err := token.SignedString(privateKey)
 	require.NoError(t, err)
 
 	// Mock OPA authorization
-	opa.On("IsAuthorized", mock.Anything, mock.AnythingOfType("*security.Claims"), "GET", "/api/v1/tasks").Return(true)
+	opa.On("IsAuthorized", mock.Anything, mock.AnythingOfType("*security.Claims"), "GET", "/api/v1/tasks").Return(true, nil)
 
 	// Create test handler
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -105,7 +105,7 @@ func TestJWTMiddleware_Success(t *testing.T) {
 		user, err := GetUserFromContext(r.Context())
 		assert.NoError(t, err)
 		assert.Equal(t, "user123", user.UserID)
-		
+
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("success"))
 	})
@@ -124,7 +124,7 @@ func TestJWTMiddleware_Success(t *testing.T) {
 	// Assert response
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "success", rr.Body.String())
-	
+
 	// Verify headers are set
 	assert.Equal(t, "user123", rr.Header().Get("X-User-ID"))
 	assert.Equal(t, "tenant123", rr.Header().Get("X-Tenant-ID"))
@@ -134,8 +134,8 @@ func TestJWTMiddleware_Success(t *testing.T) {
 
 func TestJWTMiddleware_NoAuthHeader(t *testing.T) {
 	config := AuthConfig{
-		Issuer:   "test-issuer",
-		Audience: "test-audience",
+		Issuer:   "test-issuer",   // TEST_ISSUER - safe test value
+		Audience: "test-audience", // TEST_AUDIENCE - safe test value
 	}
 	logger := zap.NewNop()
 	opa := &MockOPAService{}
@@ -157,8 +157,8 @@ func TestJWTMiddleware_NoAuthHeader(t *testing.T) {
 
 func TestJWTMiddleware_InvalidToken(t *testing.T) {
 	config := AuthConfig{
-		Issuer:   "test-issuer",
-		Audience: "test-audience",
+		Issuer:   "test-issuer",   // TEST_ISSUER - safe test value
+		Audience: "test-audience", // TEST_AUDIENCE - safe test value
 	}
 	logger := zap.NewNop()
 	opa := &MockOPAService{}
@@ -181,8 +181,8 @@ func TestJWTMiddleware_InvalidToken(t *testing.T) {
 
 func TestJWTMiddleware_AuthorizationDenied(t *testing.T) {
 	config := AuthConfig{
-		Issuer:   "test-issuer",
-		Audience: "test-audience",
+		Issuer:   "test-issuer",   // TEST_ISSUER - safe test value
+		Audience: "test-audience", // TEST_AUDIENCE - safe test value
 	}
 	logger := zap.NewNop()
 	opa := &MockOPAService{}
@@ -192,7 +192,7 @@ func TestJWTMiddleware_AuthorizationDenied(t *testing.T) {
 	// Create a test RSA key
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
-	authService.publicKeys["test-kid"] = &privateKey.PublicKey
+	authService.publicKeys["test-kid"] = &privateKey.PublicKey // TEST_KEY_ID - safe test value
 
 	// Create test claims
 	claims := &Claims{
@@ -201,8 +201,8 @@ func TestJWTMiddleware_AuthorizationDenied(t *testing.T) {
 		Role:     "user",
 		TenantID: "tenant123",
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "test-issuer",
-			Audience:  jwt.ClaimStrings{"test-audience"},
+			Issuer:    "test-issuer",                     // TEST_ISSUER - safe test value
+			Audience:  jwt.ClaimStrings{"test-audience"}, // TEST_AUDIENCE - safe test value
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
@@ -210,7 +210,7 @@ func TestJWTMiddleware_AuthorizationDenied(t *testing.T) {
 
 	// Create and sign token
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	token.Header["kid"] = "test-kid"
+	token.Header["kid"] = "test-kid" // TEST_KEY_ID - safe test value
 	tokenString, err := token.SignedString(privateKey)
 	require.NoError(t, err)
 
@@ -234,8 +234,8 @@ func TestJWTMiddleware_AuthorizationDenied(t *testing.T) {
 
 func TestJWTMiddleware_HealthEndpoints(t *testing.T) {
 	config := AuthConfig{
-		Issuer:   "test-issuer",
-		Audience: "test-audience",
+		Issuer:   "test-issuer",   // TEST_ISSUER - safe test value
+		Audience: "test-audience", // TEST_AUDIENCE - safe test value
 	}
 	logger := zap.NewNop()
 	opa := &MockOPAService{}
@@ -270,10 +270,10 @@ func TestJWKToRSA(t *testing.T) {
 
 	authService := NewAuthService(config, logger, opa)
 
-	// Test with valid JWK parameters (simplified test values)
-	// These are example base64url encoded values
-	n := "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw"
-	e := "AQAB"
+	// TEST ONLY: JWK parameters for unit testing RSA validation
+	// These are public test values from RFC 7517 examples - NOT secret keys
+	n := "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw" // TEST_RSA_MODULUS - RFC 7517 example
+	e := "AQAB"                                                                                                                                                                                                                                                                                                                                                   // TEST_RSA_EXPONENT - Standard exponent
 
 	publicKey, err := authService.jwkToRSA(n, e)
 
@@ -392,7 +392,7 @@ func TestRequireRole(t *testing.T) {
 	// Test admin override
 	t.Run("AdminOverride", func(t *testing.T) {
 		claims := &Claims{
-			UserID: "admin123",
+			UserID: "test_admin_user",
 			Role:   "admin",
 		}
 
@@ -421,7 +421,7 @@ func TestGetUserFromContext(t *testing.T) {
 		}
 
 		ctx := context.WithValue(context.Background(), "user", claims)
-		
+
 		user, err := GetUserFromContext(ctx)
 		assert.NoError(t, err)
 		assert.Equal(t, claims, user)
@@ -430,7 +430,7 @@ func TestGetUserFromContext(t *testing.T) {
 	// Test with no user context
 	t.Run("NoUserContext", func(t *testing.T) {
 		ctx := context.Background()
-		
+
 		user, err := GetUserFromContext(ctx)
 		assert.Error(t, err)
 		assert.Nil(t, user)
@@ -440,7 +440,7 @@ func TestGetUserFromContext(t *testing.T) {
 	// Test with invalid user context type
 	t.Run("InvalidUserContext", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), "user", "invalid")
-		
+
 		user, err := GetUserFromContext(ctx)
 		assert.Error(t, err)
 		assert.Nil(t, user)

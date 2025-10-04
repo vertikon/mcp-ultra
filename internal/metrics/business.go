@@ -24,61 +24,61 @@ const (
 type AggregationType string
 
 const (
-	AggregationSum     AggregationType = "sum"
-	AggregationAvg     AggregationType = "avg"
-	AggregationMax     AggregationType = "max"
-	AggregationMin     AggregationType = "min"
-	AggregationCount   AggregationType = "count"
-	AggregationP95     AggregationType = "p95"
-	AggregationP99     AggregationType = "p99"
+	AggregationSum   AggregationType = "sum"
+	AggregationAvg   AggregationType = "avg"
+	AggregationMax   AggregationType = "max"
+	AggregationMin   AggregationType = "min"
+	AggregationCount AggregationType = "count"
+	AggregationP95   AggregationType = "p95"
+	AggregationP99   AggregationType = "p99"
 )
 
 // BusinessMetric defines a business metric configuration
 type BusinessMetric struct {
-	Name         string            `yaml:"name" json:"name"`
-	Type         MetricType        `yaml:"type" json:"type"`
-	Description  string            `yaml:"description" json:"description"`
-	Unit         string            `yaml:"unit" json:"unit"`
-	Labels       []string          `yaml:"labels" json:"labels"`
-	Aggregations []AggregationType `yaml:"aggregations" json:"aggregations"`
-	Buckets      []float64         `yaml:"buckets,omitempty" json:"buckets,omitempty"` // For histograms
+	Name         string              `yaml:"name" json:"name"`
+	Type         MetricType          `yaml:"type" json:"type"`
+	Description  string              `yaml:"description" json:"description"`
+	Unit         string              `yaml:"unit" json:"unit"`
+	Labels       []string            `yaml:"labels" json:"labels"`
+	Aggregations []AggregationType   `yaml:"aggregations" json:"aggregations"`
+	Buckets      []float64           `yaml:"buckets,omitempty" json:"buckets,omitempty"`       // For histograms
 	Objectives   map[float64]float64 `yaml:"objectives,omitempty" json:"objectives,omitempty"` // For summaries
-	TTL          time.Duration     `yaml:"ttl" json:"ttl"`
-	Category     string            `yaml:"category" json:"category"`
-	Priority     int               `yaml:"priority" json:"priority"`
-	Enabled      bool              `yaml:"enabled" json:"enabled"`
+	TTL          time.Duration       `yaml:"ttl" json:"ttl"`
+	Category     string              `yaml:"category" json:"category"`
+	Priority     int                 `yaml:"priority" json:"priority"`
+	Enabled      bool                `yaml:"enabled" json:"enabled"`
 }
 
 // BusinessMetricsConfig configures business metrics collection
 type BusinessMetricsConfig struct {
-	Enabled           bool                     `yaml:"enabled"`
-	CollectionInterval time.Duration          `yaml:"collection_interval"`
-	RetentionPeriod   time.Duration           `yaml:"retention_period"`
-	CustomMetrics     []BusinessMetric        `yaml:"custom_metrics"`
-	DefaultLabels     map[string]string       `yaml:"default_labels"`
-	
+	Enabled            bool              `yaml:"enabled"`
+	CollectionInterval time.Duration     `yaml:"collection_interval"`
+	RetentionPeriod    time.Duration     `yaml:"retention_period"`
+	CustomMetrics      []BusinessMetric  `yaml:"custom_metrics"`
+	DefaultLabels      map[string]string `yaml:"default_labels"`
+
 	// Storage configuration
-	StorageBackend    string                  `yaml:"storage_backend"` // "memory", "redis", "postgres"
-	StorageConfig     map[string]interface{}  `yaml:"storage_config"`
-	
+	StorageBackend string                 `yaml:"storage_backend"` // "memory", "redis", "postgres"
+	StorageConfig  map[string]interface{} `yaml:"storage_config"`
+
 	// Alerting configuration
-	AlertingEnabled   bool                    `yaml:"alerting_enabled"`
-	AlertRules        []MetricAlertRule       `yaml:"alert_rules"`
-	
+	AlertingEnabled bool              `yaml:"alerting_enabled"`
+	AlertRules      []MetricAlertRule `yaml:"alert_rules"`
+
 	// Export configuration
-	ExportEnabled     bool                    `yaml:"export_enabled"`
-	ExportInterval    time.Duration           `yaml:"export_interval"`
-	ExportFormat      string                  `yaml:"export_format"` // "prometheus", "json", "csv"
-	ExportEndpoint    string                  `yaml:"export_endpoint"`
+	ExportEnabled  bool          `yaml:"export_enabled"`
+	ExportInterval time.Duration `yaml:"export_interval"`
+	ExportFormat   string        `yaml:"export_format"` // "prometheus", "json", "csv"
+	ExportEndpoint string        `yaml:"export_endpoint"`
 }
 
 // MetricAlertRule defines alerting rules for business metrics
 type MetricAlertRule struct {
 	MetricName  string            `yaml:"metric_name"`
-	Condition   string            `yaml:"condition"`   // ">", "<", ">=", "<=", "==", "!="
+	Condition   string            `yaml:"condition"` // ">", "<", ">=", "<=", "==", "!="
 	Threshold   float64           `yaml:"threshold"`
-	Duration    time.Duration     `yaml:"duration"`    // How long condition must be true
-	Severity    string            `yaml:"severity"`    // "critical", "warning", "info"
+	Duration    time.Duration     `yaml:"duration"` // How long condition must be true
+	Severity    string            `yaml:"severity"` // "critical", "warning", "info"
 	Labels      map[string]string `yaml:"labels"`
 	Annotations map[string]string `yaml:"annotations"`
 	Enabled     bool              `yaml:"enabled"`
@@ -106,33 +106,33 @@ type BusinessMetricsCollector struct {
 	config    BusinessMetricsConfig
 	logger    logger.Logger
 	telemetry *observability.TelemetryService
-	
+
 	// State
-	mu                sync.RWMutex
-	metrics           map[string]*BusinessMetric
-	values            map[string][]MetricValue
-	aggregations      map[string]map[AggregationType]AggregatedMetric
-	alertStates       map[string]AlertState
-	
+	mu           sync.RWMutex
+	metrics      map[string]*BusinessMetric
+	values       map[string][]MetricValue
+	aggregations map[string]map[AggregationType]AggregatedMetric
+	alertStates  map[string]AlertState
+
 	// Background processing
-	ctx               context.Context
-	cancel            context.CancelFunc
-	wg                sync.WaitGroup
-	
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
+
 	// Storage
-	storage           MetricStorage
+	storage MetricStorage
 }
 
 // AlertState tracks the state of metric alerts
 type AlertState struct {
-	MetricName    string            `json:"metric_name"`
-	RuleName      string            `json:"rule_name"`
-	State         string            `json:"state"`        // "firing", "pending", "resolved"
-	Value         float64           `json:"value"`
-	Threshold     float64           `json:"threshold"`
-	Since         time.Time         `json:"since"`
-	Labels        map[string]string `json:"labels"`
-	Annotations   map[string]string `json:"annotations"`
+	MetricName  string            `json:"metric_name"`
+	RuleName    string            `json:"rule_name"`
+	State       string            `json:"state"` // "firing", "pending", "resolved"
+	Value       float64           `json:"value"`
+	Threshold   float64           `json:"threshold"`
+	Since       time.Time         `json:"since"`
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
 }
 
 // MetricStorage interface for metric storage backends
@@ -207,7 +207,7 @@ func DefaultBusinessMetrics() []BusinessMetric {
 			Priority:    1,
 			Enabled:     true,
 		},
-		
+
 		// Business KPIs
 		{
 			Name:        "active_users",
@@ -239,7 +239,7 @@ func DefaultBusinessMetrics() []BusinessMetric {
 			Priority:    1,
 			Enabled:     true,
 		},
-		
+
 		// System Health Metrics
 		{
 			Name:        "database_query_duration",
@@ -262,7 +262,7 @@ func DefaultBusinessMetrics() []BusinessMetric {
 			Priority:    2,
 			Enabled:     true,
 		},
-		
+
 		// Compliance Metrics
 		{
 			Name:        "compliance_events",
@@ -284,7 +284,7 @@ func DefaultBusinessMetrics() []BusinessMetric {
 			Priority:    1,
 			Enabled:     true,
 		},
-		
+
 		// Feature Usage Metrics
 		{
 			Name:        "feature_usage",
@@ -366,15 +366,15 @@ func NewBusinessMetricsCollector(
 	logger logger.Logger,
 	telemetry *observability.TelemetryService,
 ) (*BusinessMetricsCollector, error) {
-	
+
 	// Initialize storage backend
 	storage, err := NewMetricStorage(config.StorageBackend, config.StorageConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize metric storage: %w", err)
 	}
-	
+
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	collector := &BusinessMetricsCollector{
 		config:       config,
 		logger:       logger,
@@ -387,7 +387,7 @@ func NewBusinessMetricsCollector(
 		cancel:       cancel,
 		storage:      storage,
 	}
-	
+
 	// Initialize metrics
 	for i := range config.CustomMetrics {
 		metric := &config.CustomMetrics[i]
@@ -395,16 +395,16 @@ func NewBusinessMetricsCollector(
 		collector.values[metric.Name] = make([]MetricValue, 0)
 		collector.aggregations[metric.Name] = make(map[AggregationType]AggregatedMetric)
 	}
-	
+
 	// Start background tasks
 	collector.startBackgroundTasks()
-	
+
 	logger.Info("Business metrics collector initialized",
 		"metrics_count", len(config.CustomMetrics),
 		"storage_backend", config.StorageBackend,
 		"alerting_enabled", config.AlertingEnabled,
 	)
-	
+
 	return collector, nil
 }
 
@@ -432,12 +432,12 @@ func (bmc *BusinessMetricsCollector) RecordSummary(name string, value float64, l
 func (bmc *BusinessMetricsCollector) recordMetric(name string, value float64, labels map[string]string) {
 	bmc.mu.Lock()
 	defer bmc.mu.Unlock()
-	
+
 	metric, exists := bmc.metrics[name]
 	if !exists || !metric.Enabled {
 		return
 	}
-	
+
 	// Merge with default labels
 	allLabels := make(map[string]string)
 	for k, v := range bmc.config.DefaultLabels {
@@ -446,7 +446,7 @@ func (bmc *BusinessMetricsCollector) recordMetric(name string, value float64, la
 	for k, v := range labels {
 		allLabels[k] = v
 	}
-	
+
 	metricValue := MetricValue{
 		Name:      name,
 		Value:     value,
@@ -454,10 +454,10 @@ func (bmc *BusinessMetricsCollector) recordMetric(name string, value float64, la
 		Timestamp: time.Now(),
 		Unit:      metric.Unit,
 	}
-	
+
 	// Store in memory
 	bmc.values[name] = append(bmc.values[name], metricValue)
-	
+
 	// Also record in telemetry service
 	if bmc.telemetry != nil {
 		switch metric.Type {
@@ -469,7 +469,7 @@ func (bmc *BusinessMetricsCollector) recordMetric(name string, value float64, la
 			bmc.telemetry.RecordHistogram(name, value, allLabels)
 		}
 	}
-	
+
 	// Trigger immediate aggregation for high-priority metrics
 	if metric.Priority == 1 {
 		bmc.aggregateMetric(name, metricValue)
@@ -481,23 +481,23 @@ func (bmc *BusinessMetricsCollector) GetMetricValues(query MetricQuery) ([]Metri
 	if bmc.storage != nil {
 		return bmc.storage.Query(bmc.ctx, query)
 	}
-	
+
 	// Fallback to in-memory values
 	bmc.mu.RLock()
 	defer bmc.mu.RUnlock()
-	
+
 	values, exists := bmc.values[query.MetricName]
 	if !exists {
 		return nil, nil
 	}
-	
+
 	filtered := make([]MetricValue, 0)
 	for _, value := range values {
 		if bmc.matchesQuery(value, query) {
 			filtered = append(filtered, value)
 		}
 	}
-	
+
 	return filtered, nil
 }
 
@@ -506,23 +506,23 @@ func (bmc *BusinessMetricsCollector) GetAggregatedMetrics(query AggregationQuery
 	if bmc.storage != nil {
 		return bmc.storage.Aggregate(bmc.ctx, query)
 	}
-	
+
 	// Fallback to in-memory aggregations
 	bmc.mu.RLock()
 	defer bmc.mu.RUnlock()
-	
+
 	aggregations, exists := bmc.aggregations[query.MetricName]
 	if !exists {
 		return nil, nil
 	}
-	
+
 	result := make([]AggregatedMetric, 0)
 	for _, aggType := range query.Aggregations {
 		if aggMetric, exists := aggregations[aggType]; exists {
 			result = append(result, aggMetric)
 		}
 	}
-	
+
 	return result, nil
 }
 
@@ -530,12 +530,12 @@ func (bmc *BusinessMetricsCollector) GetAggregatedMetrics(query AggregationQuery
 func (bmc *BusinessMetricsCollector) GetAlertStates() []AlertState {
 	bmc.mu.RLock()
 	defer bmc.mu.RUnlock()
-	
+
 	states := make([]AlertState, 0, len(bmc.alertStates))
 	for _, state := range bmc.alertStates {
 		states = append(states, state)
 	}
-	
+
 	return states
 }
 
@@ -543,28 +543,28 @@ func (bmc *BusinessMetricsCollector) GetAlertStates() []AlertState {
 func (bmc *BusinessMetricsCollector) GetMetrics() []BusinessMetric {
 	bmc.mu.RLock()
 	defer bmc.mu.RUnlock()
-	
+
 	metrics := make([]BusinessMetric, 0, len(bmc.metrics))
 	for _, metric := range bmc.metrics {
 		metrics = append(metrics, *metric)
 	}
-	
+
 	return metrics
 }
 
 // Close gracefully shuts down the collector
 func (bmc *BusinessMetricsCollector) Close() error {
 	bmc.logger.Info("Shutting down business metrics collector")
-	
+
 	// Cancel context and wait for background tasks
 	bmc.cancel()
 	bmc.wg.Wait()
-	
+
 	// Close storage
 	if bmc.storage != nil {
 		return bmc.storage.Close()
 	}
-	
+
 	return nil
 }
 
@@ -574,19 +574,19 @@ func (bmc *BusinessMetricsCollector) startBackgroundTasks() {
 	// Collection and aggregation task
 	bmc.wg.Add(1)
 	go bmc.collectionTask()
-	
+
 	// Alert processing task
 	if bmc.config.AlertingEnabled {
 		bmc.wg.Add(1)
 		go bmc.alertTask()
 	}
-	
+
 	// Export task
 	if bmc.config.ExportEnabled {
 		bmc.wg.Add(1)
 		go bmc.exportTask()
 	}
-	
+
 	// Cleanup task
 	bmc.wg.Add(1)
 	go bmc.cleanupTask()
@@ -594,10 +594,10 @@ func (bmc *BusinessMetricsCollector) startBackgroundTasks() {
 
 func (bmc *BusinessMetricsCollector) collectionTask() {
 	defer bmc.wg.Done()
-	
+
 	ticker := time.NewTicker(bmc.config.CollectionInterval)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-bmc.ctx.Done():
@@ -611,7 +611,7 @@ func (bmc *BusinessMetricsCollector) collectionTask() {
 func (bmc *BusinessMetricsCollector) performCollection() {
 	bmc.mu.Lock()
 	defer bmc.mu.Unlock()
-	
+
 	// Process aggregations for all metrics
 	for metricName := range bmc.metrics {
 		values := bmc.values[metricName]
@@ -619,7 +619,7 @@ func (bmc *BusinessMetricsCollector) performCollection() {
 			bmc.aggregateMetric(metricName, value)
 		}
 	}
-	
+
 	// Store values in persistent storage
 	if bmc.storage != nil {
 		for metricName, values := range bmc.values {
@@ -631,7 +631,7 @@ func (bmc *BusinessMetricsCollector) performCollection() {
 						"error", err,
 					)
 				}
-				
+
 				// Clear in-memory values after successful storage
 				bmc.values[metricName] = make([]MetricValue, 0)
 			}
@@ -644,9 +644,9 @@ func (bmc *BusinessMetricsCollector) aggregateMetric(metricName string, value Me
 	if metric == nil {
 		return
 	}
-	
+
 	aggregations := bmc.aggregations[metricName]
-	
+
 	for _, aggType := range metric.Aggregations {
 		existing, exists := aggregations[aggType]
 		if !exists {
@@ -662,7 +662,7 @@ func (bmc *BusinessMetricsCollector) aggregateMetric(metricName string, value Me
 				Count:       0,
 			}
 		}
-		
+
 		// Apply aggregation logic
 		switch aggType {
 		case AggregationSum:
@@ -680,20 +680,20 @@ func (bmc *BusinessMetricsCollector) aggregateMetric(metricName string, value Me
 		case AggregationCount:
 			existing.Value = float64(existing.Count + 1)
 		}
-		
+
 		existing.Count++
 		existing.Timestamp = time.Now()
-		
+
 		aggregations[aggType] = existing
 	}
 }
 
 func (bmc *BusinessMetricsCollector) alertTask() {
 	defer bmc.wg.Done()
-	
+
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-bmc.ctx.Done():
@@ -709,7 +709,7 @@ func (bmc *BusinessMetricsCollector) processAlerts() {
 		if !rule.Enabled {
 			continue
 		}
-		
+
 		bmc.evaluateAlertRule(rule)
 	}
 }
@@ -722,14 +722,14 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 		EndTime:    time.Now(),
 		Limit:      1,
 	}
-	
+
 	values, err := bmc.GetMetricValues(query)
 	if err != nil || len(values) == 0 {
 		return
 	}
-	
+
 	currentValue := values[len(values)-1].Value
-	
+
 	// Evaluate condition
 	conditionMet := false
 	switch rule.Condition {
@@ -746,14 +746,14 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 	case "!=":
 		conditionMet = currentValue != rule.Threshold
 	}
-	
+
 	// Update alert state
 	alertKey := fmt.Sprintf("%s-%s", rule.MetricName, rule.Severity)
-	
+
 	bmc.mu.Lock()
 	existingState, exists := bmc.alertStates[alertKey]
 	bmc.mu.Unlock()
-	
+
 	if conditionMet {
 		if !exists || existingState.State == "resolved" {
 			// New alert or previously resolved
@@ -767,20 +767,20 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 				Labels:      rule.Labels,
 				Annotations: rule.Annotations,
 			}
-			
+
 			bmc.mu.Lock()
 			bmc.alertStates[alertKey] = newState
 			bmc.mu.Unlock()
-			
+
 		} else if existingState.State == "pending" && time.Since(existingState.Since) >= rule.Duration {
 			// Promote to firing
 			existingState.State = "firing"
 			existingState.Value = currentValue
-			
+
 			bmc.mu.Lock()
 			bmc.alertStates[alertKey] = existingState
 			bmc.mu.Unlock()
-			
+
 			bmc.logger.Warn("Alert firing",
 				"metric", rule.MetricName,
 				"condition", fmt.Sprintf("%s %f", rule.Condition, rule.Threshold),
@@ -792,11 +792,11 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 		// Resolve alert
 		existingState.State = "resolved"
 		existingState.Value = currentValue
-		
+
 		bmc.mu.Lock()
 		bmc.alertStates[alertKey] = existingState
 		bmc.mu.Unlock()
-		
+
 		bmc.logger.Info("Alert resolved",
 			"metric", rule.MetricName,
 			"current_value", currentValue,
@@ -806,10 +806,10 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 
 func (bmc *BusinessMetricsCollector) exportTask() {
 	defer bmc.wg.Done()
-	
+
 	ticker := time.NewTicker(bmc.config.ExportInterval)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-bmc.ctx.Done():
@@ -830,10 +830,10 @@ func (bmc *BusinessMetricsCollector) performExport() {
 
 func (bmc *BusinessMetricsCollector) cleanupTask() {
 	defer bmc.wg.Done()
-	
+
 	ticker := time.NewTicker(time.Hour)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-bmc.ctx.Done():
@@ -846,7 +846,7 @@ func (bmc *BusinessMetricsCollector) cleanupTask() {
 
 func (bmc *BusinessMetricsCollector) performCleanup() {
 	cutoff := time.Now().Add(-bmc.config.RetentionPeriod)
-	
+
 	// Clean up in-memory values
 	bmc.mu.Lock()
 	for metricName, values := range bmc.values {
@@ -859,7 +859,7 @@ func (bmc *BusinessMetricsCollector) performCleanup() {
 		bmc.values[metricName] = filtered
 	}
 	bmc.mu.Unlock()
-	
+
 	// Clean up persistent storage
 	if bmc.storage != nil {
 		if err := bmc.storage.Delete(bmc.ctx, cutoff); err != nil {
@@ -876,14 +876,14 @@ func (bmc *BusinessMetricsCollector) matchesQuery(value MetricValue, query Metri
 	if !query.EndTime.IsZero() && value.Timestamp.After(query.EndTime) {
 		return false
 	}
-	
+
 	// Check labels
 	for k, v := range query.Labels {
 		if value.Labels[k] != v {
 			return false
 		}
 	}
-	
+
 	return true
 }
 

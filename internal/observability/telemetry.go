@@ -3,7 +3,7 @@ package observability
 import (
 	"context"
 	"fmt"
-	"log"
+	"runtime"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -13,28 +13,51 @@ import (
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/instrumentation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 // TelemetryConfig holds telemetry configuration
 type TelemetryConfig struct {
-	ServiceName     string        `yaml:"service_name"`
-	ServiceVersion  string        `yaml:"service_version"`
-	Environment     string        `yaml:"environment"`
-	JaegerEndpoint  string        `yaml:"jaeger_endpoint"`
-	OTLPEndpoint    string        `yaml:"otlp_endpoint"`
-	MetricsPort     int           `yaml:"metrics_port"`
-	SamplingRate    float64       `yaml:"sampling_rate"`
-	BatchTimeout    time.Duration `yaml:"batch_timeout"`
-	BatchSize       int           `yaml:"batch_size"`
-	Enabled         bool          `yaml:"enabled"`
-	Debug           bool          `yaml:"debug"`
+	ServiceName    string        `yaml:"service_name"`
+	ServiceVersion string        `yaml:"service_version"`
+	Environment    string        `yaml:"environment"`
+	JaegerEndpoint string        `yaml:"jaeger_endpoint"`
+	OTLPEndpoint   string        `yaml:"otlp_endpoint"`
+	MetricsPort    int           `yaml:"metrics_port"`
+	SamplingRate   float64       `yaml:"sampling_rate"`
+	SampleRate     float64       `yaml:"sample_rate"`
+	BatchTimeout   time.Duration `yaml:"batch_timeout"`
+	BatchSize      int           `yaml:"batch_size"`
+	Enabled        bool          `yaml:"enabled"`
+	Debug          bool          `yaml:"debug"`
+	Exporter       string        `yaml:"exporter"`
+
+	// Tracing specific
+	TracingEnabled    bool          `yaml:"tracing_enabled"`
+	TracingSampleRate float64       `yaml:"tracing_sample_rate"`
+	TracingMaxSpans   int           `yaml:"tracing_max_spans"`
+	TracingBatchSize  int           `yaml:"tracing_batch_size"`
+	TracingTimeout    time.Duration `yaml:"tracing_timeout"`
+
+	// Metrics specific
+	MetricsEnabled   bool          `yaml:"metrics_enabled"`
+	MetricsPath      string        `yaml:"metrics_path"`
+	MetricsInterval  time.Duration `yaml:"metrics_interval"`
+	HistogramBuckets []float64     `yaml:"histogram_buckets"`
+
+	// Exporters configuration
+	JaegerEnabled  bool              `yaml:"jaeger_enabled"`
+	JaegerUser     string            `yaml:"jaeger_user"`
+	JaegerPassword string            `yaml:"jaeger_password"`
+	OTLPEnabled    bool              `yaml:"otlp_enabled"`
+	OTLPInsecure   bool              `yaml:"otlp_insecure"`
+	OTLPHeaders    map[string]string `yaml:"otlp_headers"`
+	ConsoleEnabled bool              `yaml:"console_enabled"`
 }
 
 // TelemetryService manages OpenTelemetry instrumentation
@@ -45,18 +68,18 @@ type TelemetryService struct {
 	meterProvider  metric.MeterProvider
 	tracer         trace.Tracer
 	meter          metric.Meter
-	
+
 	// Business metrics
 	requestCounter    metric.Int64Counter
 	requestDuration   metric.Float64Histogram
 	activeConnections metric.Int64UpDownCounter
 	errorCounter      metric.Int64Counter
 	taskMetrics       *TaskMetrics
-	
+
 	// System metrics
-	cpuUsage     metric.Float64ObservableGauge
-	memoryUsage  metric.Float64ObservableGauge
-	goroutines   metric.Int64ObservableGauge
+	cpuUsage    metric.Float64ObservableGauge
+	memoryUsage metric.Float64ObservableGauge
+	goroutines  metric.Int64ObservableGauge
 }
 
 // TaskMetrics holds task-specific metrics
@@ -65,8 +88,8 @@ type TaskMetrics struct {
 	taskCompleted metric.Int64Counter
 	taskFailed    metric.Int64Counter
 	taskDuration  metric.Float64Histogram
-	
-	tasksByStatus metric.Int64ObservableGauge
+
+	tasksByStatus   metric.Int64ObservableGauge
 	tasksByPriority metric.Int64ObservableGauge
 }
 
@@ -373,6 +396,20 @@ func (ts *TelemetryService) initSystemMetrics() error {
 	return nil
 }
 
+// Start is a no-op method for compatibility with Service.Start()
+// Initialization happens in NewTelemetryService
+func (ts *TelemetryService) Start(ctx context.Context) error {
+	if ts.config.Debug {
+		ts.logger.Debug("TelemetryService.Start called (initialization already complete)")
+	}
+	return nil
+}
+
+// Stop gracefully shuts down telemetry
+func (ts *TelemetryService) Stop(ctx context.Context) error {
+	return ts.Shutdown(ctx)
+}
+
 // Tracer returns the configured tracer
 func (ts *TelemetryService) Tracer() trace.Tracer {
 	if ts.tracer == nil {
@@ -488,16 +525,16 @@ func (ts *TelemetryService) DecrementActiveConnections() {
 func (ts *TelemetryService) collectSystemMetrics(ctx context.Context, observer metric.Observer) error {
 	// Collect system metrics (simplified implementation)
 	// In production, use proper system metric collection libraries
-	
+
 	// CPU usage (mock implementation)
 	observer.ObserveFloat64(ts.cpuUsage, 0.0) // Would collect actual CPU usage
-	
-	// Memory usage (mock implementation)  
+
+	// Memory usage (mock implementation)
 	observer.ObserveFloat64(ts.memoryUsage, 0.0) // Would collect actual memory usage
-	
+
 	// Goroutines
 	observer.ObserveInt64(ts.goroutines, int64(runtime.NumGoroutine()))
-	
+
 	return nil
 }
 
@@ -536,6 +573,3 @@ func generateInstanceID() string {
 	// In production, this could be based on hostname, pod name, etc.
 	return fmt.Sprintf("instance-%d", time.Now().UnixNano())
 }
-
-// Helper function to import runtime for goroutines metric
-import "runtime"
