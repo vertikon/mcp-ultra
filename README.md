@@ -44,6 +44,10 @@ go run ./cmd/server
 
 ## 📊 Test & Coverage
 
+![coverage](docs/badges/coverage.svg)
+
+Veja o histórico detalhado em [`docs/coverage_history.md`](docs/coverage_history.md).
+
 ```bash
 # Run tests
 go test ./internal/handlers ./tests/integration ./tests/smoke -count=1
