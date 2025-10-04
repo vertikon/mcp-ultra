@@ -20,7 +20,7 @@ jobs:
 
       - name: Test + coverage (pkgs estáveis)
         run: |
-          go test ./internal/handlers ./tests/integration ./tests/smoke -coverprofile coverage.out -count=1
+          go test ./internal/handlers ./tests/integration ./tests/smoke -coverpkg=./... -coverprofile coverage.out -count=1
           go tool cover -func  coverage.out > coverage_func.txt
           go tool cover -html  coverage.out > coverage.html
 

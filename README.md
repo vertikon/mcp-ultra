@@ -54,8 +54,8 @@ go test ./internal/handlers ./tests/integration ./tests/smoke -count=1
 
 # Generate coverage
 go test ./internal/handlers ./tests/integration ./tests/smoke -coverpkg=./... -coverprofile=coverage.out
-go tool cover -func coverage.out
-go tool cover -html coverage.out -o coverage.html
+go tool cover -func coverage.out > coverage_func.txt
+go tool cover -html coverage.out > coverage.html
 ```
 
 ## 📡 NATS
