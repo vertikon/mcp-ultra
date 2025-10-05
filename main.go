@@ -14,10 +14,10 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
+	"github.com/vertikon/mcp-ultra-fix/pkg/version"
 	"github.com/vertikon/mcp-ultra/internal/config"
 	"github.com/vertikon/mcp-ultra/internal/handlers"
-	"github.com/vertikon/mcp-ultra/pkg/logger"
-	"github.com/vertikon/mcp-ultra/pkg/version"
 	"go.uber.org/zap"
 )
 

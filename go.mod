@@ -2,6 +2,10 @@ module github.com/vertikon/mcp-ultra
 
 go 1.24.0
 
+require github.com/vertikon/mcp-ultra-fix v0.0.0
+
+replace github.com/vertikon/mcp-ultra-fix => ../../../../.ecosistema-vertikon/shared/mcp-ultra-fix
+
 require (
 	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/cespare/xxhash/v2 v2.3.0

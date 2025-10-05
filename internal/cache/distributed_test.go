@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/vertikon/mcp-ultra/pkg/logger"
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 )
 
 func createTestDistributedCache(t *testing.T) (*DistributedCache, *miniredis.Miniredis) {

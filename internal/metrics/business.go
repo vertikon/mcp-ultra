@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
-	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // MetricType represents different types of business metrics
