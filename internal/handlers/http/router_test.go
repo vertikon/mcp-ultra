@@ -147,7 +147,7 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Reset mocks
 			mockHealthService.ExpectedCalls = nil
-			
+
 			tt.setupMock()
 
 			router := NewRouter(logger, mockHealthService, mockTaskService)
@@ -157,7 +157,7 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, tt.expectedStatus, w.Code)
-			
+
 			if tt.expectedBody != "" {
 				assert.JSONEq(t, tt.expectedBody, w.Body.String())
 			}
@@ -201,7 +201,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusCreated, w.Code)
-		
+
 		var response domain.Task
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)

@@ -81,10 +81,10 @@ func TestObservabilityIntegration(t *testing.T) {
 	t.Run("HealthCheck", func(t *testing.T) {
 		health := obsService.HealthCheck()
 		assert.NotNil(t, health)
-		
+
 		observabilityHealth, exists := health["observability"]
 		require.True(t, exists)
-		
+
 		healthMap := observabilityHealth.(map[string]interface{})
 		assert.True(t, healthMap["enabled"].(bool))
 		assert.Equal(t, "healthy", healthMap["status"])

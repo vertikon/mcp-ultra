@@ -193,7 +193,7 @@ func (h *FeatureFlagHandlers) EvaluateFlag(w http.ResponseWriter, r *http.Reques
 func (h *FeatureFlagHandlers) writeJSONResponse(w http.ResponseWriter, statusCode int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	
+
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		h.logger.Error("Failed to encode JSON response", zap.Error(err))
 	}

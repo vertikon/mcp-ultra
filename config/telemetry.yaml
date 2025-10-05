@@ -40,12 +40,11 @@ telemetry:
     # OTLP Exporter (Recommended - OpenTelemetry standard)
     otlp:
       enabled: true
-      endpoint: "http://otel-collector:4317"
+      endpoint: "${OTLP_ENDPOINT}"
       insecure: true
       headers:
-        # Add any custom headers here
-        # x-api-key: "your-api-key"
-    
+        authorization: "${OTLP_AUTH_TOKEN}"
+
     # Jaeger Exporter (Legacy - for backward compatibility)
     jaeger:
       enabled: false

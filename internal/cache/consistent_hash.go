@@ -31,13 +31,13 @@ func NewConsistentHash(virtualNodes int) *ConsistentHash {
 func (ch *ConsistentHash) Add(node string, weight int) {
 	ch.mu.Lock()
 	defer ch.mu.Unlock()
-	
+
 	if ch.nodes[node] {
 		return // Node already exists
 	}
-	
+
 	ch.nodes[node] = true
-	
+
 	// Add virtual nodes based on weight
 	virtualNodeCount := ch.virtualNodes * weight
 	for i := 0; i < virtualNodeCount; i++ {
@@ -46,7 +46,7 @@ func (ch *ConsistentHash) Add(node string, weight int) {
 		ch.hashRing[hash] = node
 		ch.sortedHashes = append(ch.sortedHashes, hash)
 	}
-	
+
 	// Sort the hash ring
 	sort.Slice(ch.sortedHashes, func(i, j int) bool {
 		return ch.sortedHashes[i] < ch.sortedHashes[j]
@@ -57,13 +57,13 @@ func (ch *ConsistentHash) Add(node string, weight int) {
 func (ch *ConsistentHash) Remove(node string) {
 	ch.mu.Lock()
 	defer ch.mu.Unlock()
-	
+
 	if !ch.nodes[node] {
 		return // Node doesn't exist
 	}
-	
+
 	delete(ch.nodes, node)
-	
+
 	// Remove all virtual nodes for this physical node
 	newSortedHashes := make([]uint32, 0, len(ch.sortedHashes))
 	for _, hash := range ch.sortedHashes {
@@ -73,7 +73,7 @@ func (ch *ConsistentHash) Remove(node string) {
 			delete(ch.hashRing, hash)
 		}
 	}
-	
+
 	ch.sortedHashes = newSortedHashes
 }
 
@@ -81,26 +81,26 @@ func (ch *ConsistentHash) Remove(node string) {
 func (ch *ConsistentHash) Get(key string) (string, bool) {
 	ch.mu.RLock()
 	defer ch.mu.RUnlock()
-	
+
 	if len(ch.sortedHashes) == 0 {
 		return "", false
 	}
-	
+
 	hash := ch.hash(key)
-	
+
 	// Binary search for the first node with hash >= key hash
 	idx := sort.Search(len(ch.sortedHashes), func(i int) bool {
 		return ch.sortedHashes[i] >= hash
 	})
-	
+
 	// If no node found, wrap around to the first node
 	if idx == len(ch.sortedHashes) {
 		idx = 0
 	}
-	
+
 	nodeHash := ch.sortedHashes[idx]
 	node := ch.hashRing[nodeHash]
-	
+
 	return node, true
 }
 
@@ -108,37 +108,37 @@ func (ch *ConsistentHash) Get(key string) (string, bool) {
 func (ch *ConsistentHash) GetMultiple(key string, count int) []string {
 	ch.mu.RLock()
 	defer ch.mu.RUnlock()
-	
+
 	if len(ch.sortedHashes) == 0 || count <= 0 {
 		return nil
 	}
-	
+
 	hash := ch.hash(key)
 	nodes := make([]string, 0, count)
 	uniqueNodes := make(map[string]bool)
-	
+
 	// Find starting position
 	idx := sort.Search(len(ch.sortedHashes), func(i int) bool {
 		return ch.sortedHashes[i] >= hash
 	})
-	
+
 	// Collect unique nodes
 	for len(nodes) < count && len(uniqueNodes) < len(ch.nodes) {
 		if idx >= len(ch.sortedHashes) {
 			idx = 0 // Wrap around
 		}
-		
+
 		nodeHash := ch.sortedHashes[idx]
 		node := ch.hashRing[nodeHash]
-		
+
 		if !uniqueNodes[node] {
 			nodes = append(nodes, node)
 			uniqueNodes[node] = true
 		}
-		
+
 		idx++
 	}
-	
+
 	return nodes
 }
 
@@ -146,12 +146,12 @@ func (ch *ConsistentHash) GetMultiple(key string, count int) []string {
 func (ch *ConsistentHash) GetNodes() []string {
 	ch.mu.RLock()
 	defer ch.mu.RUnlock()
-	
+
 	nodes := make([]string, 0, len(ch.nodes))
 	for node := range ch.nodes {
 		nodes = append(nodes, node)
 	}
-	
+
 	return nodes
 }
 
@@ -159,7 +159,7 @@ func (ch *ConsistentHash) GetNodes() []string {
 func (ch *ConsistentHash) Size() int {
 	ch.mu.RLock()
 	defer ch.mu.RUnlock()
-	
+
 	return len(ch.nodes)
 }
 
@@ -167,38 +167,38 @@ func (ch *ConsistentHash) Size() int {
 func (ch *ConsistentHash) Distribution() map[string]float64 {
 	ch.mu.RLock()
 	defer ch.mu.RUnlock()
-	
+
 	if len(ch.sortedHashes) == 0 {
 		return nil
 	}
-	
+
 	distribution := make(map[string]float64)
 	nodeRanges := make(map[string]uint64)
-	
+
 	// Calculate the range each node is responsible for
 	for i, hash := range ch.sortedHashes {
 		node := ch.hashRing[hash]
-		
+
 		var rangeSize uint64
 		if i == 0 {
 			// First node: from last hash to current + from 0 to current
 			lastHash := ch.sortedHashes[len(ch.sortedHashes)-1]
-			rangeSize = uint64(hash) + (^uint32(0) - uint64(lastHash))
+			rangeSize = uint64(hash) + (uint64(^uint32(0)) - uint64(lastHash))
 		} else {
 			// Normal range: current - previous
 			prevHash := ch.sortedHashes[i-1]
 			rangeSize = uint64(hash) - uint64(prevHash)
 		}
-		
+
 		nodeRanges[node] += rangeSize
 	}
-	
+
 	// Convert to percentages
 	totalRange := uint64(^uint32(0))
 	for node, nodeRange := range nodeRanges {
 		distribution[node] = float64(nodeRange) / float64(totalRange) * 100
 	}
-	
+
 	return distribution
 }
 
@@ -226,27 +226,27 @@ type KeyRange struct {
 func (ch *ConsistentHash) GetRebalanceInfo(oldRing *ConsistentHash) []RebalanceInfo {
 	ch.mu.RLock()
 	defer ch.mu.RUnlock()
-	
+
 	if oldRing == nil {
 		return nil
 	}
-	
+
 	oldRing.mu.RLock()
 	defer oldRing.mu.RUnlock()
-	
+
 	rebalanceInfo := make([]RebalanceInfo, 0)
-	
+
 	// Sample key space to determine what data needs to move
 	samplePoints := 1000
 	maxHash := uint64(^uint32(0))
-	
+
 	for i := 0; i < samplePoints; i++ {
 		keyHash := uint32(uint64(i) * maxHash / uint64(samplePoints))
-		key := strconv.FormatUint(uint64(keyHash), 10)
-		
+		_ = strconv.FormatUint(uint64(keyHash), 10) // key not used, suppress warning
+
 		oldNode, oldExists := oldRing.getNodeForHash(keyHash)
 		newNode, newExists := ch.getNodeForHash(keyHash)
-		
+
 		if oldExists && newExists && oldNode != newNode {
 			// Data needs to move
 			info := RebalanceInfo{
@@ -261,7 +261,7 @@ func (ch *ConsistentHash) GetRebalanceInfo(oldRing *ConsistentHash) []RebalanceI
 			rebalanceInfo = append(rebalanceInfo, info)
 		}
 	}
-	
+
 	return rebalanceInfo
 }
 
@@ -270,17 +270,17 @@ func (ch *ConsistentHash) getNodeForHash(hash uint32) (string, bool) {
 	if len(ch.sortedHashes) == 0 {
 		return "", false
 	}
-	
+
 	idx := sort.Search(len(ch.sortedHashes), func(i int) bool {
 		return ch.sortedHashes[i] >= hash
 	})
-	
+
 	if idx == len(ch.sortedHashes) {
 		idx = 0
 	}
-	
+
 	nodeHash := ch.sortedHashes[idx]
 	node := ch.hashRing[nodeHash]
-	
+
 	return node, true
 }

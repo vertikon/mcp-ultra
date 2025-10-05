@@ -209,7 +209,7 @@ func (vs *VaultService) PutSecret(ctx context.Context, path string, data map[str
 // GetDatabaseCredentials retrieves database credentials from Vault
 func (vs *VaultService) GetDatabaseCredentials(ctx context.Context, role string) (string, string, error) {
 	path := fmt.Sprintf("database/creds/%s", role)
-	
+
 	data, err := vs.GetSecret(ctx, path)
 	if err != nil {
 		return "", "", fmt.Errorf("getting database credentials: %w", err)

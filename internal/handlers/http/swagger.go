@@ -13,7 +13,7 @@ func SwaggerUIHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Remove /docs prefix to get the file path
 		uiPath := strings.TrimPrefix(r.URL.Path, "/docs")
-		
+
 		// Default to index.html if no path specified
 		if uiPath == "" || uiPath == "/" {
 			uiPath = "/index.html"
@@ -52,12 +52,12 @@ func SwaggerUIHandler() http.Handler {
 func RegisterSwaggerRoutes(router *mux.Router) {
 	// Swagger UI routes
 	router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs", SwaggerUIHandler())).Methods("GET")
-	
+
 	// Direct OpenAPI spec access
 	router.HandleFunc("/api/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./api/openapi.yaml")
 	}).Methods("GET")
-	
+
 	router.HandleFunc("/api/openapi.json", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		// In production, serve actual JSON conversion
@@ -222,22 +222,9 @@ const swaggerUIHTML = `<!DOCTYPE html>
             setTimeout(() => {
                 // Add custom styling after load
                 const style = document.createElement('style');
-                style.textContent = \`
-                    .swagger-ui .info .title {
-                        display: none; /* Hide duplicate title */
-                    }
-                    .swagger-ui .scheme-container {
-                        background: #f8f9fa;
-                        border: 1px solid #dee2e6;
-                        border-radius: 4px;
-                        padding: 10px;
-                        margin: 10px 0;
-                    }
-                    .swagger-ui .servers-title {
-                        font-weight: bold;
-                        color: #495057;
-                    }
-                \`;
+                style.textContent = '.swagger-ui .info .title { display: none; }' +
+                    '.swagger-ui .scheme-container { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 10px; margin: 10px 0; }' +
+                    '.swagger-ui .servers-title { font-weight: bold; color: #495057; }';
                 document.head.appendChild(style);
             }, 1000);
         };

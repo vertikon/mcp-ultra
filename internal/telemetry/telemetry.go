@@ -12,9 +12,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/prometheus"
+	promexporter "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/sdk/metric"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.uber.org/zap"
 
 	"github.com/vertikon/mcp-ultra/internal/config"
@@ -77,7 +77,7 @@ var (
 
 // Telemetry holds telemetry configuration and clients
 type Telemetry struct {
-	meter metric.Meter
+	meter  metric.Meter
 	logger *zap.Logger
 }
 
@@ -86,13 +86,13 @@ func Init(cfg config.TelemetryConfig) (*Telemetry, error) {
 	logger, _ := zap.NewProduction()
 
 	// Initialize Prometheus exporter
-	exporter, err := prometheus.New()
+	exporter, err := promexporter.New()
 	if err != nil {
 		return nil, fmt.Errorf("creating prometheus exporter: %w", err)
 	}
 
 	// Create meter provider
-	provider := metric.NewMeterProvider(metric.WithReader(exporter))
+	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(exporter))
 	otel.SetMeterProvider(provider)
 
 	// Create meter
@@ -108,17 +108,17 @@ func Init(cfg config.TelemetryConfig) (*Telemetry, error) {
 func HTTPMetrics(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		
+
 		// Wrap response writer to capture status code
 		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
-		
+
 		// Process request
 		next.ServeHTTP(ww, r)
-		
+
 		// Record metrics
 		duration := time.Since(start)
 		status := strconv.Itoa(ww.Status())
-		
+
 		httpRequestsTotal.WithLabelValues(r.Method, r.URL.Path, status).Inc()
 		httpRequestDuration.WithLabelValues(r.Method, r.URL.Path, status).Observe(duration.Seconds())
 	})
@@ -149,7 +149,7 @@ type TaskMetrics struct {
 	createdCounter   metric.Int64Counter
 	completedCounter metric.Int64Counter
 	processingTime   metric.Float64Histogram
-	meter           metric.Meter
+	meter            metric.Meter
 }
 
 // NewTaskMetrics creates new task metrics
@@ -183,7 +183,7 @@ func NewTaskMetrics(meter metric.Meter) (*TaskMetrics, error) {
 		createdCounter:   createdCounter,
 		completedCounter: completedCounter,
 		processingTime:   processingTime,
-		meter:           meter,
+		meter:            meter,
 	}, nil
 }
 
@@ -215,7 +215,7 @@ func (tm *TaskMetrics) RecordTaskCompleted(ctx context.Context, priority string,
 // FeatureFlagMetrics handles feature flag metrics
 type FeatureFlagMetrics struct {
 	evaluations metric.Int64Counter
-	meter      metric.Meter
+	meter       metric.Meter
 }
 
 // NewFeatureFlagMetrics creates new feature flag metrics
@@ -230,7 +230,7 @@ func NewFeatureFlagMetrics(meter metric.Meter) (*FeatureFlagMetrics, error) {
 
 	return &FeatureFlagMetrics{
 		evaluations: evaluations,
-		meter:      meter,
+		meter:       meter,
 	}, nil
 }
 

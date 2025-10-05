@@ -38,24 +38,24 @@ type RetentionPolicy struct {
 	Priority        int                    `json:"priority"`
 	Conditions      []RetentionCondition   `json:"conditions"`
 	Exceptions      []RetentionException   `json:"exceptions"`
-	LegalBasis      []LegalBasis          `json:"legal_basis"`
-	Jurisdictions   []string              `json:"jurisdictions"`
+	LegalBasis      []LegalBasis           `json:"legal_basis"`
+	Jurisdictions   []string               `json:"jurisdictions"`
 	Metadata        map[string]interface{} `json:"metadata"`
-	CreatedAt       time.Time             `json:"created_at"`
-	UpdatedAt       time.Time             `json:"updated_at"`
-	IsActive        bool                  `json:"is_active"`
+	CreatedAt       time.Time              `json:"created_at"`
+	UpdatedAt       time.Time              `json:"updated_at"`
+	IsActive        bool                   `json:"is_active"`
 }
 
 // RetentionAction defines what happens when data retention period expires
 type RetentionAction string
 
 const (
-	RetentionActionDelete     RetentionAction = "delete"
-	RetentionActionArchive    RetentionAction = "archive"
-	RetentionActionAnonymize  RetentionAction = "anonymize"
-	RetentionActionNotify     RetentionAction = "notify"
-	RetentionActionReview     RetentionAction = "review"
-	RetentionActionPurge      RetentionAction = "purge"
+	RetentionActionDelete    RetentionAction = "delete"
+	RetentionActionArchive   RetentionAction = "archive"
+	RetentionActionAnonymize RetentionAction = "anonymize"
+	RetentionActionNotify    RetentionAction = "notify"
+	RetentionActionReview    RetentionAction = "review"
+	RetentionActionPurge     RetentionAction = "purge"
 )
 
 // RetentionCondition defines conditions for applying retention policies
@@ -68,13 +68,13 @@ type RetentionCondition struct {
 
 // RetentionException defines exceptions to retention policies
 type RetentionException struct {
-	Reason      string                 `json:"reason"`
-	ExtendBy    time.Duration          `json:"extend_by"`
-	Conditions  []RetentionCondition   `json:"conditions"`
-	ApprovedBy  string                 `json:"approved_by"`
-	ApprovedAt  time.Time              `json:"approved_at"`
-	ExpiresAt   *time.Time             `json:"expires_at,omitempty"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Reason     string                 `json:"reason"`
+	ExtendBy   time.Duration          `json:"extend_by"`
+	Conditions []RetentionCondition   `json:"conditions"`
+	ApprovedBy string                 `json:"approved_by"`
+	ApprovedAt time.Time              `json:"approved_at"`
+	ExpiresAt  *time.Time             `json:"expires_at,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // RetentionRecord tracks retention information for specific data
@@ -166,7 +166,7 @@ func (rm *RetentionManager) ApplyRetentionPolicy(ctx context.Context, subjectID 
 
 	// Determine applicable policies based on data
 	policies := rm.getApplicablePolicies(data)
-	
+
 	for _, policy := range policies {
 		// Create retention record
 		record := RetentionRecord{
@@ -445,13 +445,13 @@ func (rm *RetentionManager) scheduleReview(ctx context.Context, record Retention
 
 func (rm *RetentionManager) getApplicablePolicies(data map[string]interface{}) []RetentionPolicy {
 	var applicable []RetentionPolicy
-	
+
 	for _, policy := range rm.policies {
 		if rm.policyApplies(policy, data) {
 			applicable = append(applicable, policy)
 		}
 	}
-	
+
 	return applicable
 }
 
@@ -491,7 +491,7 @@ func (rm *RetentionManager) initializeDefaultPolicies() {
 			UpdatedAt:       time.Now(),
 		},
 		{
-			ID:              "task_data_policy", 
+			ID:              "task_data_policy",
 			Name:            "Task Data Retention",
 			Description:     "Retention policy for task-related data",
 			Category:        "operational_data",

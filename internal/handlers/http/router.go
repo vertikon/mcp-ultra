@@ -54,7 +54,7 @@ func NewRouter(
 	r.Route("/api/v1", func(r chi.Router) {
 		// Task routes
 		r.Mount("/tasks", TaskRoutes(taskService, logger))
-		
+
 		// Feature flag routes
 		r.Mount("/flags", FeatureFlagRoutes(flagManager, logger))
 	})

@@ -28,6 +28,40 @@ mcp-ultra/
 └── 🐳 deploy/               # Configurações de deployment
 ```
 
+## 📦 Install
+
+```bash
+go mod tidy
+go build ./...
+```
+
+## 🏃 Usage
+
+```bash
+# Dev server (example)
+go run ./cmd/server
+```
+
+## 📊 Test & Coverage
+
+![coverage](docs/badges/coverage.svg)
+
+Veja o histórico detalhado em [`docs/coverage_history.md`](docs/coverage_history.md).
+
+```bash
+# Run tests
+go test ./internal/handlers ./tests/integration ./tests/smoke -count=1
+
+# Generate coverage
+go test ./internal/handlers ./tests/integration ./tests/smoke -coverpkg=./... -coverprofile=coverage.out
+go tool cover -func coverage.out > coverage_func.txt
+go tool cover -html coverage.out > coverage.html
+```
+
+## 📡 NATS
+
+Complete documentation in [docs/NATS.md](docs/NATS.md).
+
 ## 🚀 **Quick Start**
 
 ### 1️⃣ **Setup Inicial**

@@ -49,7 +49,7 @@ func NewNATSEventBus(natsURL string, logger *zap.Logger) (*NATSEventBus, error) 
 // Publish publishes an event to NATS
 func (bus *NATSEventBus) Publish(ctx context.Context, event *domain.Event) error {
 	subject := fmt.Sprintf("events.%s", event.Type)
-	
+
 	data, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("marshaling event: %w", err)
@@ -60,12 +60,12 @@ func (bus *NATSEventBus) Publish(ctx context.Context, event *domain.Event) error
 		Subject: subject,
 		Data:    data,
 		Header: nats.Header{
-			"Event-ID":          []string{event.ID.String()},
-			"Event-Type":        []string{event.Type},
-			"Aggregate-ID":      []string{event.AggregateID.String()},
-			"Event-Version":     []string{fmt.Sprintf("%d", event.Version)},
-			"Content-Type":      []string{"application/json"},
-			"Timestamp":         []string{event.OccurredAt.Format(time.RFC3339)},
+			"Event-ID":      []string{event.ID.String()},
+			"Event-Type":    []string{event.Type},
+			"Aggregate-ID":  []string{event.AggregateID.String()},
+			"Event-Version": []string{fmt.Sprintf("%d", event.Version)},
+			"Content-Type":  []string{"application/json"},
+			"Timestamp":     []string{event.OccurredAt.Format(time.RFC3339)},
 		},
 	}
 
@@ -73,7 +73,7 @@ func (bus *NATSEventBus) Publish(ctx context.Context, event *domain.Event) error
 		return fmt.Errorf("publishing event to NATS: %w", err)
 	}
 
-	bus.logger.Debug("Event published", 
+	bus.logger.Debug("Event published",
 		zap.String("event_id", event.ID.String()),
 		zap.String("event_type", event.Type),
 		zap.String("subject", subject))
@@ -88,7 +88,7 @@ func (bus *NATSEventBus) Subscribe(eventType string, handler EventHandler) (*nat
 	sub, err := bus.conn.Subscribe(subject, func(msg *nats.Msg) {
 		var event domain.Event
 		if err := json.Unmarshal(msg.Data, &event); err != nil {
-			bus.logger.Error("Failed to unmarshal event", 
+			bus.logger.Error("Failed to unmarshal event",
 				zap.Error(err),
 				zap.String("subject", msg.Subject))
 			return
@@ -118,7 +118,7 @@ func (bus *NATSEventBus) SubscribeQueue(eventType, queue string, handler EventHa
 	sub, err := bus.conn.QueueSubscribe(subject, queue, func(msg *nats.Msg) {
 		var event domain.Event
 		if err := json.Unmarshal(msg.Data, &event); err != nil {
-			bus.logger.Error("Failed to unmarshal event", 
+			bus.logger.Error("Failed to unmarshal event",
 				zap.Error(err),
 				zap.String("subject", msg.Subject))
 			return
@@ -137,7 +137,7 @@ func (bus *NATSEventBus) SubscribeQueue(eventType, queue string, handler EventHa
 		return nil, fmt.Errorf("subscribing to events with queue: %w", err)
 	}
 
-	bus.logger.Info("Subscribed to events with queue", 
+	bus.logger.Info("Subscribed to events with queue",
 		zap.String("subject", subject),
 		zap.String("queue", queue))
 	return sub, nil
@@ -192,37 +192,37 @@ func (h *TaskEventHandler) Handle(ctx context.Context, event *domain.Event) erro
 }
 
 func (h *TaskEventHandler) handleTaskCreated(ctx context.Context, event *domain.Event) error {
-	h.logger.Info("Task created event handled", 
+	h.logger.Info("Task created event handled",
 		zap.String("event_id", event.ID.String()),
 		zap.String("aggregate_id", event.AggregateID.String()))
-	
+
 	// Implement business logic here (notifications, analytics, etc.)
 	return nil
 }
 
 func (h *TaskEventHandler) handleTaskUpdated(ctx context.Context, event *domain.Event) error {
-	h.logger.Info("Task updated event handled", 
+	h.logger.Info("Task updated event handled",
 		zap.String("event_id", event.ID.String()),
 		zap.String("aggregate_id", event.AggregateID.String()))
-	
+
 	// Implement business logic here
 	return nil
 }
 
 func (h *TaskEventHandler) handleTaskCompleted(ctx context.Context, event *domain.Event) error {
-	h.logger.Info("Task completed event handled", 
+	h.logger.Info("Task completed event handled",
 		zap.String("event_id", event.ID.String()),
 		zap.String("aggregate_id", event.AggregateID.String()))
-	
+
 	// Implement business logic here (notifications, metrics, etc.)
 	return nil
 }
 
 func (h *TaskEventHandler) handleTaskDeleted(ctx context.Context, event *domain.Event) error {
-	h.logger.Info("Task deleted event handled", 
+	h.logger.Info("Task deleted event handled",
 		zap.String("event_id", event.ID.String()),
 		zap.String("aggregate_id", event.AggregateID.String()))
-	
+
 	// Implement business logic here
 	return nil
 }

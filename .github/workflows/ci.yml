@@ -191,7 +191,7 @@ jobs:
       postgres:
         image: postgres:15-alpine
         env:
-          POSTGRES_PASSWORD: testpass
+          POSTGRES_PASSWORD: test_secure_password
           POSTGRES_USER: testuser
           POSTGRES_DB: testdb
         options: >-
@@ -249,7 +249,7 @@ jobs:
         POSTGRES_HOST: localhost
         POSTGRES_PORT: 5432
         POSTGRES_USER: testuser
-        POSTGRES_PASSWORD: testpass
+        POSTGRES_PASSWORD: test_secure_password
         POSTGRES_DB: testdb
         REDIS_ADDR: localhost:6379
         NATS_URL: nats://localhost:4222
@@ -262,7 +262,7 @@ jobs:
         POSTGRES_HOST: localhost
         POSTGRES_PORT: 5432
         POSTGRES_USER: testuser
-        POSTGRES_PASSWORD: testpass
+        POSTGRES_PASSWORD: test_secure_password
         POSTGRES_DB: testdb
         REDIS_ADDR: localhost:6379
         NATS_URL: nats://localhost:4222

@@ -27,11 +27,11 @@ type Claims struct {
 
 // AuthConfig holds authentication configuration
 type AuthConfig struct {
-	Mode         string        `yaml:"mode"`         // jwt, oauth2, api-key
-	JWKSUrl      string        `yaml:"jwks_url"`
-	Issuer       string        `yaml:"issuer"`
-	Audience     string        `yaml:"audience"`
-	TokenExpiry  time.Duration `yaml:"token_expiry"`
+	Mode          string        `yaml:"mode"` // jwt, oauth2, api-key
+	JWKSUrl       string        `yaml:"jwks_url"`
+	Issuer        string        `yaml:"issuer"`
+	Audience      string        `yaml:"audience"`
+	TokenExpiry   time.Duration `yaml:"token_expiry"`
 	RefreshExpiry time.Duration `yaml:"refresh_expiry"`
 }
 

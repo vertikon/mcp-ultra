@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vertikon/mcp-ultra/pkg/logger"
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 )
 
 // HealthStatus represents the health status of a component
@@ -23,24 +23,24 @@ const (
 
 // HealthCheck represents a health check result
 type HealthCheck struct {
-	Name          string                 `json:"name"`
-	Status        HealthStatus           `json:"status"`
-	Message       string                 `json:"message"`
-	Details       map[string]interface{} `json:"details,omitempty"`
-	Duration      time.Duration          `json:"duration"`
-	Timestamp     time.Time              `json:"timestamp"`
-	Error         string                 `json:"error,omitempty"`
+	Name      string                 `json:"name"`
+	Status    HealthStatus           `json:"status"`
+	Message   string                 `json:"message"`
+	Details   map[string]interface{} `json:"details,omitempty"`
+	Duration  time.Duration          `json:"duration"`
+	Timestamp time.Time              `json:"timestamp"`
+	Error     string                 `json:"error,omitempty"`
 }
 
 // HealthReport represents the overall health status
 type HealthReport struct {
-	Status         HealthStatus           `json:"status"`
-	Version        string                 `json:"version"`
-	Timestamp      time.Time              `json:"timestamp"`
-	Uptime         time.Duration          `json:"uptime"`
-	Checks         map[string]HealthCheck `json:"checks"`
-	Summary        HealthSummary          `json:"summary"`
-	Dependencies   []DependencyStatus     `json:"dependencies"`
+	Status       HealthStatus           `json:"status"`
+	Version      string                 `json:"version"`
+	Timestamp    time.Time              `json:"timestamp"`
+	Uptime       time.Duration          `json:"uptime"`
+	Checks       map[string]HealthCheck `json:"checks"`
+	Summary      HealthSummary          `json:"summary"`
+	Dependencies []DependencyStatus     `json:"dependencies"`
 }
 
 // HealthSummary provides a summary of health checks
@@ -74,21 +74,21 @@ type HealthChecker interface {
 type HealthMonitor struct {
 	checkers     []HealthChecker
 	dependencies []DependencyChecker
-	
+
 	// State
-	mu           sync.RWMutex
-	lastReport   *HealthReport
-	startTime    time.Time
-	version      string
-	
+	mu         sync.RWMutex
+	lastReport *HealthReport
+	startTime  time.Time
+	version    string
+
 	// Configuration
 	config HealthConfig
 	logger logger.Logger
-	
+
 	// Background monitoring
-	ticker   *time.Ticker
-	stopCh   chan struct{}
-	running  bool
+	ticker  *time.Ticker
+	stopCh  chan struct{}
+	running bool
 }
 
 // HealthConfig configures health monitoring
@@ -96,24 +96,24 @@ type HealthConfig struct {
 	CheckInterval     time.Duration `json:"check_interval"`
 	CheckTimeout      time.Duration `json:"check_timeout"`
 	DependencyTimeout time.Duration `json:"dependency_timeout"`
-	
+
 	// Thresholds
-	DegradedThreshold  int     `json:"degraded_threshold"`  // Percentage of failed checks to be considered degraded
-	UnhealthyThreshold int     `json:"unhealthy_threshold"` // Percentage of failed checks to be considered unhealthy
-	
+	DegradedThreshold  int `json:"degraded_threshold"`  // Percentage of failed checks to be considered degraded
+	UnhealthyThreshold int `json:"unhealthy_threshold"` // Percentage of failed checks to be considered unhealthy
+
 	// HTTP endpoint
 	EnableHTTPEndpoint bool   `json:"enable_http_endpoint"`
-	HTTPPort          int    `json:"http_port"`
-	HTTPPath          string `json:"http_path"`
-	
+	HTTPPort           int    `json:"http_port"`
+	HTTPPath           string `json:"http_path"`
+
 	// Alerting
-	EnableAlerting     bool          `json:"enable_alerting"`
-	AlertThreshold     HealthStatus  `json:"alert_threshold"`
-	AlertCooldown      time.Duration `json:"alert_cooldown"`
-	
+	EnableAlerting bool          `json:"enable_alerting"`
+	AlertThreshold HealthStatus  `json:"alert_threshold"`
+	AlertCooldown  time.Duration `json:"alert_cooldown"`
+
 	// Persistence
-	EnablePersistence  bool   `json:"enable_persistence"`
-	PersistencePath    string `json:"persistence_path"`
+	EnablePersistence bool   `json:"enable_persistence"`
+	PersistencePath   string `json:"persistence_path"`
 }
 
 // DependencyChecker checks external dependencies
@@ -133,13 +133,13 @@ func DefaultHealthConfig() HealthConfig {
 		DegradedThreshold:  25, // 25% failures = degraded
 		UnhealthyThreshold: 50, // 50% failures = unhealthy
 		EnableHTTPEndpoint: true,
-		HTTPPort:          8080,
-		HTTPPath:          "/health",
-		EnableAlerting:    true,
-		AlertThreshold:    HealthStatusDegraded,
-		AlertCooldown:     5 * time.Minute,
-		EnablePersistence: true,
-		PersistencePath:   "/tmp/health-status.json",
+		HTTPPort:           8080,
+		HTTPPath:           "/health",
+		EnableAlerting:     true,
+		AlertThreshold:     HealthStatusDegraded,
+		AlertCooldown:      5 * time.Minute,
+		EnablePersistence:  true,
+		PersistencePath:    "/tmp/health-status.json",
 	}
 }
 
@@ -160,7 +160,7 @@ func NewHealthMonitor(config HealthConfig, version string, logger logger.Logger)
 func (hm *HealthMonitor) RegisterChecker(checker HealthChecker) {
 	hm.mu.Lock()
 	defer hm.mu.Unlock()
-	
+
 	hm.checkers = append(hm.checkers, checker)
 	hm.logger.Info("Health checker registered",
 		"name", checker.Name(),
@@ -173,7 +173,7 @@ func (hm *HealthMonitor) RegisterChecker(checker HealthChecker) {
 func (hm *HealthMonitor) RegisterDependency(dependency DependencyChecker) {
 	hm.mu.Lock()
 	defer hm.mu.Unlock()
-	
+
 	hm.dependencies = append(hm.dependencies, dependency)
 	hm.logger.Info("Dependency checker registered",
 		"name", dependency.Name(),
@@ -186,28 +186,28 @@ func (hm *HealthMonitor) RegisterDependency(dependency DependencyChecker) {
 func (hm *HealthMonitor) Start() error {
 	hm.mu.Lock()
 	defer hm.mu.Unlock()
-	
+
 	if hm.running {
 		return fmt.Errorf("health monitor already running")
 	}
-	
+
 	hm.running = true
 	hm.ticker = time.NewTicker(hm.config.CheckInterval)
-	
+
 	// Start HTTP endpoint if enabled
 	if hm.config.EnableHTTPEndpoint {
 		go hm.startHTTPEndpoint()
 	}
-	
+
 	// Start background monitoring
 	go hm.runHealthChecks()
-	
+
 	hm.logger.Info("Health monitor started",
 		"check_interval", hm.config.CheckInterval,
 		"http_endpoint", hm.config.EnableHTTPEndpoint,
 		"checkers_count", len(hm.checkers),
 	)
-	
+
 	return nil
 }
 
@@ -215,18 +215,18 @@ func (hm *HealthMonitor) Start() error {
 func (hm *HealthMonitor) Stop() error {
 	hm.mu.Lock()
 	defer hm.mu.Unlock()
-	
+
 	if !hm.running {
 		return nil
 	}
-	
+
 	hm.running = false
 	close(hm.stopCh)
-	
+
 	if hm.ticker != nil {
 		hm.ticker.Stop()
 	}
-	
+
 	hm.logger.Info("Health monitor stopped")
 	return nil
 }
@@ -240,11 +240,11 @@ func (hm *HealthMonitor) GetHealth(ctx context.Context) *HealthReport {
 func (hm *HealthMonitor) GetLastReport() *HealthReport {
 	hm.mu.RLock()
 	defer hm.mu.RUnlock()
-	
+
 	if hm.lastReport == nil {
 		return nil
 	}
-	
+
 	// Return a copy
 	report := *hm.lastReport
 	return &report
@@ -283,7 +283,7 @@ func (hm *HealthMonitor) runHealthChecks() {
 	// Perform initial health check
 	ctx := context.Background()
 	hm.performHealthCheck(ctx)
-	
+
 	for {
 		select {
 		case <-hm.stopCh:
@@ -297,7 +297,7 @@ func (hm *HealthMonitor) runHealthChecks() {
 func (hm *HealthMonitor) performHealthCheck(ctx context.Context) *HealthReport {
 	checkCtx, cancel := context.WithTimeout(ctx, hm.config.CheckTimeout)
 	defer cancel()
-	
+
 	report := &HealthReport{
 		Version:      hm.version,
 		Timestamp:    time.Now(),
@@ -305,21 +305,21 @@ func (hm *HealthMonitor) performHealthCheck(ctx context.Context) *HealthReport {
 		Checks:       make(map[string]HealthCheck),
 		Dependencies: make([]DependencyStatus, 0),
 	}
-	
+
 	// Execute health checks
 	hm.executeHealthChecks(checkCtx, report)
-	
+
 	// Execute dependency checks
 	hm.executeDependencyChecks(checkCtx, report)
-	
+
 	// Calculate overall status
 	hm.calculateOverallStatus(report)
-	
+
 	// Update last report
 	hm.mu.Lock()
 	hm.lastReport = report
 	hm.mu.Unlock()
-	
+
 	// Log status change
 	if hm.lastReport == nil || hm.lastReport.Status != report.Status {
 		hm.logger.Info("Health status changed",
@@ -329,12 +329,12 @@ func (hm *HealthMonitor) performHealthCheck(ctx context.Context) *HealthReport {
 			"unhealthy", report.Summary.Unhealthy,
 		)
 	}
-	
+
 	// Persist if enabled
 	if hm.config.EnablePersistence {
 		hm.persistHealthReport(report)
 	}
-	
+
 	return report
 }
 
@@ -343,10 +343,10 @@ func (hm *HealthMonitor) executeHealthChecks(ctx context.Context, report *Health
 	checkers := make([]HealthChecker, len(hm.checkers))
 	copy(checkers, hm.checkers)
 	hm.mu.RUnlock()
-	
+
 	// Execute checks concurrently
 	checkChan := make(chan HealthCheck, len(checkers))
-	
+
 	for _, checker := range checkers {
 		go func(c HealthChecker) {
 			checkCtx := ctx
@@ -355,16 +355,16 @@ func (hm *HealthMonitor) executeHealthChecks(ctx context.Context, report *Health
 				checkCtx, cancel = context.WithTimeout(ctx, c.Timeout())
 				defer cancel()
 			}
-			
+
 			startTime := time.Now()
 			check := c.Check(checkCtx)
 			check.Duration = time.Since(startTime)
 			check.Timestamp = time.Now()
-			
+
 			checkChan <- check
 		}(checker)
 	}
-	
+
 	// Collect results
 	for i := 0; i < len(checkers); i++ {
 		check := <-checkChan
@@ -377,21 +377,21 @@ func (hm *HealthMonitor) executeDependencyChecks(ctx context.Context, report *He
 	dependencies := make([]DependencyChecker, len(hm.dependencies))
 	copy(dependencies, hm.dependencies)
 	hm.mu.RUnlock()
-	
+
 	depChan := make(chan DependencyStatus, len(dependencies))
-	
+
 	for _, dependency := range dependencies {
 		go func(d DependencyChecker) {
 			depCtx, cancel := context.WithTimeout(ctx, hm.config.DependencyTimeout)
 			defer cancel()
-			
+
 			status := d.Check(depCtx)
 			status.LastChecked = time.Now()
-			
+
 			depChan <- status
 		}(dependency)
 	}
-	
+
 	// Collect results
 	for i := 0; i < len(dependencies); i++ {
 		status := <-depChan
@@ -405,9 +405,9 @@ func (hm *HealthMonitor) calculateOverallStatus(report *HealthReport) {
 		report.Status = HealthStatusUnknown
 		return
 	}
-	
+
 	summary := HealthSummary{}
-	
+
 	for _, check := range report.Checks {
 		switch check.Status {
 		case HealthStatusHealthy:
@@ -421,13 +421,13 @@ func (hm *HealthMonitor) calculateOverallStatus(report *HealthReport) {
 		}
 		summary.Total++
 	}
-	
+
 	report.Summary = summary
-	
+
 	// Calculate failure percentage
 	failures := summary.Degraded + summary.Unhealthy
 	failurePercent := (failures * 100) / summary.Total
-	
+
 	// Determine overall status
 	if failures == 0 {
 		report.Status = HealthStatusHealthy
@@ -438,7 +438,7 @@ func (hm *HealthMonitor) calculateOverallStatus(report *HealthReport) {
 	} else {
 		report.Status = HealthStatusHealthy
 	}
-	
+
 	// Consider dependencies
 	for _, dep := range report.Dependencies {
 		if dep.Status == HealthStatusUnhealthy {
@@ -451,15 +451,15 @@ func (hm *HealthMonitor) calculateOverallStatus(report *HealthReport) {
 
 func (hm *HealthMonitor) startHTTPEndpoint() {
 	mux := http.NewServeMux()
-	
+
 	mux.HandleFunc(hm.config.HTTPPath, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		
+
 		report := hm.GetHealth(r.Context())
-		
+
 		// Set appropriate status code
 		switch report.Status {
 		case HealthStatusHealthy:
@@ -471,11 +471,11 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 		default:
 			w.WriteHeader(http.StatusServiceUnavailable)
 		}
-		
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(report)
 	})
-	
+
 	// Add readiness endpoint
 	mux.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
 		if hm.IsHealthy() || hm.IsDegraded() {
@@ -486,7 +486,7 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 			w.Write([]byte("Not Ready"))
 		}
 	})
-	
+
 	// Add liveness endpoint
 	mux.HandleFunc("/live", func(w http.ResponseWriter, r *http.Request) {
 		if !hm.IsUnhealthy() {
@@ -497,31 +497,31 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 			w.Write([]byte("Unhealthy"))
 		}
 	})
-	
+
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", hm.config.HTTPPort),
 		Handler:      mux,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	
+
 	hm.logger.Info("Health HTTP endpoint started",
 		"port", hm.config.HTTPPort,
 		"path", hm.config.HTTPPath,
 	)
-	
+
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		hm.logger.Error("Health HTTP endpoint error", "error", err)
 	}
 }
 
 func (hm *HealthMonitor) persistHealthReport(report *HealthReport) {
-	data, err := json.Marshal(report)
+	_, err := json.Marshal(report)
 	if err != nil {
 		hm.logger.Error("Failed to marshal health report", "error", err)
 		return
 	}
-	
+
 	// This is a simplified implementation
 	// In production, you might want to use a proper file system or database
 	hm.logger.Debug("Health report persisted", "path", hm.config.PersistencePath)
@@ -559,7 +559,7 @@ func (d *DatabaseHealthChecker) Timeout() time.Duration {
 
 func (d *DatabaseHealthChecker) Check(ctx context.Context) HealthCheck {
 	start := time.Now()
-	
+
 	// Implement actual database check
 	// This is a placeholder
 	check := HealthCheck{
@@ -573,7 +573,7 @@ func (d *DatabaseHealthChecker) Check(ctx context.Context) HealthCheck {
 			"active_connections":   5,
 		},
 	}
-	
+
 	return check
 }
 
@@ -607,7 +607,7 @@ func (r *RedisHealthChecker) Timeout() time.Duration {
 
 func (r *RedisHealthChecker) Check(ctx context.Context) HealthCheck {
 	start := time.Now()
-	
+
 	// Implement actual Redis check
 	check := HealthCheck{
 		Name:      r.name,
@@ -617,9 +617,9 @@ func (r *RedisHealthChecker) Check(ctx context.Context) HealthCheck {
 		Timestamp: time.Now(),
 		Details: map[string]interface{}{
 			"connected_clients": 2,
-			"used_memory":      "1.2MB",
+			"used_memory":       "1.2MB",
 		},
 	}
-	
+
 	return check
 }

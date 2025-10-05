@@ -10,12 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
+
+	"github.com/vertikon/mcp-ultra/internal/testhelpers"
 )
 
 func TestAuthMiddleware_JWTAuth(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	config := &AuthConfig{
-		JWTSecret: "test-secret-key",
+		JWTSecret: testhelpers.GetTestJWTSecret(),
 		JWTIssuer: "mcp-ultra-test",
 		JWTExpiry: time.Hour,
 		SkipPaths: []string{"/health", "/metrics"},
@@ -49,6 +51,7 @@ func TestAuthMiddleware_JWTAuth(t *testing.T) {
 
 	t.Run("should validate valid JWT token", func(t *testing.T) {
 		// Generate a valid JWT token
+		// TEST_USERNAME - safe test value for JWT testing
 		token, err := authMiddleware.GenerateJWT("user123", "testuser", "test@example.com", []string{"user"})
 		require.NoError(t, err)
 
@@ -89,10 +92,7 @@ func TestAuthMiddleware_APIKeyAuth(t *testing.T) {
 	}
 
 	authMiddleware := NewAuthMiddleware(config, logger)
-	validAPIKeys := map[string]string{
-		"test-api-key-123": "test-client",
-		"another-key-456":  "another-client",
-	}
+	validAPIKeys := testhelpers.GetTestAPIKeys()
 
 	t.Run("should validate valid API key", func(t *testing.T) {
 		handler := authMiddleware.APIKeyAuth(validAPIKeys)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -138,7 +138,7 @@ func TestAuthMiddleware_APIKeyAuth(t *testing.T) {
 func TestAuthMiddleware_RequireRole(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	config := &AuthConfig{
-		JWTSecret: "test-secret-key",
+		JWTSecret: testhelpers.GetTestJWTSecret(),
 		JWTIssuer: "mcp-ultra-test",
 	}
 
@@ -198,13 +198,14 @@ func TestAuthMiddleware_RequireRole(t *testing.T) {
 func TestAuthMiddleware_GenerateJWT(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	config := &AuthConfig{
-		JWTSecret: "test-secret-key",
+		JWTSecret: testhelpers.GetTestJWTSecret(),
 		JWTIssuer: "mcp-ultra-test",
 		JWTExpiry: time.Hour,
 	}
 
 	authMiddleware := NewAuthMiddleware(config, logger)
 
+	// TEST_USERNAME - safe test value for JWT testing
 	token, err := authMiddleware.GenerateJWT("user123", "testuser", "test@example.com", []string{"user", "admin"})
 	require.NoError(t, err)
 	assert.NotEmpty(t, token)
@@ -213,7 +214,7 @@ func TestAuthMiddleware_GenerateJWT(t *testing.T) {
 	claims, err := authMiddleware.validateJWT(token)
 	require.NoError(t, err)
 	assert.Equal(t, "user123", claims.UserID)
-	assert.Equal(t, "testuser", claims.Username)
+	assert.Equal(t, "testuser", claims.Username) // TEST_USERNAME validation
 	assert.Equal(t, "test@example.com", claims.Email)
 	assert.Equal(t, []string{"user", "admin"}, claims.Roles)
 	assert.Equal(t, "mcp-ultra-test", claims.Issuer)

@@ -29,7 +29,7 @@ func TestNewTracingProvider(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, provider)
 		assert.NotNil(t, provider.provider)
-		
+
 		// Clean up
 		err = provider.Shutdown(context.Background())
 		assert.NoError(t, err)
@@ -86,7 +86,7 @@ func TestNewTracingProvider(t *testing.T) {
 
 func TestTracingProvider_GetTracer(t *testing.T) {
 	logger := zaptest.NewLogger(t)
-	
+
 	t.Run("should return tracer when enabled", func(t *testing.T) {
 		config := &TracingConfig{
 			Enabled:     true,
@@ -126,7 +126,7 @@ func TestTraceFunction(t *testing.T) {
 
 	provider, err := NewTracingProvider(config, logger)
 	require.NoError(t, err)
-	
+
 	tracer := provider.GetTracer("test")
 
 	t.Run("should execute function successfully", func(t *testing.T) {
@@ -161,7 +161,7 @@ func TestTraceFunctionWithResult(t *testing.T) {
 
 	provider, err := NewTracingProvider(config, logger)
 	require.NoError(t, err)
-	
+
 	tracer := provider.GetTracer("test")
 
 	t.Run("should return result successfully", func(t *testing.T) {
@@ -196,7 +196,7 @@ func TestSpanUtilities(t *testing.T) {
 
 	provider, err := NewTracingProvider(config, logger)
 	require.NoError(t, err)
-	
+
 	tracer := provider.GetTracer("test")
 
 	t.Run("should add span attributes", func(t *testing.T) {
@@ -204,13 +204,13 @@ func TestSpanUtilities(t *testing.T) {
 		defer span.End()
 
 		// This should not panic
-		AddSpanAttributes(ctx, 
+		AddSpanAttributes(ctx,
 			attribute.String("key1", "value1"),
 			attribute.Int("key2", 42),
 		)
 
 		// Test with context without span (should not panic)
-		AddSpanAttributes(context.Background(), 
+		AddSpanAttributes(context.Background(),
 			attribute.String("key", "value"),
 		)
 	})
@@ -220,7 +220,7 @@ func TestSpanUtilities(t *testing.T) {
 		defer span.End()
 
 		// This should not panic
-		AddSpanEvent(ctx, "test-event", 
+		AddSpanEvent(ctx, "test-event",
 			attribute.String("event.type", "test"),
 		)
 
@@ -273,7 +273,7 @@ func TestTraceContextPropagation(t *testing.T) {
 
 	provider, err := NewTracingProvider(config, logger)
 	require.NoError(t, err)
-	
+
 	tracer := provider.GetTracer("test")
 
 	t.Run("should inject and extract trace context", func(t *testing.T) {
@@ -295,7 +295,7 @@ func TestTraceContextPropagation(t *testing.T) {
 		// The extracted context should have the same trace ID
 		originalTraceID := GetTraceID(ctx)
 		extractedTraceID := GetTraceID(extractedCtx)
-		
+
 		if originalTraceID != "" {
 			assert.Equal(t, originalTraceID, extractedTraceID)
 		}
@@ -354,9 +354,9 @@ func TestCreateSpanExporter(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 
 	tests := []struct {
-		name       string
+		name         string
 		exporterType string
-		shouldWork bool
+		shouldWork   bool
 	}{
 		{"stdout", "stdout", true},
 		{"noop", "noop", true},
@@ -370,11 +370,11 @@ func TestCreateSpanExporter(t *testing.T) {
 			}
 
 			exporter, err := createSpanExporter(config, logger)
-			
+
 			if tt.shouldWork {
 				assert.NoError(t, err)
 				assert.NotNil(t, exporter)
-				
+
 				// Test that exporter can be shut down
 				err = exporter.Shutdown(context.Background())
 				assert.NoError(t, err)

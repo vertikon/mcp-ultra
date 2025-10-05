@@ -14,10 +14,10 @@ import (
 
 // PIIManager handles detection, classification, and protection of PII data
 type PIIManager struct {
-	config         PIIDetectionConfig
-	logger         *zap.Logger
-	detectors      map[PIIType]PIIDetector
-	anonymizers    map[AnonymizationMethod]Anonymizer
+	config              PIIDetectionConfig
+	logger              *zap.Logger
+	detectors           map[PIIType]PIIDetector
+	anonymizers         map[AnonymizationMethod]Anonymizer
 	classificationCache map[string]PIIClassification
 }
 
@@ -26,12 +26,12 @@ type PIIType string
 
 const (
 	PIITypeEmail       PIIType = "email"
-	PIITypeCPF         PIIType = "cpf"          // Brazilian CPF
-	PIITypeCNPJ        PIIType = "cnpj"         // Brazilian CNPJ
+	PIITypeCPF         PIIType = "cpf"  // Brazilian CPF
+	PIITypeCNPJ        PIIType = "cnpj" // Brazilian CNPJ
 	PIITypePhone       PIIType = "phone"
 	PIITypeCreditCard  PIIType = "credit_card"
 	PIITypeIPAddress   PIIType = "ip_address"
-	PIITypeSSN         PIIType = "ssn"          // Social Security Number
+	PIITypeSSN         PIIType = "ssn" // Social Security Number
 	PIITypePassport    PIIType = "passport"
 	PIITypeDateOfBirth PIIType = "date_of_birth"
 	PIITypeAddress     PIIType = "address"
@@ -54,26 +54,26 @@ const (
 type AnonymizationMethod string
 
 const (
-	AnonymizationHash        AnonymizationMethod = "hash"
-	AnonymizationEncrypt     AnonymizationMethod = "encrypt"
-	AnonymizationTokenize    AnonymizationMethod = "tokenize"
-	AnonymizationRedact      AnonymizationMethod = "redact"
-	AnonymizationGeneralize  AnonymizationMethod = "generalize"
-	AnonymizationShuffle     AnonymizationMethod = "shuffle"
-	AnonymizationNoise       AnonymizationMethod = "noise"
+	AnonymizationHash       AnonymizationMethod = "hash"
+	AnonymizationEncrypt    AnonymizationMethod = "encrypt"
+	AnonymizationTokenize   AnonymizationMethod = "tokenize"
+	AnonymizationRedact     AnonymizationMethod = "redact"
+	AnonymizationGeneralize AnonymizationMethod = "generalize"
+	AnonymizationShuffle    AnonymizationMethod = "shuffle"
+	AnonymizationNoise      AnonymizationMethod = "noise"
 )
 
 // PIIClassification contains information about detected PII
 type PIIClassification struct {
-	FieldName    string         `json:"field_name"`
-	PIIType      PIIType        `json:"pii_type"`
-	Sensitivity  PIISensitivity `json:"sensitivity"`
-	Confidence   float64        `json:"confidence"`
-	OriginalValue interface{}   `json:"-"` // Don't serialize original value
-	ProcessedValue interface{} `json:"processed_value"`
-	Method       AnonymizationMethod `json:"method"`
-	Timestamp    time.Time      `json:"timestamp"`
-	Context      map[string]string `json:"context,omitempty"`
+	FieldName      string              `json:"field_name"`
+	PIIType        PIIType             `json:"pii_type"`
+	Sensitivity    PIISensitivity      `json:"sensitivity"`
+	Confidence     float64             `json:"confidence"`
+	OriginalValue  interface{}         `json:"-"` // Don't serialize original value
+	ProcessedValue interface{}         `json:"processed_value"`
+	Method         AnonymizationMethod `json:"method"`
+	Timestamp      time.Time           `json:"timestamp"`
+	Context        map[string]string   `json:"context,omitempty"`
 }
 
 // PIIDetector interface for detecting specific types of PII
@@ -137,7 +137,7 @@ func (pm *PIIManager) ProcessData(ctx context.Context, data map[string]interface
 			if pm.config.AutoMask {
 				processedValue, err := pm.anonymizeValue(classification.PIIType, value, classification.Context)
 				if err != nil {
-					pm.logger.Warn("Failed to anonymize PII", 
+					pm.logger.Warn("Failed to anonymize PII",
 						zap.String("field", fieldName),
 						zap.String("pii_type", string(classification.PIIType)),
 						zap.Error(err))
@@ -193,7 +193,7 @@ func (pm *PIIManager) detectPII(fieldName string, value interface{}) (PIIClassif
 func (pm *PIIManager) anonymizeValue(piiType PIIType, value interface{}, context map[string]string) (interface{}, error) {
 	// Determine the best anonymization method for the PII type
 	method := pm.getAnonymizationMethod(piiType)
-	
+
 	anonymizer, exists := pm.anonymizers[method]
 	if !exists {
 		return value, fmt.Errorf("no anonymizer found for method: %s", method)
@@ -262,12 +262,12 @@ func (pm *PIIManager) sanitizeClassifications(classifications []PIIClassificatio
 // HealthCheck returns the health status of the PII manager
 func (pm *PIIManager) HealthCheck(ctx context.Context) map[string]interface{} {
 	return map[string]interface{}{
-		"enabled":           pm.config.Enabled,
-		"auto_mask":         pm.config.AutoMask,
+		"enabled":              pm.config.Enabled,
+		"auto_mask":            pm.config.AutoMask,
 		"confidence_threshold": pm.config.Confidence,
-		"detectors_count":   len(pm.detectors),
-		"anonymizers_count": len(pm.anonymizers),
-		"status":           "healthy",
+		"detectors_count":      len(pm.detectors),
+		"anonymizers_count":    len(pm.anonymizers),
+		"status":               "healthy",
 	}
 }
 
@@ -296,7 +296,7 @@ func (d *EmailDetector) Detect(field string, value interface{}) (bool, float64, 
 	return false, 0, nil
 }
 
-func (d *EmailDetector) GetType() PIIType        { return PIITypeEmail }
+func (d *EmailDetector) GetType() PIIType               { return PIITypeEmail }
 func (d *EmailDetector) GetSensitivity() PIISensitivity { return PIISensitivityConfidential }
 
 // CPFDetector detects Brazilian CPF numbers
@@ -310,7 +310,7 @@ func (d *CPFDetector) Detect(field string, value interface{}) (bool, float64, ma
 
 	// Remove non-digit characters
 	digits := regexp.MustCompile(`\D`).ReplaceAllString(str, "")
-	
+
 	if len(digits) == 11 && d.isValidCPF(digits) {
 		return true, 0.98, map[string]string{"pattern": "cpf_validation"}
 	}
@@ -369,52 +369,57 @@ func (d *CPFDetector) isValidCPF(cpf string) bool {
 	return int(cpf[10]-'0') == checkDigit2
 }
 
-func (d *CPFDetector) GetType() PIIType        { return PIITypeCPF }
+func (d *CPFDetector) GetType() PIIType               { return PIITypeCPF }
 func (d *CPFDetector) GetSensitivity() PIISensitivity { return PIISensitivityRestricted }
 
 // Additional detector implementations...
 type CNPJDetector struct{}
+
 func (d *CNPJDetector) Detect(field string, value interface{}) (bool, float64, map[string]string) {
 	// CNPJ detection logic
 	return false, 0, nil
 }
-func (d *CNPJDetector) GetType() PIIType        { return PIITypeCNPJ }
+func (d *CNPJDetector) GetType() PIIType               { return PIITypeCNPJ }
 func (d *CNPJDetector) GetSensitivity() PIISensitivity { return PIISensitivityConfidential }
 
 type PhoneDetector struct{}
+
 func (d *PhoneDetector) Detect(field string, value interface{}) (bool, float64, map[string]string) {
 	// Phone detection logic
 	str, ok := value.(string)
 	if !ok {
 		return false, 0, nil
 	}
-	
+
 	phoneRegex := regexp.MustCompile(`^[\+]?[1-9]?[\d\s\-\(\)]{7,15}$`)
 	if phoneRegex.MatchString(str) {
 		return true, 0.8, map[string]string{"pattern": "phone_regex"}
 	}
 	return false, 0, nil
 }
-func (d *PhoneDetector) GetType() PIIType        { return PIITypePhone }
+func (d *PhoneDetector) GetType() PIIType               { return PIITypePhone }
 func (d *PhoneDetector) GetSensitivity() PIISensitivity { return PIISensitivityConfidential }
 
 type CreditCardDetector struct{}
+
 func (d *CreditCardDetector) Detect(field string, value interface{}) (bool, float64, map[string]string) {
 	// Credit card detection logic (Luhn algorithm)
 	return false, 0, nil
 }
-func (d *CreditCardDetector) GetType() PIIType        { return PIITypeCreditCard }
+func (d *CreditCardDetector) GetType() PIIType               { return PIITypeCreditCard }
 func (d *CreditCardDetector) GetSensitivity() PIISensitivity { return PIISensitivityRestricted }
 
 type IPAddressDetector struct{}
+
 func (d *IPAddressDetector) Detect(field string, value interface{}) (bool, float64, map[string]string) {
 	// IP address detection logic
 	return false, 0, nil
 }
-func (d *IPAddressDetector) GetType() PIIType        { return PIITypeIPAddress }
+func (d *IPAddressDetector) GetType() PIIType               { return PIITypeIPAddress }
 func (d *IPAddressDetector) GetSensitivity() PIISensitivity { return PIISensitivityInternal }
 
 type NameDetector struct{}
+
 func (d *NameDetector) Detect(field string, value interface{}) (bool, float64, map[string]string) {
 	// Name detection logic
 	fieldLower := strings.ToLower(field)
@@ -423,7 +428,7 @@ func (d *NameDetector) Detect(field string, value interface{}) (bool, float64, m
 	}
 	return false, 0, nil
 }
-func (d *NameDetector) GetType() PIIType        { return PIITypeName }
+func (d *NameDetector) GetType() PIIType               { return PIITypeName }
 func (d *NameDetector) GetSensitivity() PIISensitivity { return PIISensitivityConfidential }
 
 // Anonymizer Implementations
@@ -437,7 +442,7 @@ func (a *HashAnonymizer) Anonymize(value interface{}, context map[string]string)
 	return hex.EncodeToString(hash[:]), nil
 }
 
-func (a *HashAnonymizer) IsReversible() bool { return false }
+func (a *HashAnonymizer) IsReversible() bool             { return false }
 func (a *HashAnonymizer) GetMethod() AnonymizationMethod { return AnonymizationHash }
 
 // TokenizeAnonymizer creates reversible tokens
@@ -446,11 +451,12 @@ type TokenizeAnonymizer struct{}
 func (a *TokenizeAnonymizer) Anonymize(value interface{}, context map[string]string) (interface{}, error) {
 	str := fmt.Sprintf("%v", value)
 	// Generate a token (simplified - in production, use proper tokenization)
-	token := fmt.Sprintf("TKN_%x", sha256.Sum256([]byte(str))[:8])
+	hash := sha256.Sum256([]byte(str))
+	token := fmt.Sprintf("TKN_%x", hash[:8])
 	return token, nil
 }
 
-func (a *TokenizeAnonymizer) IsReversible() bool { return true }
+func (a *TokenizeAnonymizer) IsReversible() bool             { return true }
 func (a *TokenizeAnonymizer) GetMethod() AnonymizationMethod { return AnonymizationTokenize }
 
 // RedactAnonymizer replaces data with asterisks
@@ -464,7 +470,7 @@ func (a *RedactAnonymizer) Anonymize(value interface{}, context map[string]strin
 	return str[:2] + strings.Repeat("*", len(str)-4) + str[len(str)-2:], nil
 }
 
-func (a *RedactAnonymizer) IsReversible() bool { return false }
+func (a *RedactAnonymizer) IsReversible() bool             { return false }
 func (a *RedactAnonymizer) GetMethod() AnonymizationMethod { return AnonymizationRedact }
 
 // GeneralizeAnonymizer generalizes data to reduce specificity
@@ -479,5 +485,5 @@ func (a *GeneralizeAnonymizer) Anonymize(value interface{}, context map[string]s
 	return string(str[0]) + strings.Repeat("*", len(str)-1), nil
 }
 
-func (a *GeneralizeAnonymizer) IsReversible() bool { return false }
+func (a *GeneralizeAnonymizer) IsReversible() bool             { return false }
 func (a *GeneralizeAnonymizer) GetMethod() AnonymizationMethod { return AnonymizationGeneralize }

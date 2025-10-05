@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/zap"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
+	"go.uber.org/zap"
 )
 
 // SLOType represents the type of SLO being monitored
@@ -36,34 +36,34 @@ const (
 // SLO represents a Service Level Objective
 type SLO struct {
 	// Basic identification
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Type        SLOType   `json:"type"`
-	Service     string    `json:"service"`
-	Component   string    `json:"component"`
-	
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Type        SLOType `json:"type"`
+	Service     string  `json:"service"`
+	Component   string  `json:"component"`
+
 	// SLO targets and thresholds
-	Target             float64           `json:"target"`              // Primary SLO target (e.g., 99.9%)
-	WarningThreshold   float64           `json:"warning_threshold"`   // Warning threshold (e.g., 99.5%)
-	CriticalThreshold  float64           `json:"critical_threshold"`  // Critical threshold (e.g., 99.0%)
-	
+	Target            float64 `json:"target"`             // Primary SLO target (e.g., 99.9%)
+	WarningThreshold  float64 `json:"warning_threshold"`  // Warning threshold (e.g., 99.5%)
+	CriticalThreshold float64 `json:"critical_threshold"` // Critical threshold (e.g., 99.0%)
+
 	// Queries and measurement
-	Query              string            `json:"query"`               // Prometheus query for measurement
-	ErrorBudgetQuery   string            `json:"error_budget_query"`  // Query for error budget calculation
-	BurnRateQuery      string            `json:"burn_rate_query"`     // Query for burn rate calculation
-	
+	Query            string `json:"query"`              // Prometheus query for measurement
+	ErrorBudgetQuery string `json:"error_budget_query"` // Query for error budget calculation
+	BurnRateQuery    string `json:"burn_rate_query"`    // Query for burn rate calculation
+
 	// Time windows for evaluation
-	EvaluationWindow   time.Duration     `json:"evaluation_window"`   // Window for SLO evaluation (e.g., 5m)
-	ComplianceWindow   time.Duration     `json:"compliance_window"`   // Window for compliance measurement (e.g., 30d)
-	
+	EvaluationWindow time.Duration `json:"evaluation_window"` // Window for SLO evaluation (e.g., 5m)
+	ComplianceWindow time.Duration `json:"compliance_window"` // Window for compliance measurement (e.g., 30d)
+
 	// Alerting configuration
-	AlertingRules      []AlertRule       `json:"alerting_rules"`      // Associated alerting rules
-	
+	AlertingRules []AlertRule `json:"alerting_rules"` // Associated alerting rules
+
 	// Metadata
-	Tags               map[string]string `json:"tags"`
-	CreatedAt          time.Time         `json:"created_at"`
-	UpdatedAt          time.Time         `json:"updated_at"`
-	Enabled            bool              `json:"enabled"`
+	Tags      map[string]string `json:"tags"`
+	CreatedAt time.Time         `json:"created_at"`
+	UpdatedAt time.Time         `json:"updated_at"`
+	Enabled   bool              `json:"enabled"`
 }
 
 // SLOResult represents the result of an SLO evaluation
@@ -80,21 +80,21 @@ type SLOResult struct {
 
 // ErrorBudget represents the error budget information
 type ErrorBudget struct {
-	Total      float64   `json:"total"`       // Total error budget for the period
-	Remaining  float64   `json:"remaining"`   // Remaining error budget
-	Consumed   float64   `json:"consumed"`    // Consumed error budget
-	Percentage float64   `json:"percentage"`  // Percentage remaining
-	ExhaustAt  time.Time `json:"exhaust_at"`  // Estimated exhaustion time
+	Total      float64   `json:"total"`      // Total error budget for the period
+	Remaining  float64   `json:"remaining"`  // Remaining error budget
+	Consumed   float64   `json:"consumed"`   // Consumed error budget
+	Percentage float64   `json:"percentage"` // Percentage remaining
+	ExhaustAt  time.Time `json:"exhaust_at"` // Estimated exhaustion time
 }
 
 // BurnRate represents burn rate information
 type BurnRate struct {
-	Current      float64 `json:"current"`        // Current burn rate
-	Fast         float64 `json:"fast"`           // Fast burn rate (1h window)
-	Slow         float64 `json:"slow"`           // Slow burn rate (6h window)
-	Alerting     bool    `json:"alerting"`       // Whether burn rate is alerting
-	FastAlerting bool    `json:"fast_alerting"`  // Fast burn rate alerting
-	SlowAlerting bool    `json:"slow_alerting"`  // Slow burn rate alerting
+	Current      float64 `json:"current"`       // Current burn rate
+	Fast         float64 `json:"fast"`          // Fast burn rate (1h window)
+	Slow         float64 `json:"slow"`          // Slow burn rate (6h window)
+	Alerting     bool    `json:"alerting"`      // Whether burn rate is alerting
+	FastAlerting bool    `json:"fast_alerting"` // Fast burn rate alerting
+	SlowAlerting bool    `json:"slow_alerting"` // Slow burn rate alerting
 }
 
 // CompliancePoint represents a point in time compliance measurement
@@ -106,31 +106,31 @@ type CompliancePoint struct {
 
 // AlertRule represents an alerting rule for an SLO
 type AlertRule struct {
-	Name          string            `json:"name"`
-	Expression    string            `json:"expression"`
-	For           time.Duration     `json:"for"`
-	Severity      string            `json:"severity"`
-	Labels        map[string]string `json:"labels"`
-	Annotations   map[string]string `json:"annotations"`
-	Enabled       bool              `json:"enabled"`
+	Name        string            `json:"name"`
+	Expression  string            `json:"expression"`
+	For         time.Duration     `json:"for"`
+	Severity    string            `json:"severity"`
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
+	Enabled     bool              `json:"enabled"`
 }
 
 // Monitor manages SLO monitoring and evaluation
 type Monitor struct {
-	logger       *zap.Logger
-	promClient   v1.API
-	slos         map[string]*SLO
-	results      map[string]*SLOResult
-	mu           sync.RWMutex
-	
+	logger     *zap.Logger
+	promClient v1.API
+	slos       map[string]*SLO
+	results    map[string]*SLOResult
+	mu         sync.RWMutex
+
 	// Configuration
 	evaluationInterval time.Duration
 	retentionPeriod    time.Duration
-	
+
 	// Channels for communication
-	alertChan     chan AlertEvent
-	statusChan    chan StatusEvent
-	stopChan      chan struct{}
+	alertChan  chan AlertEvent
+	statusChan chan StatusEvent
+	stopChan   chan struct{}
 }
 
 // AlertEvent represents an SLO alert event
@@ -146,7 +146,7 @@ type AlertEvent struct {
 
 // StatusEvent represents an SLO status change event
 type StatusEvent struct {
-	SLOName       string    `json:"slo_name"`
+	SLOName        string    `json:"slo_name"`
 	PreviousStatus SLOStatus `json:"previous_status"`
 	CurrentStatus  SLOStatus `json:"current_status"`
 	Timestamp      time.Time `json:"timestamp"`
@@ -156,17 +156,17 @@ type StatusEvent struct {
 // NewMonitor creates a new SLO monitor
 func NewMonitor(promClient api.Client, logger *zap.Logger) (*Monitor, error) {
 	v1api := v1.NewAPI(promClient)
-	
+
 	return &Monitor{
 		logger:             logger,
 		promClient:         v1api,
-		slos:              make(map[string]*SLO),
-		results:           make(map[string]*SLOResult),
+		slos:               make(map[string]*SLO),
+		results:            make(map[string]*SLOResult),
 		evaluationInterval: 1 * time.Minute,
 		retentionPeriod:    30 * 24 * time.Hour, // 30 days
-		alertChan:         make(chan AlertEvent, 100),
-		statusChan:        make(chan StatusEvent, 100),
-		stopChan:          make(chan struct{}),
+		alertChan:          make(chan AlertEvent, 100),
+		statusChan:         make(chan StatusEvent, 100),
+		stopChan:           make(chan struct{}),
 	}, nil
 }
 
@@ -174,36 +174,36 @@ func NewMonitor(promClient api.Client, logger *zap.Logger) (*Monitor, error) {
 func (m *Monitor) AddSLO(slo *SLO) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	if slo.Name == "" {
 		return fmt.Errorf("SLO name cannot be empty")
 	}
-	
+
 	if slo.Target <= 0 || slo.Target > 100 {
 		return fmt.Errorf("SLO target must be between 0 and 100")
 	}
-	
+
 	if slo.Query == "" {
 		return fmt.Errorf("SLO query cannot be empty")
 	}
-	
+
 	// Set default values
 	if slo.EvaluationWindow == 0 {
 		slo.EvaluationWindow = 5 * time.Minute
 	}
-	
+
 	if slo.ComplianceWindow == 0 {
 		slo.ComplianceWindow = 30 * 24 * time.Hour
 	}
-	
+
 	if slo.CreatedAt.IsZero() {
 		slo.CreatedAt = time.Now()
 	}
 	slo.UpdatedAt = time.Now()
-	
+
 	m.slos[slo.Name] = slo
 	m.logger.Info("Added SLO", zap.String("name", slo.Name), zap.String("type", string(slo.Type)))
-	
+
 	return nil
 }
 
@@ -211,7 +211,7 @@ func (m *Monitor) AddSLO(slo *SLO) error {
 func (m *Monitor) RemoveSLO(name string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	delete(m.slos, name)
 	delete(m.results, name)
 	m.logger.Info("Removed SLO", zap.String("name", name))
@@ -221,7 +221,7 @@ func (m *Monitor) RemoveSLO(name string) {
 func (m *Monitor) GetSLO(name string) (*SLO, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	slo, exists := m.slos[name]
 	return slo, exists
 }
@@ -230,7 +230,7 @@ func (m *Monitor) GetSLO(name string) (*SLO, bool) {
 func (m *Monitor) GetAllSLOs() map[string]*SLO {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	result := make(map[string]*SLO, len(m.slos))
 	for name, slo := range m.slos {
 		result[name] = slo
@@ -242,7 +242,7 @@ func (m *Monitor) GetAllSLOs() map[string]*SLO {
 func (m *Monitor) GetSLOResult(name string) (*SLOResult, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	result, exists := m.results[name]
 	return result, exists
 }
@@ -251,7 +251,7 @@ func (m *Monitor) GetSLOResult(name string) (*SLOResult, bool) {
 func (m *Monitor) GetAllSLOResults() map[string]*SLOResult {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	result := make(map[string]*SLOResult, len(m.results))
 	for name, sloResult := range m.results {
 		result[name] = sloResult
@@ -262,10 +262,10 @@ func (m *Monitor) GetAllSLOResults() map[string]*SLOResult {
 // Start begins SLO monitoring
 func (m *Monitor) Start(ctx context.Context) error {
 	m.logger.Info("Starting SLO monitor")
-	
+
 	ticker := time.NewTicker(m.evaluationInterval)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -305,11 +305,11 @@ func (m *Monitor) evaluateAllSLOs(ctx context.Context) {
 		}
 	}
 	m.mu.RUnlock()
-	
+
 	for _, slo := range slos {
 		if err := m.evaluateSLO(ctx, slo); err != nil {
-			m.logger.Error("Failed to evaluate SLO", 
-				zap.String("slo", slo.Name), 
+			m.logger.Error("Failed to evaluate SLO",
+				zap.String("slo", slo.Name),
 				zap.Error(err))
 		}
 	}
@@ -322,22 +322,22 @@ func (m *Monitor) evaluateSLO(ctx context.Context, slo *SLO) error {
 	if err != nil {
 		return fmt.Errorf("failed to query current value: %w", err)
 	}
-	
+
 	// Calculate error budget
 	errorBudget, err := m.calculateErrorBudget(ctx, slo)
 	if err != nil {
 		return fmt.Errorf("failed to calculate error budget: %w", err)
 	}
-	
+
 	// Calculate burn rate
 	burnRate, err := m.calculateBurnRate(ctx, slo)
 	if err != nil {
 		return fmt.Errorf("failed to calculate burn rate: %w", err)
 	}
-	
+
 	// Determine status
 	status := m.determineStatus(slo, currentValue, errorBudget, burnRate)
-	
+
 	// Create result
 	result := &SLOResult{
 		SLO:          slo,
@@ -348,23 +348,23 @@ func (m *Monitor) evaluateSLO(ctx context.Context, slo *SLO) error {
 		BurnRate:     burnRate,
 		Timestamp:    time.Now(),
 	}
-	
+
 	// Get compliance history
 	history, err := m.getComplianceHistory(ctx, slo)
 	if err != nil {
-		m.logger.Warn("Failed to get compliance history", 
-			zap.String("slo", slo.Name), 
+		m.logger.Warn("Failed to get compliance history",
+			zap.String("slo", slo.Name),
 			zap.Error(err))
 	} else {
 		result.ComplianceHistory = history
 	}
-	
+
 	// Store result and check for status changes
 	m.storeResult(slo.Name, result)
-	
+
 	// Generate alerts if necessary
 	m.checkAndGenerateAlerts(result)
-	
+
 	return nil
 }
 
@@ -374,11 +374,11 @@ func (m *Monitor) queryPrometheus(ctx context.Context, query string, timestamp t
 	if err != nil {
 		return 0, err
 	}
-	
+
 	if len(warnings) > 0 {
 		m.logger.Warn("Prometheus query warnings", zap.Strings("warnings", warnings))
 	}
-	
+
 	switch result.Type() {
 	case model.ValVector:
 		vector := result.(model.Vector)
@@ -397,27 +397,27 @@ func (m *Monitor) queryPrometheus(ctx context.Context, query string, timestamp t
 // calculateErrorBudget calculates the error budget for an SLO
 func (m *Monitor) calculateErrorBudget(ctx context.Context, slo *SLO) (ErrorBudget, error) {
 	var errorBudget ErrorBudget
-	
+
 	if slo.ErrorBudgetQuery == "" {
 		// Calculate based on target and compliance window
 		totalBudget := (100 - slo.Target) * float64(slo.ComplianceWindow.Minutes()) / 100
 		errorBudget.Total = totalBudget
-		
+
 		// Query current error rate to calculate consumed budget
 		errorQuery := fmt.Sprintf("(1 - (%s)) * 100", slo.Query)
 		currentError, err := m.queryPrometheus(ctx, errorQuery, time.Now())
 		if err != nil {
 			return errorBudget, err
 		}
-		
+
 		consumed := currentError * float64(slo.ComplianceWindow.Minutes()) / 100
 		errorBudget.Consumed = consumed
 		errorBudget.Remaining = totalBudget - consumed
-		
+
 		if totalBudget > 0 {
 			errorBudget.Percentage = (errorBudget.Remaining / totalBudget) * 100
 		}
-		
+
 		// Estimate exhaustion time
 		if currentError > 0 {
 			remainingMinutes := errorBudget.Remaining / (currentError / 100)
@@ -432,14 +432,14 @@ func (m *Monitor) calculateErrorBudget(ctx context.Context, slo *SLO) (ErrorBudg
 		errorBudget.Remaining = value
 		errorBudget.Percentage = value // Assuming query returns percentage
 	}
-	
+
 	return errorBudget, nil
 }
 
 // calculateBurnRate calculates the burn rate for an SLO
 func (m *Monitor) calculateBurnRate(ctx context.Context, slo *SLO) (BurnRate, error) {
 	var burnRate BurnRate
-	
+
 	if slo.BurnRateQuery != "" {
 		// Use custom burn rate query
 		value, err := m.queryPrometheus(ctx, slo.BurnRateQuery, time.Now())
@@ -454,29 +454,29 @@ func (m *Monitor) calculateBurnRate(ctx context.Context, slo *SLO) (BurnRate, er
 		if err != nil {
 			return burnRate, err
 		}
-		
+
 		allowedErrorRate := (100 - slo.Target) / 100
 		if allowedErrorRate > 0 {
 			burnRate.Current = errorRate / allowedErrorRate
 		}
 	}
-	
+
 	// Calculate fast burn rate (1h window)
 	fastQuery := fmt.Sprintf("rate((%s)[1h:])", slo.Query)
 	if fast, err := m.queryPrometheus(ctx, fastQuery, time.Now()); err == nil {
 		burnRate.Fast = fast
 		burnRate.FastAlerting = fast > 14.4 // 2% budget burn in 1 hour
 	}
-	
+
 	// Calculate slow burn rate (6h window)
 	slowQuery := fmt.Sprintf("rate((%s)[6h:])", slo.Query)
 	if slow, err := m.queryPrometheus(ctx, slowQuery, time.Now()); err == nil {
 		burnRate.Slow = slow
 		burnRate.SlowAlerting = slow > 6 // 5% budget burn in 6 hours
 	}
-	
+
 	burnRate.Alerting = burnRate.FastAlerting || burnRate.SlowAlerting
-	
+
 	return burnRate, nil
 }
 
@@ -486,17 +486,17 @@ func (m *Monitor) determineStatus(slo *SLO, currentValue float64, errorBudget Er
 	if currentValue < slo.CriticalThreshold {
 		return SLOStatusViolation
 	}
-	
+
 	// Check for critical status (burn rate alerting or low error budget)
 	if burnRate.Alerting || errorBudget.Percentage < 10 {
 		return SLOStatusCritical
 	}
-	
+
 	// Check for degraded status (below warning threshold)
 	if currentValue < slo.WarningThreshold {
 		return SLOStatusDegraded
 	}
-	
+
 	return SLOStatusHealthy
 }
 
@@ -506,37 +506,37 @@ func (m *Monitor) getComplianceHistory(ctx context.Context, slo *SLO) ([]Complia
 	end := time.Now()
 	start := end.Add(-slo.ComplianceWindow)
 	step := slo.ComplianceWindow / 100 // 100 data points
-	
+
 	queryRange := v1.Range{
 		Start: start,
 		End:   end,
 		Step:  step,
 	}
-	
+
 	result, warnings, err := m.promClient.QueryRange(ctx, slo.Query, queryRange)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if len(warnings) > 0 {
 		m.logger.Warn("Compliance history query warnings", zap.Strings("warnings", warnings))
 	}
-	
+
 	var history []CompliancePoint
-	
+
 	if matrix, ok := result.(model.Matrix); ok {
 		for _, series := range matrix {
 			for _, sample := range series.Values {
 				value := float64(sample.Value)
 				timestamp := sample.Timestamp.Time()
-				
+
 				status := SLOStatusHealthy
 				if value < slo.CriticalThreshold {
 					status = SLOStatusViolation
 				} else if value < slo.WarningThreshold {
 					status = SLOStatusDegraded
 				}
-				
+
 				history = append(history, CompliancePoint{
 					Timestamp: timestamp,
 					Value:     value,
@@ -545,7 +545,7 @@ func (m *Monitor) getComplianceHistory(ctx context.Context, slo *SLO) ([]Complia
 			}
 		}
 	}
-	
+
 	return history, nil
 }
 
@@ -553,7 +553,7 @@ func (m *Monitor) getComplianceHistory(ctx context.Context, slo *SLO) ([]Complia
 func (m *Monitor) storeResult(name string, result *SLOResult) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	// Check for status change
 	if previous, exists := m.results[name]; exists {
 		if previous.Status != result.Status {
@@ -565,7 +565,7 @@ func (m *Monitor) storeResult(name string, result *SLOResult) {
 				Timestamp:      result.Timestamp,
 				Reason:         fmt.Sprintf("Value changed from %.2f to %.2f", previous.CurrentValue, result.CurrentValue),
 			}
-			
+
 			select {
 			case m.statusChan <- statusEvent:
 			default:
@@ -573,7 +573,7 @@ func (m *Monitor) storeResult(name string, result *SLOResult) {
 			}
 		}
 	}
-	
+
 	m.results[name] = result
 }
 
@@ -583,10 +583,10 @@ func (m *Monitor) checkAndGenerateAlerts(result *SLOResult) {
 		if !rule.Enabled {
 			continue
 		}
-		
+
 		shouldAlert := false
 		var alertMessage string
-		
+
 		switch rule.Name {
 		case "SLOErrorBudgetLow":
 			if result.ErrorBudget.Percentage < 10 {
@@ -604,7 +604,7 @@ func (m *Monitor) checkAndGenerateAlerts(result *SLOResult) {
 				alertMessage = fmt.Sprintf("SLO violation: %.2f%% < %.2f%%", result.CurrentValue, result.SLO.CriticalThreshold)
 			}
 		}
-		
+
 		if shouldAlert {
 			alertEvent := AlertEvent{
 				SLOName:     result.SLO.Name,
@@ -615,11 +615,11 @@ func (m *Monitor) checkAndGenerateAlerts(result *SLOResult) {
 				Labels:      rule.Labels,
 				Annotations: rule.Annotations,
 			}
-			
+
 			select {
 			case m.alertChan <- alertEvent:
 			default:
-				m.logger.Warn("Alert channel full, dropping alert", 
+				m.logger.Warn("Alert channel full, dropping alert",
 					zap.String("slo", result.SLO.Name),
 					zap.String("alert", rule.Name))
 			}

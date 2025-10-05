@@ -3,7 +3,6 @@ package compliance
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -19,19 +18,19 @@ type DataMapper struct {
 
 // DataMapping represents how data flows through the system
 type DataMapping struct {
-	FieldName      string                 `json:"field_name"`
-	DataType       DataType               `json:"data_type"`
-	PIIType        PIIType                `json:"pii_type,omitempty"`
-	Sensitivity    PIISensitivity         `json:"sensitivity"`
-	LegalBasis     LegalBasis             `json:"legal_basis"`
-	Purpose        []string               `json:"purpose"`
-	Retention      RetentionRule          `json:"retention"`
-	Sources        []DataSource           `json:"sources"`
-	Destinations   []DataDestination      `json:"destinations"`
-	Transformations []DataTransformation  `json:"transformations"`
-	AccessPatterns []AccessPattern        `json:"access_patterns"`
-	CreatedAt      time.Time              `json:"created_at"`
-	UpdatedAt      time.Time              `json:"updated_at"`
+	FieldName       string               `json:"field_name"`
+	DataType        DataType             `json:"data_type"`
+	PIIType         PIIType              `json:"pii_type,omitempty"`
+	Sensitivity     PIISensitivity       `json:"sensitivity"`
+	LegalBasis      LegalBasis           `json:"legal_basis"`
+	Purpose         []string             `json:"purpose"`
+	Retention       RetentionRule        `json:"retention"`
+	Sources         []DataSource         `json:"sources"`
+	Destinations    []DataDestination    `json:"destinations"`
+	Transformations []DataTransformation `json:"transformations"`
+	AccessPatterns  []AccessPattern      `json:"access_patterns"`
+	CreatedAt       time.Time            `json:"created_at"`
+	UpdatedAt       time.Time            `json:"updated_at"`
 }
 
 // DataType represents different types of data
@@ -50,7 +49,7 @@ const (
 
 // DataSource represents where data originates
 type DataSource struct {
-	Type        string            `json:"type"`        // api, form, import, etc.
+	Type        string            `json:"type"` // api, form, import, etc.
 	Name        string            `json:"name"`
 	Location    string            `json:"location"`
 	Metadata    map[string]string `json:"metadata"`
@@ -59,31 +58,31 @@ type DataSource struct {
 
 // DataDestination represents where data is sent or stored
 type DataDestination struct {
-	Type        string            `json:"type"`        // database, cache, export, api, etc.
-	Name        string            `json:"name"`
-	Location    string            `json:"location"`
-	Purpose     string            `json:"purpose"`
-	Metadata    map[string]string `json:"metadata"`
-	AccessedAt  time.Time         `json:"accessed_at"`
+	Type       string            `json:"type"` // database, cache, export, api, etc.
+	Name       string            `json:"name"`
+	Location   string            `json:"location"`
+	Purpose    string            `json:"purpose"`
+	Metadata   map[string]string `json:"metadata"`
+	AccessedAt time.Time         `json:"accessed_at"`
 }
 
 // DataTransformation represents how data is transformed
 type DataTransformation struct {
-	Type        string            `json:"type"`        // anonymize, encrypt, aggregate, etc.
-	Method      string            `json:"method"`
-	Applied     bool              `json:"applied"`
-	Metadata    map[string]string `json:"metadata"`
-	AppliedAt   time.Time         `json:"applied_at"`
+	Type      string            `json:"type"` // anonymize, encrypt, aggregate, etc.
+	Method    string            `json:"method"`
+	Applied   bool              `json:"applied"`
+	Metadata  map[string]string `json:"metadata"`
+	AppliedAt time.Time         `json:"applied_at"`
 }
 
 // AccessPattern represents how data is accessed
 type AccessPattern struct {
-	Actor       string            `json:"actor"`       // user, system, service
-	Action      string            `json:"action"`      // read, write, delete, export
-	Frequency   string            `json:"frequency"`   // once, daily, weekly, etc.
-	Purpose     string            `json:"purpose"`
-	LastAccess  time.Time         `json:"last_access"`
-	AccessCount int               `json:"access_count"`
+	Actor       string    `json:"actor"`     // user, system, service
+	Action      string    `json:"action"`    // read, write, delete, export
+	Frequency   string    `json:"frequency"` // once, daily, weekly, etc.
+	Purpose     string    `json:"purpose"`
+	LastAccess  time.Time `json:"last_access"`
+	AccessCount int       `json:"access_count"`
 }
 
 // RetentionRule defines how long data should be retained
@@ -98,23 +97,23 @@ type RetentionRule struct {
 
 // DataInventoryItem represents an item in the data inventory
 type DataInventoryItem struct {
-	ID              string            `json:"id"`
-	Name            string            `json:"name"`
-	Description     string            `json:"description"`
-	Category        string            `json:"category"`
-	Owner           string            `json:"owner"`
-	Steward         string            `json:"steward"`
-	Location        string            `json:"location"`
-	Format          string            `json:"format"`
-	Volume          int64             `json:"volume"`
-	PIIFields       []string          `json:"pii_fields"`
-	SensitivityLevel PIISensitivity   `json:"sensitivity_level"`
-	RetentionPolicy string            `json:"retention_policy"`
-	BackupLocations []string          `json:"backup_locations"`
-	AccessControls  []string          `json:"access_controls"`
-	EncryptionStatus string           `json:"encryption_status"`
-	LastAudit       time.Time         `json:"last_audit"`
-	Metadata        map[string]string `json:"metadata"`
+	ID               string            `json:"id"`
+	Name             string            `json:"name"`
+	Description      string            `json:"description"`
+	Category         string            `json:"category"`
+	Owner            string            `json:"owner"`
+	Steward          string            `json:"steward"`
+	Location         string            `json:"location"`
+	Format           string            `json:"format"`
+	Volume           int64             `json:"volume"`
+	PIIFields        []string          `json:"pii_fields"`
+	SensitivityLevel PIISensitivity    `json:"sensitivity_level"`
+	RetentionPolicy  string            `json:"retention_policy"`
+	BackupLocations  []string          `json:"backup_locations"`
+	AccessControls   []string          `json:"access_controls"`
+	EncryptionStatus string            `json:"encryption_status"`
+	LastAudit        time.Time         `json:"last_audit"`
+	Metadata         map[string]string `json:"metadata"`
 }
 
 // NewDataMapper creates a new data mapper
@@ -136,7 +135,7 @@ func NewDataMapper(config ComplianceConfig, logger *zap.Logger) (*DataMapper, er
 func (dm *DataMapper) MapDataField(ctx context.Context, fieldName string, metadata DataMapping) error {
 	metadata.FieldName = fieldName
 	metadata.UpdatedAt = time.Now()
-	
+
 	if metadata.CreatedAt.IsZero() {
 		metadata.CreatedAt = time.Now()
 	}
@@ -166,7 +165,7 @@ func (dm *DataMapper) GetAllMappings() map[string]DataMapping {
 func (dm *DataMapper) DiscoverDataSources(ctx context.Context) error {
 	// In a real implementation, this would scan databases, APIs, files, etc.
 	// to automatically discover data sources and create mappings
-	
+
 	dm.logger.Info("Starting data source discovery")
 
 	// Mock discovery process
@@ -176,30 +175,30 @@ func (dm *DataMapper) DiscoverDataSources(ctx context.Context) error {
 			Name:             "Tasks Table",
 			Description:      "Main tasks table in PostgreSQL",
 			Category:         "operational_data",
-			Owner:           "data_team",
-			Location:        "postgresql://tasks",
-			Format:          "structured",
-			Volume:          1000000,
-			PIIFields:       []string{"assignee_email", "description"},
+			Owner:            "data_team",
+			Location:         "postgresql://tasks",
+			Format:           "structured",
+			Volume:           1000000,
+			PIIFields:        []string{"assignee_email", "description"},
 			SensitivityLevel: PIISensitivityConfidential,
-			RetentionPolicy: "2_years",
+			RetentionPolicy:  "2_years",
 			EncryptionStatus: "encrypted_at_rest",
-			LastAudit:       time.Now().AddDate(0, -1, 0),
+			LastAudit:        time.Now().AddDate(0, -1, 0),
 		},
 		{
 			ID:               "user_cache",
 			Name:             "User Cache",
 			Description:      "Redis cache for user data",
 			Category:         "cache_data",
-			Owner:           "platform_team",
-			Location:        "redis://user_cache",
-			Format:          "key_value",
-			Volume:          500000,
-			PIIFields:       []string{"user_email", "user_name"},
+			Owner:            "platform_team",
+			Location:         "redis://user_cache",
+			Format:           "key_value",
+			Volume:           500000,
+			PIIFields:        []string{"user_email", "user_name"},
 			SensitivityLevel: PIISensitivityConfidential,
-			RetentionPolicy: "30_days",
+			RetentionPolicy:  "30_days",
 			EncryptionStatus: "encrypted_in_transit",
-			LastAudit:       time.Now().AddDate(0, 0, -15),
+			LastAudit:        time.Now().AddDate(0, 0, -15),
 		},
 	}
 
@@ -214,12 +213,12 @@ func (dm *DataMapper) DiscoverDataSources(ctx context.Context) error {
 // GenerateDataMap generates a comprehensive data map
 func (dm *DataMapper) GenerateDataMap(ctx context.Context) (map[string]interface{}, error) {
 	dataMap := map[string]interface{}{
-		"generated_at": time.Now(),
-		"total_fields": len(dm.dataMap),
+		"generated_at":    time.Now(),
+		"total_fields":    len(dm.dataMap),
 		"inventory_items": len(dm.inventory),
-		"mappings":     dm.dataMap,
-		"inventory":    dm.inventory,
-		"statistics": dm.generateStatistics(),
+		"mappings":        dm.dataMap,
+		"inventory":       dm.inventory,
+		"statistics":      dm.generateStatistics(),
 	}
 
 	return dataMap, nil
@@ -231,11 +230,11 @@ func (dm *DataMapper) TrackDataFlow(ctx context.Context, fieldName string, sourc
 	if !exists {
 		// Create new mapping
 		mapping = DataMapping{
-			FieldName:   fieldName,
-			Sources:     []DataSource{source},
+			FieldName:    fieldName,
+			Sources:      []DataSource{source},
 			Destinations: []DataDestination{destination},
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
 		}
 	} else {
 		// Update existing mapping
@@ -346,12 +345,12 @@ func (dm *DataMapper) ValidateCompliance(ctx context.Context) ([]ComplianceViola
 
 // ComplianceViolation represents a compliance violation
 type ComplianceViolation struct {
-	Type        string    `json:"type"`
-	Field       string    `json:"field"`
-	Severity    string    `json:"severity"`
-	Description string    `json:"description"`
-	Recommendation string `json:"recommendation,omitempty"`
-	DetectedAt  time.Time `json:"detected_at"`
+	Type           string    `json:"type"`
+	Field          string    `json:"field"`
+	Severity       string    `json:"severity"`
+	Description    string    `json:"description"`
+	Recommendation string    `json:"recommendation,omitempty"`
+	DetectedAt     time.Time `json:"detected_at"`
 }
 
 // Helper methods
@@ -411,10 +410,10 @@ func (dm *DataMapper) initializeDefaultMappings() {
 
 func (dm *DataMapper) generateStatistics() map[string]interface{} {
 	stats := map[string]interface{}{
-		"total_mappings": len(dm.dataMap),
-		"pii_fields":     0,
-		"by_sensitivity": map[string]int{},
-		"by_pii_type":    map[string]int{},
+		"total_mappings":    len(dm.dataMap),
+		"pii_fields":        0,
+		"by_sensitivity":    map[string]int{},
+		"by_pii_type":       map[string]int{},
 		"retention_periods": map[string]int{},
 	}
 

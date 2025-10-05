@@ -90,13 +90,13 @@ func TestFlagManager_IsEnabled(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	
+
 	// Test with enabled flag
 	enabledFlag := &domain.FeatureFlag{
 		Key:     "test-flag",
 		Enabled: true,
 	}
-	
+
 	cacheRepo.On("Get", ctx, "flag:test-flag").Return("", assert.AnError)
 	flagRepo.On("GetByKey", ctx, "test-flag").Return(enabledFlag, nil)
 	cacheRepo.On("Set", ctx, "flag:test-flag", enabledFlag, 300).Return(nil)
@@ -109,7 +109,7 @@ func TestFlagManager_IsEnabled(t *testing.T) {
 		Key:     "disabled-flag",
 		Enabled: false,
 	}
-	
+
 	cacheRepo.On("Get", ctx, "flag:disabled-flag").Return("", assert.AnError)
 	flagRepo.On("GetByKey", ctx, "disabled-flag").Return(disabledFlag, nil)
 	cacheRepo.On("Set", ctx, "flag:disabled-flag", disabledFlag, 300).Return(nil)
@@ -135,7 +135,7 @@ func TestFlagManager_IsEnabledWithDefault(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	
+
 	// Test with non-existent flag and default true
 	cacheRepo.On("Get", ctx, "flag:non-existent").Return("", assert.AnError)
 	flagRepo.On("GetByKey", ctx, "non-existent").Return((*domain.FeatureFlag)(nil), assert.AnError)
@@ -165,8 +165,8 @@ func TestFlagManager_EvaluatePercentage(t *testing.T) {
 	}
 
 	flag := &domain.FeatureFlag{
-		Key:     "percentage-flag",
-		Enabled: true,
+		Key:      "percentage-flag",
+		Enabled:  true,
 		Strategy: "percentage",
 		Parameters: map[string]interface{}{
 			"percentage": 50.0,
@@ -197,8 +197,8 @@ func TestFlagManager_EvaluateUserList(t *testing.T) {
 	}
 
 	flag := &domain.FeatureFlag{
-		Key:     "userlist-flag",
-		Enabled: true,
+		Key:      "userlist-flag",
+		Enabled:  true,
 		Strategy: "userlist",
 		Parameters: map[string]interface{}{
 			"users": []interface{}{"user1", "user2", "user3"},
@@ -228,8 +228,8 @@ func TestFlagManager_EvaluateAttribute(t *testing.T) {
 	}
 
 	flag := &domain.FeatureFlag{
-		Key:     "attribute-flag",
-		Enabled: true,
+		Key:      "attribute-flag",
+		Enabled:  true,
 		Strategy: "attribute",
 		Parameters: map[string]interface{}{
 			"conditions": map[string]interface{}{

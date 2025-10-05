@@ -268,5 +268,22 @@ Write-Host "- GitHub API: https://docs.github.com/en/rest" -ForegroundColor Whit
 Write-Host "" -ForegroundColor White
 Write-Host "🆘 Suporte: suporte@vertikon.com" -ForegroundColor Cyan
 
+# === Normalize dependencies (idempotent) ===
+Write-Host "🔧 Normalizando dependências..." -ForegroundColor Cyan
+try {
+    $repoRoot = Split-Path $PSScriptRoot -Parent
+    $fixDepsScript = Join-Path $PSScriptRoot "fix-deps.ps1"
+
+    if (Test-Path $fixDepsScript) {
+        & $fixDepsScript -RepoRoot $repoRoot
+        Write-Host "✅ Dependências normalizadas com sucesso" -ForegroundColor Green
+    } else {
+        Write-Host "⚠️ Script fix-deps.ps1 não encontrado" -ForegroundColor Yellow
+    }
+} catch {
+    Write-Warning "fix-deps falhou: $($_.Exception.Message)"
+    Write-Host "⚠️ Continuando setup sem normalização de dependências" -ForegroundColor Yellow
+}
+
 # Retornar ao diretório original
 Set-Location $PSScriptRoot

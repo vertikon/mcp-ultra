@@ -48,7 +48,7 @@ type CircuitBreaker struct {
 	successThreshold    int
 	recoveryTimeout     time.Duration
 	halfOpenMaxRequests int
-	
+
 	// Callbacks
 	onStateChange func(from, to CircuitBreakerState)
 }
@@ -68,11 +68,11 @@ func NewCircuitBreaker(failureThreshold int, recoveryTimeout time.Duration, half
 func (cb *CircuitBreaker) Allow() bool {
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
-	
+
 	switch cb.state {
 	case CircuitBreakerClosed:
 		return true
-		
+
 	case CircuitBreakerOpen:
 		// Check if we should transition to half-open
 		if time.Since(cb.lastFailureTime) >= cb.recoveryTimeout {
@@ -82,7 +82,7 @@ func (cb *CircuitBreaker) Allow() bool {
 			return true
 		}
 		return false
-		
+
 	case CircuitBreakerHalfOpen:
 		// Allow limited requests in half-open state
 		if cb.halfOpenRequests < cb.halfOpenMaxRequests {
@@ -90,7 +90,7 @@ func (cb *CircuitBreaker) Allow() bool {
 			return true
 		}
 		return false
-		
+
 	default:
 		return false
 	}
@@ -100,11 +100,11 @@ func (cb *CircuitBreaker) Allow() bool {
 func (cb *CircuitBreaker) RecordSuccess() {
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
-	
+
 	switch cb.state {
 	case CircuitBreakerClosed:
 		cb.failureCount = 0 // Reset failure count on success
-		
+
 	case CircuitBreakerHalfOpen:
 		cb.successCount++
 		if cb.successCount >= cb.successThreshold {
@@ -120,16 +120,16 @@ func (cb *CircuitBreaker) RecordSuccess() {
 func (cb *CircuitBreaker) RecordFailure() {
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
-	
+
 	cb.lastFailureTime = time.Now()
-	
+
 	switch cb.state {
 	case CircuitBreakerClosed:
 		cb.failureCount++
 		if cb.failureCount >= cb.failureThreshold {
 			cb.setState(CircuitBreakerOpen)
 		}
-		
+
 	case CircuitBreakerHalfOpen:
 		cb.setState(CircuitBreakerOpen)
 		cb.halfOpenRequests = 0
@@ -141,7 +141,7 @@ func (cb *CircuitBreaker) RecordFailure() {
 func (cb *CircuitBreaker) State() CircuitBreakerState {
 	cb.mu.RLock()
 	defer cb.mu.RUnlock()
-	
+
 	return cb.state
 }
 
@@ -149,7 +149,7 @@ func (cb *CircuitBreaker) State() CircuitBreakerState {
 func (cb *CircuitBreaker) Stats() CircuitBreakerStats {
 	cb.mu.RLock()
 	defer cb.mu.RUnlock()
-	
+
 	return CircuitBreakerStats{
 		State:               cb.state,
 		FailureCount:        cb.failureCount,
@@ -180,7 +180,7 @@ type CircuitBreakerStats struct {
 func (cb *CircuitBreaker) OnStateChange(callback func(from, to CircuitBreakerState)) {
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
-	
+
 	cb.onStateChange = callback
 }
 
@@ -188,14 +188,14 @@ func (cb *CircuitBreaker) OnStateChange(callback func(from, to CircuitBreakerSta
 func (cb *CircuitBreaker) Reset() {
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
-	
+
 	oldState := cb.state
 	cb.state = CircuitBreakerClosed
 	cb.failureCount = 0
 	cb.successCount = 0
 	cb.halfOpenRequests = 0
 	cb.lastFailureTime = time.Time{}
-	
+
 	if cb.onStateChange != nil && oldState != CircuitBreakerClosed {
 		cb.onStateChange(oldState, CircuitBreakerClosed)
 	}
@@ -205,11 +205,11 @@ func (cb *CircuitBreaker) Reset() {
 func (cb *CircuitBreaker) ForceOpen() {
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
-	
+
 	oldState := cb.state
 	cb.setState(CircuitBreakerOpen)
 	cb.lastFailureTime = time.Now()
-	
+
 	if cb.onStateChange != nil && oldState != CircuitBreakerOpen {
 		cb.onStateChange(oldState, CircuitBreakerOpen)
 	}
@@ -219,7 +219,7 @@ func (cb *CircuitBreaker) ForceOpen() {
 func (cb *CircuitBreaker) setState(newState CircuitBreakerState) {
 	oldState := cb.state
 	cb.state = newState
-	
+
 	if cb.onStateChange != nil && oldState != newState {
 		go cb.onStateChange(oldState, newState) // Non-blocking callback
 	}
@@ -228,16 +228,16 @@ func (cb *CircuitBreaker) setState(newState CircuitBreakerState) {
 // AdaptiveCircuitBreaker extends CircuitBreaker with adaptive behavior
 type AdaptiveCircuitBreaker struct {
 	*CircuitBreaker
-	
-	mu                    sync.RWMutex
-	recentRequests        []time.Time
-	recentFailures        []time.Time
-	adaptiveWindow        time.Duration
-	minFailureRate        float64
-	maxFailureRate        float64
-	adaptiveThreshold     bool
-	baseFailureThreshold  int
-	maxFailureThreshold   int
+
+	mu                   sync.RWMutex
+	recentRequests       []time.Time
+	recentFailures       []time.Time
+	adaptiveWindow       time.Duration
+	minFailureRate       float64
+	maxFailureRate       float64
+	adaptiveThreshold    bool
+	baseFailureThreshold int
+	maxFailureThreshold  int
 }
 
 // NewAdaptiveCircuitBreaker creates an adaptive circuit breaker
@@ -247,22 +247,22 @@ func NewAdaptiveCircuitBreaker(config CircuitBreakerConfig) *AdaptiveCircuitBrea
 		config.RecoveryTimeout,
 		config.HalfOpenMaxRequests,
 	)
-	
+
 	acb := &AdaptiveCircuitBreaker{
 		CircuitBreaker:       cb,
 		adaptiveWindow:       time.Minute,
-		minFailureRate:       0.1,  // 10%
-		maxFailureRate:       0.5,  // 50%
+		minFailureRate:       0.1, // 10%
+		maxFailureRate:       0.5, // 50%
 		adaptiveThreshold:    true,
 		baseFailureThreshold: config.FailureThreshold,
 		maxFailureThreshold:  config.FailureThreshold * 3,
 		recentRequests:       make([]time.Time, 0),
 		recentFailures:       make([]time.Time, 0),
 	}
-	
+
 	// Set up adaptive behavior
 	go acb.adaptiveAdjustment()
-	
+
 	return acb
 }
 
@@ -270,10 +270,10 @@ func NewAdaptiveCircuitBreaker(config CircuitBreakerConfig) *AdaptiveCircuitBrea
 func (acb *AdaptiveCircuitBreaker) RecordRequest() {
 	acb.mu.Lock()
 	defer acb.mu.Unlock()
-	
+
 	now := time.Now()
 	acb.recentRequests = append(acb.recentRequests, now)
-	
+
 	// Clean old requests
 	cutoff := now.Add(-acb.adaptiveWindow)
 	i := 0
@@ -288,7 +288,7 @@ func (acb *AdaptiveCircuitBreaker) RecordFailure() {
 	acb.mu.Lock()
 	now := time.Now()
 	acb.recentFailures = append(acb.recentFailures, now)
-	
+
 	// Clean old failures
 	cutoff := now.Add(-acb.adaptiveWindow)
 	i := 0
@@ -297,7 +297,7 @@ func (acb *AdaptiveCircuitBreaker) RecordFailure() {
 	}
 	acb.recentFailures = acb.recentFailures[i:]
 	acb.mu.Unlock()
-	
+
 	// Call parent implementation
 	acb.CircuitBreaker.RecordFailure()
 }
@@ -306,11 +306,11 @@ func (acb *AdaptiveCircuitBreaker) RecordFailure() {
 func (acb *AdaptiveCircuitBreaker) GetFailureRate() float64 {
 	acb.mu.RLock()
 	defer acb.mu.RUnlock()
-	
+
 	if len(acb.recentRequests) == 0 {
 		return 0
 	}
-	
+
 	return float64(len(acb.recentFailures)) / float64(len(acb.recentRequests))
 }
 
@@ -318,20 +318,20 @@ func (acb *AdaptiveCircuitBreaker) GetFailureRate() float64 {
 func (acb *AdaptiveCircuitBreaker) adaptiveAdjustment() {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		if !acb.adaptiveThreshold {
 			continue
 		}
-		
+
 		failureRate := acb.GetFailureRate()
-		
+
 		acb.CircuitBreaker.mu.Lock()
 		currentThreshold := acb.CircuitBreaker.failureThreshold
-		
+
 		// Adjust threshold based on failure rate
 		newThreshold := currentThreshold
-		
+
 		if failureRate > acb.maxFailureRate {
 			// High failure rate - be more sensitive
 			newThreshold = max(acb.baseFailureThreshold/2, 1)
@@ -339,11 +339,11 @@ func (acb *AdaptiveCircuitBreaker) adaptiveAdjustment() {
 			// Low failure rate - be less sensitive
 			newThreshold = min(currentThreshold*2, acb.maxFailureThreshold)
 		}
-		
+
 		if newThreshold != currentThreshold {
 			acb.CircuitBreaker.failureThreshold = newThreshold
 		}
-		
+
 		acb.CircuitBreaker.mu.Unlock()
 	}
 }

@@ -105,7 +105,7 @@ func TestNewTLSManager(t *testing.T) {
 	t.Run("should create manager with valid TLS config", func(t *testing.T) {
 		certFile := createTempFile(t, "cert", testCert)
 		keyFile := createTempFile(t, "key", testKey)
-		
+
 		config := &TLSConfig{
 			Enabled:    true,
 			CertFile:   certFile,
@@ -126,7 +126,7 @@ func TestNewTLSManager(t *testing.T) {
 	t.Run("should fail with invalid certificate", func(t *testing.T) {
 		certFile := createTempFile(t, "cert", "invalid-cert")
 		keyFile := createTempFile(t, "key", testKey)
-		
+
 		config := &TLSConfig{
 			Enabled:  true,
 			CertFile: certFile,
@@ -282,7 +282,7 @@ func TestTLSManager_ConfigureClientAuth(t *testing.T) {
 
 func TestTLSManager_GetTLSConfig(t *testing.T) {
 	logger := zaptest.NewLogger(t)
-	
+
 	t.Run("should return nil for disabled TLS", func(t *testing.T) {
 		config := &TLSConfig{Enabled: false}
 		manager := &TLSManager{config: config, logger: logger}
@@ -294,7 +294,7 @@ func TestTLSManager_GetTLSConfig(t *testing.T) {
 	t.Run("should return copy of TLS config", func(t *testing.T) {
 		certFile := createTempFile(t, "cert", testCert)
 		keyFile := createTempFile(t, "key", testKey)
-		
+
 		config := &TLSConfig{
 			Enabled:    true,
 			CertFile:   certFile,
@@ -307,7 +307,7 @@ func TestTLSManager_GetTLSConfig(t *testing.T) {
 
 		tlsConfig1 := manager.GetTLSConfig()
 		tlsConfig2 := manager.GetTLSConfig()
-		
+
 		assert.NotNil(t, tlsConfig1)
 		assert.NotNil(t, tlsConfig2)
 		// Should be different instances (copies)
@@ -317,11 +317,11 @@ func TestTLSManager_GetTLSConfig(t *testing.T) {
 
 func TestTLSManager_Stop(t *testing.T) {
 	logger := zaptest.NewLogger(t)
-	
+
 	t.Run("should stop certificate watcher", func(t *testing.T) {
 		certFile := createTempFile(t, "cert", testCert)
 		keyFile := createTempFile(t, "key", testKey)
-		
+
 		config := &TLSConfig{
 			Enabled:        true,
 			CertFile:       certFile,
@@ -352,18 +352,18 @@ func TestTLSManager_Stop(t *testing.T) {
 func createTempFile(t *testing.T, prefix, content string) string {
 	file, err := os.CreateTemp("", prefix+"*.pem")
 	require.NoError(t, err)
-	
+
 	_, err = file.WriteString(content)
 	require.NoError(t, err)
-	
+
 	err = file.Close()
 	require.NoError(t, err)
-	
+
 	// Clean up after test
 	t.Cleanup(func() {
 		os.Remove(file.Name())
 	})
-	
+
 	return file.Name()
 }
 

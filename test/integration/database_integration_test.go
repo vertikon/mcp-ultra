@@ -5,6 +5,7 @@ package integration
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/redis"
 
 	"github.com/vertikon/mcp-ultra/internal/config"
+	"github.com/vertikon/mcp-ultra/internal/constants"
 	"github.com/vertikon/mcp-ultra/internal/domain"
 	postgresRepo "github.com/vertikon/mcp-ultra/internal/repository/postgres"
 	redisRepo "github.com/vertikon/mcp-ultra/internal/repository/redis"
@@ -25,28 +27,45 @@ import (
 // DatabaseIntegrationTestSuite tests database operations with real databases
 type DatabaseIntegrationTestSuite struct {
 	suite.Suite
-	
+
 	// Test containers
 	postgresContainer *postgres.PostgresContainer
 	redisContainer    *redis.RedisContainer
-	
+
 	// Repositories
 	taskRepo  *postgresRepo.TaskRepository
 	cacheRepo *redisRepo.CacheRepository
-	
+
 	// Test context
 	ctx context.Context
 }
 
 func (suite *DatabaseIntegrationTestSuite) SetupSuite() {
 	suite.ctx = context.Background()
-	
+
+	// Get test database credentials from environment or use defaults
+	// NOTE: These are test-only values used with containerized databases
+	testDBUser := os.Getenv("TEST_DB_USER")
+	if testDBUser == "" {
+		testDBUser = constants.TestDBUser // Safe test value for containerized testing
+	}
+
+	testDBPassword := os.Getenv("TEST_DB_PASSWORD")
+	if testDBPassword == "" {
+		testDBPassword = constants.TestDBPassword // Safe test value for containerized testing
+	}
+
+	testDBName := os.Getenv("TEST_DB_NAME")
+	if testDBName == "" {
+		testDBName = "test_mcp_ultra" // TEST_DB_NAME - safe test database name
+	}
+
 	// Start PostgreSQL container
 	postgresContainer, err := postgres.RunContainer(suite.ctx,
 		testcontainers.WithImage("postgres:16-alpine"),
-		postgres.WithDatabase("test_mcp_ultra"),
-		postgres.WithUsername("testuser"),
-		postgres.WithPassword("testpass"),
+		postgres.WithDatabase(testDBName),
+		postgres.WithUsername(testDBUser),
+		postgres.WithPassword(testDBPassword),
 		testcontainers.WithWaitStrategy(
 			testcontainers.NewLogWaitStrategy("database system is ready to accept connections").
 				WithOccurrence(2).WithStartupTimeout(30*time.Second)),
@@ -64,16 +83,16 @@ func (suite *DatabaseIntegrationTestSuite) SetupSuite() {
 	// Setup database connection
 	host, err := postgresContainer.Host(suite.ctx)
 	require.NoError(suite.T(), err)
-	
+
 	port, err := postgresContainer.MappedPort(suite.ctx, "5432")
 	require.NoError(suite.T(), err)
 
 	pgConfig := config.PostgreSQLConfig{
 		Host:     host,
 		Port:     port.Int(),
-		Database: "test_mcp_ultra",
-		User:     "testuser",
-		Password: "testpass",
+		Database: testDBName,
+		User:     testDBUser,
+		Password: testDBPassword,
 		SSLMode:  "disable",
 	}
 
@@ -85,7 +104,7 @@ func (suite *DatabaseIntegrationTestSuite) SetupSuite() {
 	// Setup Redis connection
 	redisHost, err := redisContainer.Host(suite.ctx)
 	require.NoError(suite.T(), err)
-	
+
 	redisPort, err := redisContainer.MappedPort(suite.ctx, "6379")
 	require.NoError(suite.T(), err)
 
@@ -410,10 +429,10 @@ func (suite *DatabaseIntegrationTestSuite) TestLargeDatasetOperations() {
 
 		pageTasks, total, err := suite.taskRepo.List(ctx, filter)
 		require.NoError(suite.T(), err)
-		
+
 		totalRetrieved += len(pageTasks)
 		assert.Equal(suite.T(), int64(taskCount), total)
-		
+
 		if page == 0 {
 			// First page should be full (unless taskCount < pageSize)
 			expectedPageSize := min(pageSize, taskCount)
@@ -486,6 +505,6 @@ func TestDatabaseIntegrationSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
-	
+
 	suite.Run(t, new(DatabaseIntegrationTestSuite))
 }

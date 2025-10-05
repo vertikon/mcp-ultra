@@ -223,7 +223,7 @@ func TestTelemetryService_HTTPMiddleware(t *testing.T) {
 	assert.Equal(t, "OK", w.Body.String())
 
 	// Verify that tracing headers might be present
-	// (This is a basic check - in a real test environment, 
+	// (This is a basic check - in a real test environment,
 	// we'd verify actual trace propagation)
 }
 
@@ -241,7 +241,7 @@ func TestTelemetryService_HealthCheck(t *testing.T) {
 
 	health := service.HealthCheck()
 	assert.NotNil(t, health)
-	
+
 	// Verify health structure (exact fields depend on implementation)
 	assert.Contains(t, health, "status")
 	assert.Contains(t, health, "components")

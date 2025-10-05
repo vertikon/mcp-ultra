@@ -57,16 +57,16 @@ func TestTaskCreationProperties(t *testing.T) {
 			task.Status = currentStatus
 
 			expected := task.IsValidStatus(newStatus)
-			
+
 			// Valid transitions based on business rules
 			switch currentStatus {
 			case domain.TaskStatusPending:
-				return expected == (newStatus == domain.TaskStatusInProgress || 
-					newStatus == domain.TaskStatusCancelled || 
+				return expected == (newStatus == domain.TaskStatusInProgress ||
+					newStatus == domain.TaskStatusCancelled ||
 					newStatus == domain.TaskStatusPending)
 			case domain.TaskStatusInProgress:
-				return expected == (newStatus == domain.TaskStatusCompleted || 
-					newStatus == domain.TaskStatusCancelled || 
+				return expected == (newStatus == domain.TaskStatusCompleted ||
+					newStatus == domain.TaskStatusCancelled ||
 					newStatus == domain.TaskStatusInProgress)
 			case domain.TaskStatusCompleted, domain.TaskStatusCancelled:
 				return expected == (newStatus == currentStatus) // Terminal states
@@ -85,7 +85,7 @@ func TestTaskCreationProperties(t *testing.T) {
 			task.Status = status
 
 			beforeComplete := time.Now()
-			
+
 			if status == domain.TaskStatusInProgress {
 				task.Complete()
 				return task.Status == domain.TaskStatusCompleted &&
@@ -105,23 +105,23 @@ func TestTaskCreationProperties(t *testing.T) {
 		func(priority domain.Priority) bool {
 			task := createTestTask()
 			oldPriority := task.Priority
-			
+
 			// Try to set the priority
 			task.Priority = priority
-			
+
 			validPriorities := []domain.Priority{
 				domain.PriorityLow,
-				domain.PriorityMedium, 
+				domain.PriorityMedium,
 				domain.PriorityHigh,
 				domain.PriorityUrgent,
 			}
-			
+
 			for _, valid := range validPriorities {
 				if priority == valid {
 					return task.Priority == priority
 				}
 			}
-			
+
 			// If invalid priority, should retain old value or handle gracefully
 			return task.Priority == oldPriority || task.Priority == domain.PriorityMedium
 		},
@@ -132,20 +132,20 @@ func TestTaskCreationProperties(t *testing.T) {
 	properties.Property("task tags are unique and non-empty", prop.ForAll(
 		func(tags []string) bool {
 			task := createTestTask()
-			
+
 			// Filter and set tags
 			validTags := make([]string, 0)
 			seen := make(map[string]bool)
-			
+
 			for _, tag := range tags {
 				if tag != "" && !seen[tag] && len(tag) <= 50 {
 					validTags = append(validTags, tag)
 					seen[tag] = true
 				}
 			}
-			
+
 			task.Tags = validTags
-			
+
 			// Verify uniqueness
 			tagSet := make(map[string]bool)
 			for _, tag := range task.Tags {
@@ -153,12 +153,12 @@ func TestTaskCreationProperties(t *testing.T) {
 					return false // Duplicate found
 				}
 				tagSet[tag] = true
-				
+
 				if tag == "" || len(tag) > 50 {
 					return false // Invalid tag
 				}
 			}
-			
+
 			return true
 		},
 		gen.SliceOf(gen.AnyString()),
@@ -170,20 +170,20 @@ func TestTaskCreationProperties(t *testing.T) {
 			if key == "" {
 				return true // Skip empty keys
 			}
-			
+
 			task := createTestTask()
-			
+
 			// Initially metadata should not be nil
 			if task.Metadata == nil {
 				return false
 			}
-			
+
 			// Set a value
 			if task.Metadata == nil {
 				task.Metadata = make(map[string]interface{})
 			}
 			task.Metadata[key] = value
-			
+
 			// Value should be preserved
 			stored, exists := task.Metadata[key]
 			return exists && stored == value
@@ -206,12 +206,12 @@ func TestTaskBusinessRuleProperties(t *testing.T) {
 	properties.Property("past due dates are handled correctly", prop.ForAll(
 		func(hoursOffset int) bool {
 			task := createTestTask()
-			
+
 			dueDate := time.Now().Add(time.Duration(hoursOffset) * time.Hour)
 			task.DueDate = &dueDate
-			
+
 			isPast := dueDate.Before(time.Now())
-			
+
 			// Business rule: tasks with past due dates should be identifiable
 			if isPast {
 				return time.Since(dueDate) > 0
@@ -227,14 +227,14 @@ func TestTaskBusinessRuleProperties(t *testing.T) {
 			if len(title) > 255 {
 				return true // Skip invalid titles
 			}
-			
+
 			task := createTestTask()
 			originalTitle := task.Title
-			
+
 			// Simulate title normalization (trim spaces, etc.)
 			normalizedTitle := normalizeTitle(title)
 			task.Title = normalizedTitle
-			
+
 			// Title should not have leading/trailing spaces
 			return task.Title == normalizedTitle &&
 				(task.Title == "" || (task.Title[0] != ' ' && task.Title[len(task.Title)-1] != ' '))
@@ -295,7 +295,7 @@ func TestFeatureFlagProperties(t *testing.T) {
 			if percentage < 0 || percentage > 100 {
 				return true // Skip invalid percentages
 			}
-			
+
 			flag := &domain.FeatureFlag{
 				Key:      "test-flag",
 				Enabled:  true,
@@ -304,11 +304,11 @@ func TestFeatureFlagProperties(t *testing.T) {
 					"percentage": percentage,
 				},
 			}
-			
+
 			// Same user should always get same result
 			result1 := evaluatePercentageFlag(flag, userID)
 			result2 := evaluatePercentageFlag(flag, userID)
-			
+
 			return result1 == result2
 		},
 		gen.AnyString(),
@@ -319,16 +319,16 @@ func TestFeatureFlagProperties(t *testing.T) {
 	properties.Property("userlist strategy is exact", prop.ForAll(
 		func(users []string, testUser string) bool {
 			flag := &domain.FeatureFlag{
-				Key:      "test-flag", 
+				Key:      "test-flag",
 				Enabled:  true,
 				Strategy: "userlist",
 				Parameters: map[string]interface{}{
 					"users": users,
 				},
 			}
-			
+
 			result := evaluateUserListFlag(flag, testUser)
-			
+
 			// Check if user is in the list
 			inList := false
 			for _, user := range users {
@@ -337,7 +337,7 @@ func TestFeatureFlagProperties(t *testing.T) {
 					break
 				}
 			}
-			
+
 			return result == inList
 		},
 		gen.SliceOf(gen.AnyString()),

@@ -3,15 +3,14 @@ package ratelimit
 import (
 	"context"
 	"fmt"
-	"math"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/go-redis/redis/v8"
 
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
-	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // Algorithm represents different rate limiting algorithms
@@ -32,43 +31,43 @@ type DistributedRateLimiter struct {
 	config    Config
 	logger    logger.Logger
 	telemetry *observability.TelemetryService
-	
+
 	// State
-	mu            sync.RWMutex
-	limiters      map[string]Limiter
-	scripts       *LuaScripts
-	
+	mu       sync.RWMutex
+	limiters map[string]Limiter
+	scripts  *LuaScripts
+
 	// Background tasks
-	ctx           context.Context
-	cancel        context.CancelFunc
-	wg            sync.WaitGroup
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
 }
 
 // Config configures the distributed rate limiter
 type Config struct {
 	// Redis configuration
-	RedisKeyPrefix    string        `yaml:"redis_key_prefix"`
-	RedisKeyTTL       time.Duration `yaml:"redis_key_ttl"`
-	
+	RedisKeyPrefix string        `yaml:"redis_key_prefix"`
+	RedisKeyTTL    time.Duration `yaml:"redis_key_ttl"`
+
 	// Default limits
-	DefaultAlgorithm  Algorithm     `yaml:"default_algorithm"`
-	DefaultLimit      int64         `yaml:"default_limit"`
-	DefaultWindow     time.Duration `yaml:"default_window"`
-	
+	DefaultAlgorithm Algorithm     `yaml:"default_algorithm"`
+	DefaultLimit     int64         `yaml:"default_limit"`
+	DefaultWindow    time.Duration `yaml:"default_window"`
+
 	// Behavior
-	AllowBursts       bool          `yaml:"allow_bursts"`
-	SkipFailedLimits  bool          `yaml:"skip_failed_limits"`
-	SkipSuccessfulLimits bool       `yaml:"skip_successful_limits"`
-	
+	AllowBursts          bool `yaml:"allow_bursts"`
+	SkipFailedLimits     bool `yaml:"skip_failed_limits"`
+	SkipSuccessfulLimits bool `yaml:"skip_successful_limits"`
+
 	// Performance
 	MaxConcurrency    int           `yaml:"max_concurrency"`
 	LocalCacheEnabled bool          `yaml:"local_cache_enabled"`
 	LocalCacheTTL     time.Duration `yaml:"local_cache_ttl"`
-	
+
 	// Monitoring
-	EnableMetrics     bool          `yaml:"enable_metrics"`
-	EnableTracing     bool          `yaml:"enable_tracing"`
-	
+	EnableMetrics bool `yaml:"enable_metrics"`
+	EnableTracing bool `yaml:"enable_tracing"`
+
 	// Adaptive behavior
 	AdaptiveEnabled   bool          `yaml:"adaptive_enabled"`
 	AdaptiveWindow    time.Duration `yaml:"adaptive_window"`
@@ -77,74 +76,74 @@ type Config struct {
 
 // Rule defines a rate limiting rule
 type Rule struct {
-	ID            string        `json:"id" yaml:"id"`
-	Name          string        `json:"name" yaml:"name"`
-	Description   string        `json:"description" yaml:"description"`
-	Algorithm     Algorithm     `json:"algorithm" yaml:"algorithm"`
-	Limit         int64         `json:"limit" yaml:"limit"`
-	Window        time.Duration `json:"window" yaml:"window"`
-	
+	ID          string        `json:"id" yaml:"id"`
+	Name        string        `json:"name" yaml:"name"`
+	Description string        `json:"description" yaml:"description"`
+	Algorithm   Algorithm     `json:"algorithm" yaml:"algorithm"`
+	Limit       int64         `json:"limit" yaml:"limit"`
+	Window      time.Duration `json:"window" yaml:"window"`
+
 	// Key generation
-	KeyTemplate   string        `json:"key_template" yaml:"key_template"`
-	KeyFields     []string      `json:"key_fields" yaml:"key_fields"`
-	
+	KeyTemplate string   `json:"key_template" yaml:"key_template"`
+	KeyFields   []string `json:"key_fields" yaml:"key_fields"`
+
 	// Conditions
-	Conditions    []Condition   `json:"conditions" yaml:"conditions"`
-	
+	Conditions []Condition `json:"conditions" yaml:"conditions"`
+
 	// Behavior
-	Priority      int           `json:"priority" yaml:"priority"`
-	Enabled       bool          `json:"enabled" yaml:"enabled"`
-	FailOpen      bool          `json:"fail_open" yaml:"fail_open"`
-	
+	Priority int  `json:"priority" yaml:"priority"`
+	Enabled  bool `json:"enabled" yaml:"enabled"`
+	FailOpen bool `json:"fail_open" yaml:"fail_open"`
+
 	// Adaptive settings
-	Adaptive      bool          `json:"adaptive" yaml:"adaptive"`
-	MinLimit      int64         `json:"min_limit" yaml:"min_limit"`
-	MaxLimit      int64         `json:"max_limit" yaml:"max_limit"`
-	
+	Adaptive bool  `json:"adaptive" yaml:"adaptive"`
+	MinLimit int64 `json:"min_limit" yaml:"min_limit"`
+	MaxLimit int64 `json:"max_limit" yaml:"max_limit"`
+
 	// Metadata
-	Tags          []string      `json:"tags" yaml:"tags"`
-	CreatedAt     time.Time     `json:"created_at" yaml:"created_at"`
-	UpdatedAt     time.Time     `json:"updated_at" yaml:"updated_at"`
+	Tags      []string  `json:"tags" yaml:"tags"`
+	CreatedAt time.Time `json:"created_at" yaml:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" yaml:"updated_at"`
 }
 
 // Condition represents a condition for rule application
 type Condition struct {
-	Field     string      `json:"field" yaml:"field"`
-	Operator  string      `json:"operator" yaml:"operator"`
-	Value     interface{} `json:"value" yaml:"value"`
-	Type      string      `json:"type" yaml:"type"`
+	Field    string      `json:"field" yaml:"field"`
+	Operator string      `json:"operator" yaml:"operator"`
+	Value    interface{} `json:"value" yaml:"value"`
+	Type     string      `json:"type" yaml:"type"`
 }
 
 // Request represents a rate limiting request
 type Request struct {
-	Key         string                 `json:"key"`
-	UserID      string                 `json:"user_id,omitempty"`
-	IP          string                 `json:"ip,omitempty"`
-	Path        string                 `json:"path,omitempty"`
-	Method      string                 `json:"method,omitempty"`
-	Headers     map[string]string      `json:"headers,omitempty"`
-	Attributes  map[string]interface{} `json:"attributes,omitempty"`
-	Timestamp   time.Time              `json:"timestamp"`
+	Key        string                 `json:"key"`
+	UserID     string                 `json:"user_id,omitempty"`
+	IP         string                 `json:"ip,omitempty"`
+	Path       string                 `json:"path,omitempty"`
+	Method     string                 `json:"method,omitempty"`
+	Headers    map[string]string      `json:"headers,omitempty"`
+	Attributes map[string]interface{} `json:"attributes,omitempty"`
+	Timestamp  time.Time              `json:"timestamp"`
 }
 
 // Response represents a rate limiting response
 type Response struct {
-	Allowed       bool          `json:"allowed"`
-	Limit         int64         `json:"limit"`
-	Remaining     int64         `json:"remaining"`
-	ResetTime     time.Time     `json:"reset_time"`
-	RetryAfter    time.Duration `json:"retry_after,omitempty"`
-	
+	Allowed    bool          `json:"allowed"`
+	Limit      int64         `json:"limit"`
+	Remaining  int64         `json:"remaining"`
+	ResetTime  time.Time     `json:"reset_time"`
+	RetryAfter time.Duration `json:"retry_after,omitempty"`
+
 	// Additional info
-	Algorithm     Algorithm     `json:"algorithm"`
-	RuleID        string        `json:"rule_id,omitempty"`
-	RuleName      string        `json:"rule_name,omitempty"`
-	Window        time.Duration `json:"window"`
-	
+	Algorithm Algorithm     `json:"algorithm"`
+	RuleID    string        `json:"rule_id,omitempty"`
+	RuleName  string        `json:"rule_name,omitempty"`
+	Window    time.Duration `json:"window"`
+
 	// Metadata
-	RequestID     string        `json:"request_id,omitempty"`
+	RequestID      string        `json:"request_id,omitempty"`
 	ProcessingTime time.Duration `json:"processing_time"`
-	FromCache     bool          `json:"from_cache"`
+	FromCache      bool          `json:"from_cache"`
 }
 
 // Limiter interface for different rate limiting algorithms
@@ -171,21 +170,21 @@ type AdaptiveLimiter struct {
 	client redis.Cmdable
 	config Config
 	logger logger.Logger
-	
+
 	mu            sync.RWMutex
 	adaptiveState map[string]*AdaptiveState
 }
 
 // AdaptiveState tracks adaptive rate limiting state
 type AdaptiveState struct {
-	CurrentLimit    int64     `json:"current_limit"`
-	BaseLimit       int64     `json:"base_limit"`
-	MinLimit        int64     `json:"min_limit"`
-	MaxLimit        int64     `json:"max_limit"`
-	SuccessCount    int64     `json:"success_count"`
-	ErrorCount      int64     `json:"error_count"`
-	LastAdjustment  time.Time `json:"last_adjustment"`
-	AdjustmentRate  float64   `json:"adjustment_rate"`
+	CurrentLimit   int64     `json:"current_limit"`
+	BaseLimit      int64     `json:"base_limit"`
+	MinLimit       int64     `json:"min_limit"`
+	MaxLimit       int64     `json:"max_limit"`
+	SuccessCount   int64     `json:"success_count"`
+	ErrorCount     int64     `json:"error_count"`
+	LastAdjustment time.Time `json:"last_adjustment"`
+	AdjustmentRate float64   `json:"adjustment_rate"`
 }
 
 // LuaScripts contains Lua scripts for atomic operations
@@ -222,7 +221,7 @@ func DefaultConfig() Config {
 // NewDistributedRateLimiter creates a new distributed rate limiter
 func NewDistributedRateLimiter(client redis.Cmdable, config Config, logger logger.Logger, telemetry *observability.TelemetryService) (*DistributedRateLimiter, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	scripts := &LuaScripts{
 		tokenBucket:   redis.NewScript(tokenBucketScript),
 		slidingWindow: redis.NewScript(slidingWindowScript),
@@ -230,7 +229,7 @@ func NewDistributedRateLimiter(client redis.Cmdable, config Config, logger logge
 		leakyBucket:   redis.NewScript(leakyBucketScript),
 		concurrency:   redis.NewScript(concurrencyScript),
 	}
-	
+
 	limiter := &DistributedRateLimiter{
 		client:    client,
 		config:    config,
@@ -241,79 +240,79 @@ func NewDistributedRateLimiter(client redis.Cmdable, config Config, logger logge
 		ctx:       ctx,
 		cancel:    cancel,
 	}
-	
+
 	// Initialize algorithm-specific limiters
 	limiter.limiters[string(AlgorithmTokenBucket)] = &TokenBucketLimiter{
 		client: client,
 		script: tokenBucketScript,
 	}
-	
+
 	limiter.limiters[string(AlgorithmSlidingWindow)] = &SlidingWindowLimiter{
 		client: client,
 		script: slidingWindowScript,
 	}
-	
+
 	limiter.limiters[string(AlgorithmAdaptive)] = &AdaptiveLimiter{
 		client:        client,
 		config:        config,
 		logger:        logger,
 		adaptiveState: make(map[string]*AdaptiveState),
 	}
-	
+
 	// Start background tasks
 	limiter.startBackgroundTasks()
-	
+
 	logger.Info("Distributed rate limiter initialized",
 		"default_algorithm", config.DefaultAlgorithm,
 		"default_limit", config.DefaultLimit,
 		"default_window", config.DefaultWindow,
 		"adaptive_enabled", config.AdaptiveEnabled,
 	)
-	
+
 	return limiter, nil
 }
 
 // Allow checks if a request should be allowed
 func (drl *DistributedRateLimiter) Allow(ctx context.Context, request Request) (*Response, error) {
 	start := time.Now()
-	
+
 	// Use default values if not specified
 	key := request.Key
 	if key == "" {
 		key = drl.generateKey(request)
 	}
-	
+
 	// Get appropriate limiter
 	algorithm := drl.config.DefaultAlgorithm
 	limiter, exists := drl.limiters[string(algorithm)]
 	if !exists {
 		return nil, fmt.Errorf("unsupported algorithm: %s", algorithm)
 	}
-	
+
 	// Apply rate limiting
 	response, err := limiter.Allow(ctx, key, drl.config.DefaultLimit, drl.config.DefaultWindow)
 	if err != nil {
 		drl.recordMetrics("error", algorithm, key, 0)
 		return nil, fmt.Errorf("rate limit check failed: %w", err)
 	}
-	
+
 	response.Algorithm = algorithm
 	response.ProcessingTime = time.Since(start)
-	
+
 	// Record metrics
 	status := "allowed"
 	if !response.Allowed {
 		status = "denied"
 	}
 	drl.recordMetrics(status, algorithm, key, response.Remaining)
-	
+
 	return response, nil
 }
 
 // AllowWithRule checks if a request should be allowed using a specific rule
 func (drl *DistributedRateLimiter) AllowWithRule(ctx context.Context, request Request, rule Rule) (*Response, error) {
 	start := time.Now()
-	
+
 	// Check if rule conditions match
 	if !drl.evaluateConditions(rule.Conditions, request) {
 		return &Response{
@@ -322,16 +321,16 @@ func (drl *DistributedRateLimiter) AllowWithRule(ctx context.Context, request Re
 			Remaining:      rule.Limit,
 			ResetTime:      time.Now().Add(rule.Window),
 			Algorithm:      rule.Algorithm,
-			RuleID:        rule.ID,
-			RuleName:      rule.Name,
-			Window:        rule.Window,
+			RuleID:         rule.ID,
+			RuleName:       rule.Name,
+			Window:         rule.Window,
 			ProcessingTime: time.Since(start),
 		}, nil
 	}
-	
+
 	// Generate key based on rule template
 	key := drl.generateRuleKey(rule, request)
-	
+
 	// Get appropriate limiter
 	limiter, exists := drl.limiters[string(rule.Algorithm)]
 	if !exists {
@@ -340,13 +339,13 @@ func (drl *DistributedRateLimiter) AllowWithRule(ctx context.Context, request Re
 		}
 		return nil, fmt.Errorf("unsupported algorithm: %s", rule.Algorithm)
 	}
-	
+
 	// Apply adaptive limits if enabled
 	limit := rule.Limit
 	if rule.Adaptive && drl.config.AdaptiveEnabled {
 		limit = drl.getAdaptiveLimit(key, rule)
 	}
-	
+
 	// Apply rate limiting
 	response, err := limiter.Allow(ctx, key, limit, rule.Window)
 	if err != nil {
@@ -355,25 +354,25 @@ func (drl *DistributedRateLimiter) AllowWithRule(ctx context.Context, request Re
 		}
 		return nil, fmt.Errorf("rate limit check failed: %w", err)
 	}
-	
+
 	response.Algorithm = rule.Algorithm
 	response.RuleID = rule.ID
 	response.RuleName = rule.Name
 	response.Window = rule.Window
 	response.ProcessingTime = time.Since(start)
-	
+
 	// Update adaptive state
 	if rule.Adaptive && drl.config.AdaptiveEnabled {
 		drl.updateAdaptiveState(key, rule, response.Allowed)
 	}
-	
+
 	// Record metrics
 	status := "allowed"
 	if !response.Allowed {
 		status = "denied"
 	}
 	drl.recordMetrics(status, rule.Algorithm, key, response.Remaining)
-	
+
 	return response, nil
 }
 
@@ -394,7 +393,7 @@ func (drl *DistributedRateLimiter) GetUsage(ctx context.Context, key string, alg
 	if !exists {
 		return 0, fmt.Errorf("unsupported algorithm: %s", algorithm)
 	}
-	
+
 	return limiter.GetUsage(ctx, key)
 }
 
@@ -414,10 +413,10 @@ func (drl *DistributedRateLimiter) GetStats() Stats {
 // Close gracefully shuts down the rate limiter
 func (drl *DistributedRateLimiter) Close() error {
 	drl.logger.Info("Shutting down distributed rate limiter")
-	
+
 	drl.cancel()
 	drl.wg.Wait()
-	
+
 	return nil
 }
 
@@ -446,13 +445,13 @@ func (drl *DistributedRateLimiter) generateKey(request Request) string {
 
 func (drl *DistributedRateLimiter) generateRuleKey(rule Rule, request Request) string {
 	key := rule.KeyTemplate
-	
+
 	// Replace template variables
 	for _, field := range rule.KeyFields {
 		value := drl.getRequestField(request, field)
 		key = fmt.Sprintf("%s:%s", key, value)
 	}
-	
+
 	return fmt.Sprintf("%s%s", drl.config.RedisKeyPrefix, key)
 }
 
@@ -478,19 +477,19 @@ func (drl *DistributedRateLimiter) evaluateConditions(conditions []Condition, re
 	if len(conditions) == 0 {
 		return true
 	}
-	
+
 	for _, condition := range conditions {
 		if !drl.evaluateCondition(condition, request) {
 			return false
 		}
 	}
-	
+
 	return true
 }
 
 func (drl *DistributedRateLimiter) evaluateCondition(condition Condition, request Request) bool {
 	requestValue := drl.getRequestField(request, condition.Field)
-	
+
 	switch condition.Operator {
 	case "equals":
 		return requestValue == fmt.Sprintf("%v", condition.Value)
@@ -530,7 +529,7 @@ func (drl *DistributedRateLimiter) recordMetrics(status string, algorithm Algori
 			"status":    status,
 			"algorithm": string(algorithm),
 		})
-		
+
 		drl.telemetry.RecordGauge("rate_limit_remaining", float64(remaining), map[string]string{
 			"algorithm": string(algorithm),
 		})
@@ -543,7 +542,7 @@ func (drl *DistributedRateLimiter) startBackgroundTasks() {
 		drl.wg.Add(1)
 		go drl.adaptiveAdjustmentTask()
 	}
-	
+
 	// Cleanup task
 	drl.wg.Add(1)
 	go drl.cleanupTask()
@@ -551,10 +550,10 @@ func (drl *DistributedRateLimiter) startBackgroundTasks() {
 
 func (drl *DistributedRateLimiter) adaptiveAdjustmentTask() {
 	defer drl.wg.Done()
-	
+
 	ticker := time.NewTicker(drl.config.AdaptiveWindow / 4)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-drl.ctx.Done():
@@ -575,10 +574,10 @@ func (drl *DistributedRateLimiter) performAdaptiveAdjustments() {
 
 func (drl *DistributedRateLimiter) cleanupTask() {
 	defer drl.wg.Done()
-	
+
 	ticker := time.NewTicker(time.Hour)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-drl.ctx.Done():
@@ -602,12 +601,12 @@ func (tbl *TokenBucketLimiter) Allow(ctx context.Context, key string, limit int6
 	if err != nil {
 		return nil, err
 	}
-	
+
 	values := result.([]interface{})
 	allowed := values[0].(int64) == 1
 	remaining := values[1].(int64)
 	resetTime := time.Unix(values[2].(int64), 0)
-	
+
 	response := &Response{
 		Allowed:   allowed,
 		Limit:     limit,
@@ -615,11 +614,11 @@ func (tbl *TokenBucketLimiter) Allow(ctx context.Context, key string, limit int6
 		ResetTime: resetTime,
 		Window:    window,
 	}
-	
+
 	if !allowed {
 		response.RetryAfter = resetTime.Sub(now)
 	}
-	
+
 	return response, nil
 }
 
@@ -635,12 +634,12 @@ func (tbl *TokenBucketLimiter) GetUsage(ctx context.Context, key string) (int64,
 	if err != nil {
 		return 0, err
 	}
-	
+
 	tokens, err := strconv.ParseInt(result, 10, 64)
 	if err != nil {
 		return 0, err
 	}
-	
+
 	return tokens, nil
 }
 
@@ -652,13 +651,13 @@ func (swl *SlidingWindowLimiter) Allow(ctx context.Context, key string, limit in
 	if err != nil {
 		return nil, err
 	}
-	
+
 	values := result.([]interface{})
 	allowed := values[0].(int64) == 1
 	count := values[1].(int64)
 	remaining := limit - count
 	resetTime := now.Add(window)
-	
+
 	response := &Response{
 		Allowed:   allowed,
 		Limit:     limit,
@@ -666,11 +665,11 @@ func (swl *SlidingWindowLimiter) Allow(ctx context.Context, key string, limit in
 		ResetTime: resetTime,
 		Window:    window,
 	}
-	
+
 	if !allowed {
 		response.RetryAfter = window
 	}
-	
+
 	return response, nil
 }
 
@@ -692,7 +691,7 @@ func (al *AdaptiveLimiter) Allow(ctx context.Context, key string, limit int64, w
 		client: al.client,
 		script: slidingWindowScript,
 	}
-	
+
 	return swl.Allow(ctx, key, limit, window)
 }
 
@@ -700,7 +699,7 @@ func (al *AdaptiveLimiter) Reset(ctx context.Context, key string) error {
 	al.mu.Lock()
 	delete(al.adaptiveState, key)
 	al.mu.Unlock()
-	
+
 	return al.client.Del(ctx, key).Err()
 }
 
@@ -713,7 +712,7 @@ func (al *AdaptiveLimiter) getAdaptiveLimit(key string, rule Rule) int64 {
 	al.mu.RLock()
 	state, exists := al.adaptiveState[key]
 	al.mu.RUnlock()
-	
+
 	if !exists {
 		state = &AdaptiveState{
 			CurrentLimit:   rule.Limit,
@@ -722,24 +721,24 @@ func (al *AdaptiveLimiter) getAdaptiveLimit(key string, rule Rule) int64 {
 			MaxLimit:       rule.MaxLimit,
 			AdjustmentRate: 0.1, // 10% adjustments
 		}
-		
+
 		al.mu.Lock()
 		al.adaptiveState[key] = state
 		al.mu.Unlock()
 	}
-	
+
 	return state.CurrentLimit
 }
 
 func (al *AdaptiveLimiter) updateState(key string, rule Rule, allowed bool) {
 	al.mu.Lock()
 	defer al.mu.Unlock()
-	
+
 	state, exists := al.adaptiveState[key]
 	if !exists {
 		return
 	}
-	
+
 	if allowed {
 		state.SuccessCount++
 	} else {
@@ -750,21 +749,21 @@ func (al *AdaptiveLimiter) updateState(key string, rule Rule, allowed bool) {
 func (al *AdaptiveLimiter) performAdjustments() {
 	al.mu.Lock()
 	defer al.mu.Unlock()
-	
+
 	now := time.Now()
-	
+
 	for key, state := range al.adaptiveState {
 		if now.Sub(state.LastAdjustment) < al.config.AdaptiveWindow {
 			continue
 		}
-		
+
 		total := state.SuccessCount + state.ErrorCount
 		if total == 0 {
 			continue
 		}
-		
+
 		errorRate := float64(state.ErrorCount) / float64(total)
-		
+
 		// Adjust limits based on error rate
 		if errorRate > al.config.AdaptiveThreshold {
 			// High error rate - decrease limit
@@ -779,12 +778,12 @@ func (al *AdaptiveLimiter) performAdjustments() {
 				state.CurrentLimit = newLimit
 			}
 		}
-		
+
 		// Reset counters
 		state.SuccessCount = 0
 		state.ErrorCount = 0
 		state.LastAdjustment = now
-		
+
 		al.logger.Debug("Adaptive limit adjusted",
 			"key", key,
 			"new_limit", state.CurrentLimit,

@@ -21,20 +21,20 @@ type TLSConfig struct {
 	CipherSuites       []string `yaml:"cipher_suites" envconfig:"TLS_CIPHER_SUITES"`
 	InsecureSkipVerify bool     `yaml:"insecure_skip_verify" envconfig:"TLS_INSECURE_SKIP_VERIFY" default:"false"`
 	ServerName         string   `yaml:"server_name" envconfig:"TLS_SERVER_NAME"`
-	
+
 	// mTLS Configuration
-	ClientCerts        []string `yaml:"client_certs" envconfig:"TLS_CLIENT_CERTS"`
-	RequireAndVerifyClientCert bool `yaml:"require_client_cert" envconfig:"TLS_REQUIRE_CLIENT_CERT" default:"false"`
-	
+	ClientCerts                []string `yaml:"client_certs" envconfig:"TLS_CLIENT_CERTS"`
+	RequireAndVerifyClientCert bool     `yaml:"require_client_cert" envconfig:"TLS_REQUIRE_CLIENT_CERT" default:"false"`
+
 	// Certificate rotation
-	AutoReload         bool          `yaml:"auto_reload" envconfig:"TLS_AUTO_RELOAD" default:"true"`
-	ReloadInterval     time.Duration `yaml:"reload_interval" envconfig:"TLS_RELOAD_INTERVAL" default:"1h"`
+	AutoReload     bool          `yaml:"auto_reload" envconfig:"TLS_AUTO_RELOAD" default:"true"`
+	ReloadInterval time.Duration `yaml:"reload_interval" envconfig:"TLS_RELOAD_INTERVAL" default:"1h"`
 }
 
 type TLSManager struct {
-	config     *TLSConfig
-	logger     *zap.Logger
-	tlsConfig  *tls.Config
+	config      *TLSConfig
+	logger      *zap.Logger
+	tlsConfig   *tls.Config
 	certWatcher *certWatcher
 }
 
@@ -165,7 +165,7 @@ func (tm *TLSManager) setTLSVersions(tlsConfig *tls.Config) error {
 	}
 
 	if tlsConfig.MinVersion > tlsConfig.MaxVersion {
-		return fmt.Errorf("minimum TLS version (%s) is higher than maximum (%s)", 
+		return fmt.Errorf("minimum TLS version (%s) is higher than maximum (%s)",
 			tm.config.MinVersion, tm.config.MaxVersion)
 	}
 
@@ -188,12 +188,12 @@ func (tm *TLSManager) setCipherSuites(tlsConfig *tls.Config) error {
 
 	// Parse configured cipher suites
 	cipherSuiteMap := map[string]uint16{
-		"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384":       tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-		"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256": tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
-		"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256":       tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-		"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384":     tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+		"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384":         tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+		"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256":   tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+		"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256":         tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+		"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384":       tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
 		"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256": tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
-		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256":     tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256":       tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 	}
 
 	var cipherSuites []uint16
@@ -242,7 +242,7 @@ func (tm *TLSManager) configureClientAuth(tlsConfig *tls.Config) error {
 		}
 
 		tlsConfig.ClientCAs = caCertPool
-		tm.logger.Info("CA certificate loaded for client verification", 
+		tm.logger.Info("CA certificate loaded for client verification",
 			zap.String("ca_file", tm.config.CAFile))
 	}
 
@@ -250,8 +250,8 @@ func (tm *TLSManager) configureClientAuth(tlsConfig *tls.Config) error {
 	for _, certFile := range tm.config.ClientCerts {
 		clientCert, err := os.ReadFile(certFile)
 		if err != nil {
-			tm.logger.Warn("Failed to read client certificate", 
-				zap.String("cert_file", certFile), 
+			tm.logger.Warn("Failed to read client certificate",
+				zap.String("cert_file", certFile),
 				zap.Error(err))
 			continue
 		}
@@ -261,10 +261,10 @@ func (tm *TLSManager) configureClientAuth(tlsConfig *tls.Config) error {
 		}
 
 		if !tlsConfig.ClientCAs.AppendCertsFromPEM(clientCert) {
-			tm.logger.Warn("Failed to parse client certificate", 
+			tm.logger.Warn("Failed to parse client certificate",
 				zap.String("cert_file", certFile))
 		} else {
-			tm.logger.Info("Client certificate loaded", 
+			tm.logger.Info("Client certificate loaded",
 				zap.String("cert_file", certFile))
 		}
 	}
@@ -311,7 +311,7 @@ func (tm *TLSManager) startCertWatcher() {
 	}
 
 	go tm.runCertWatcher()
-	tm.logger.Info("Certificate watcher started", 
+	tm.logger.Info("Certificate watcher started",
 		zap.Duration("interval", tm.config.ReloadInterval))
 }
 
@@ -357,7 +357,7 @@ func (tm *TLSManager) GetTLSConfig() *tls.Config {
 	if tm.tlsConfig == nil {
 		return nil
 	}
-	
+
 	// Return a copy to prevent external modifications
 	config := tm.tlsConfig.Clone()
 	return config

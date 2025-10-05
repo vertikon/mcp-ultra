@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/vertikon/mcp-ultra/pkg/logger"
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 )
 
 func createTestDistributedCache(t *testing.T) (*DistributedCache, *miniredis.Miniredis) {
@@ -18,28 +18,28 @@ func createTestDistributedCache(t *testing.T) (*DistributedCache, *miniredis.Min
 	require.NoError(t, err)
 
 	config := CacheConfig{
-		Addrs:              []string{s.Addr()},
-		Password:           "",
-		DB:                 0,
-		PoolSize:           10,
-		MinIdleConns:       5,
-		MaxConnAge:         30 * time.Minute,
-		PoolTimeout:        5 * time.Second,
-		IdleTimeout:        10 * time.Minute,
-		IdleCheckFrequency: time.Minute,
-		DefaultTTL:         5 * time.Minute,
-		MaxKeySize:         1024,
-		MaxValueSize:       1024 * 1024,
-		Strategy:           StrategyWriteThrough,
-		EvictionPolicy:     EvictionLRU,
-		EnableMetrics:      true,
-		EnableTracing:      false,
-		PrefixNamespace:    "test",
-		CompressionEnabled: false,
-		CompressionLevel:   6,
-		Partitions:         4,
-		ReplicationFactor:  1,
-		ConsistentHashing:  true,
+		Addrs:                []string{s.Addr()},
+		Password:             "",
+		DB:                   0,
+		PoolSize:             10,
+		MinIdleConns:         5,
+		MaxConnAge:           30 * time.Minute,
+		PoolTimeout:          5 * time.Second,
+		IdleTimeout:          10 * time.Minute,
+		IdleCheckFrequency:   time.Minute,
+		DefaultTTL:           5 * time.Minute,
+		MaxKeySize:           1024,
+		MaxValueSize:         1024 * 1024,
+		Strategy:             StrategyWriteThrough,
+		EvictionPolicy:       EvictionLRU,
+		EnableMetrics:        true,
+		EnableTracing:        false,
+		PrefixNamespace:      "test",
+		CompressionEnabled:   false,
+		CompressionLevel:     6,
+		Partitions:           4,
+		ReplicationFactor:    1,
+		ConsistentHashing:    true,
 		EnableCircuitBreaker: false,
 		CircuitBreakerConfig: CircuitBreakerConfig{
 			MaxRequests: 100,
@@ -174,7 +174,7 @@ func TestDistributedCache_SetComplexObject(t *testing.T) {
 
 	ctx := context.Background()
 	key := "complex_object"
-	
+
 	type ComplexObject struct {
 		ID     int      `json:"id"`
 		Name   string   `json:"name"`
@@ -228,7 +228,7 @@ func TestDistributedCache_ConcurrentOperations(t *testing.T) {
 	for i := 0; i < numOperations; i++ {
 		key := fmt.Sprintf("concurrent_key_%d", i)
 		expectedValue := fmt.Sprintf("concurrent_value_%d", i)
-		
+
 		var actualValue string
 		err := cache.Get(ctx, key, &actualValue)
 		assert.NoError(t, err)
@@ -289,7 +289,7 @@ func TestDistributedCache_InvalidKey(t *testing.T) {
 	defer miniredis.Close()
 
 	ctx := context.Background()
-	
+
 	// Test with empty key
 	err := cache.Set(ctx, "", "value", time.Minute)
 	assert.Error(t, err)

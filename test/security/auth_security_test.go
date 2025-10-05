@@ -20,59 +20,60 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
+	"github.com/vertikon/mcp-ultra/internal/constants"
 	"github.com/vertikon/mcp-ultra/internal/security"
 )
 
 // SecurityTestSuite provides comprehensive security testing
 type SecurityTestSuite struct {
 	suite.Suite
-	
-	authService   *security.AuthService
-	opaService    *security.OPAService
-	vaultService  *security.VaultService
-	tlsManager    *security.TLSManager
-	
-	privateKey    *rsa.PrivateKey
-	logger        *zap.Logger
+
+	authService  *security.AuthService
+	opaService   *security.OPAService
+	vaultService *security.VaultService
+	tlsManager   *security.TLSManager
+
+	privateKey *rsa.PrivateKey
+	logger     *zap.Logger
 }
 
 func (suite *SecurityTestSuite) SetupSuite() {
 	suite.logger = zap.NewNop()
-	
+
 	// Generate test RSA key
 	var err error
 	suite.privateKey, err = rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(suite.T(), err)
-	
+
 	// Setup test services with mock configurations
 	authConfig := security.AuthConfig{
 		Mode:     "jwt",
-		Issuer:   "test-issuer",
-		Audience: "test-audience",
+		Issuer:   constants.TestIssuer,
+		Audience: constants.TestAudience,
 	}
-	
+
 	opaConfig := security.OPAConfig{
 		URL:     "http://localhost:8181",
 		Timeout: 5 * time.Second,
 	}
-	
+
 	vaultConfig := security.VaultConfig{
 		Address: "http://localhost:8200",
 		Timeout: 10 * time.Second,
 	}
-	
+
 	tlsConfig := security.TLSConfig{
 		MinVersion: "1.2",
 	}
-	
+
 	// Create mock OPA service for testing
 	suite.opaService = security.NewOPAService(opaConfig, suite.logger)
 	suite.authService = security.NewAuthService(authConfig, suite.logger, suite.opaService)
 	suite.vaultService = security.NewVaultService(vaultConfig, suite.logger)
 	suite.tlsManager = security.NewTLSManager(tlsConfig, suite.logger)
-	
+
 	// Add test public key to auth service
-	suite.authService.AddPublicKey("test-kid", &suite.privateKey.PublicKey)
+	suite.authService.AddPublicKey(constants.TestKeyID, &suite.privateKey.PublicKey)
 }
 
 // Test JWT token validation security
@@ -85,15 +86,15 @@ func (suite *SecurityTestSuite) TestJWTTokenSecurity() {
 			Role:     "user",
 			TenantID: "tenant123",
 			RegisteredClaims: jwt.RegisteredClaims{
-				Issuer:    "test-issuer",
-				Audience:  jwt.ClaimStrings{"test-audience"},
+				Issuer:    constants.TestIssuer,
+				Audience:  jwt.ClaimStrings{constants.TestAudience},
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 				IssuedAt:  jwt.NewNumericDate(time.Now()),
 			},
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-		token.Header["kid"] = "test-kid"
+		token.Header["kid"] = constants.TestKeyID
 		tokenString, err := token.SignedString(suite.privateKey)
 		require.NoError(t, err)
 
@@ -106,19 +107,19 @@ func (suite *SecurityTestSuite) TestJWTTokenSecurity() {
 	// Test 2: Expired token should be rejected
 	suite.T().Run("ExpiredJWTToken", func(t *testing.T) {
 		claims := &security.Claims{
-			UserID:   "user123",
-			Email:    "test@example.com",
-			Role:     "user",
+			UserID: "user123",
+			Email:  "test@example.com",
+			Role:   "user",
 			RegisteredClaims: jwt.RegisteredClaims{
-				Issuer:    "test-issuer",
-				Audience:  jwt.ClaimStrings{"test-audience"},
+				Issuer:    constants.TestIssuer,
+				Audience:  jwt.ClaimStrings{constants.TestAudience},
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(-time.Hour)), // Expired
 				IssuedAt:  jwt.NewNumericDate(time.Now().Add(-2 * time.Hour)),
 			},
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-		token.Header["kid"] = "test-kid"
+		token.Header["kid"] = constants.TestKeyID
 		tokenString, err := token.SignedString(suite.privateKey)
 		require.NoError(t, err)
 
@@ -142,14 +143,14 @@ func (suite *SecurityTestSuite) TestJWTTokenSecurity() {
 			UserID: "user123",
 			RegisteredClaims: jwt.RegisteredClaims{
 				Issuer:    "malicious-issuer", // Wrong issuer
-				Audience:  jwt.ClaimStrings{"test-audience"},
+				Audience:  jwt.ClaimStrings{constants.TestAudience},
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 				IssuedAt:  jwt.NewNumericDate(time.Now()),
 			},
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-		token.Header["kid"] = "test-kid"
+		token.Header["kid"] = constants.TestKeyID
 		tokenString, err := token.SignedString(suite.privateKey)
 		require.NoError(t, err)
 
@@ -163,15 +164,15 @@ func (suite *SecurityTestSuite) TestJWTTokenSecurity() {
 		claims := &security.Claims{
 			UserID: "user123",
 			RegisteredClaims: jwt.RegisteredClaims{
-				Issuer:    "test-issuer",
-				Audience:  jwt.ClaimStrings{"test-audience"},
+				Issuer:    constants.TestIssuer,
+				Audience:  jwt.ClaimStrings{constants.TestAudience},
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 				IssuedAt:  jwt.NewNumericDate(time.Now()),
 			},
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-		token.Header["kid"] = "unknown-kid" // Unknown key ID
+		token.Header["kid"] = constants.TestUnknownKeyID // Unknown key ID
 		tokenString, err := token.SignedString(suite.privateKey)
 		require.NoError(t, err)
 
@@ -218,15 +219,15 @@ func (suite *SecurityTestSuite) TestAuthorizationBypass() {
 			Scopes:   []string{"tasks:read"},
 			TenantID: "tenant123",
 			RegisteredClaims: jwt.RegisteredClaims{
-				Issuer:    "test-issuer",
-				Audience:  jwt.ClaimStrings{"test-audience"},
+				Issuer:    constants.TestIssuer,
+				Audience:  jwt.ClaimStrings{constants.TestAudience},
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 				IssuedAt:  jwt.NewNumericDate(time.Now()),
 			},
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-		token.Header["kid"] = "test-kid"
+		token.Header["kid"] = constants.TestKeyID
 		tokenString, err := token.SignedString(suite.privateKey)
 		require.NoError(t, err)
 
@@ -337,7 +338,7 @@ func (suite *SecurityTestSuite) TestRateLimitingSecurity() {
 
 		req := httptest.NewRequest("POST", "/api/v1/tasks", strings.NewReader(largePayload))
 		req.Header.Set("Content-Type", "application/json")
-		
+
 		rr := httptest.NewRecorder()
 
 		// Handler that would reject large payloads
@@ -378,13 +379,13 @@ func (suite *SecurityTestSuite) TestCryptographicSecurity() {
 		// Generate multiple random values and ensure they're different
 		random1 := make([]byte, 32)
 		random2 := make([]byte, 32)
-		
+
 		_, err := rand.Read(random1)
 		require.NoError(t, err)
-		
+
 		_, err = rand.Read(random2)
 		require.NoError(t, err)
-		
+
 		assert.NotEqual(t, random1, random2)
 	})
 
@@ -419,11 +420,11 @@ func (suite *SecurityTestSuite) TestDataProtection() {
 	// Test 1: PII detection and masking
 	suite.T().Run("PIIDetectionAndMasking", func(t *testing.T) {
 		sensitiveData := map[string]string{
-			"email":        "user@example.com",
-			"phone":        "123-456-7890",
-			"ssn":          "123-45-6789",
-			"credit_card":  "4111-1111-1111-1111",
-			"ip_address":   "192.168.1.1",
+			"email":       "user@example.com",
+			"phone":       "123-456-7890",
+			"ssn":         "123-45-6789",
+			"credit_card": "4111-1111-1111-1111",
+			"ip_address":  "192.168.1.1",
 		}
 
 		for dataType, value := range sensitiveData {
@@ -467,7 +468,7 @@ func maskPII(value, dataType string) string {
 	if len(value) <= 4 {
 		return strings.Repeat("*", len(value))
 	}
-	
+
 	switch dataType {
 	case "email":
 		parts := strings.Split(value, "@")
@@ -481,7 +482,7 @@ func maskPII(value, dataType string) string {
 	case "credit_card":
 		return "**** **** **** " + value[len(value)-4:]
 	}
-	
+
 	return value[:2] + strings.Repeat("*", len(value)-4) + value[len(value)-2:]
 }
 
@@ -490,6 +491,6 @@ func TestSecuritySuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping security tests in short mode")
 	}
-	
+
 	suite.Run(t, new(SecurityTestSuite))
 }

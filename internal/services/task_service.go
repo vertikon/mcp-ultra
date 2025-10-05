@@ -14,12 +14,12 @@ import (
 
 // TaskService handles task business logic
 type TaskService struct {
-	taskRepo    domain.TaskRepository
-	userRepo    domain.UserRepository
-	eventRepo   domain.EventRepository
-	cacheRepo   domain.CacheRepository
-	logger      *zap.Logger
-	eventBus    EventBus
+	taskRepo  domain.TaskRepository
+	userRepo  domain.UserRepository
+	eventRepo domain.EventRepository
+	cacheRepo domain.CacheRepository
+	logger    *zap.Logger
+	eventBus  EventBus
 }
 
 // EventBus defines interface for publishing events
@@ -84,11 +84,11 @@ func (s *TaskService) CreateTask(ctx context.Context, req CreateTaskRequest) (*d
 		Type:        "task.created",
 		AggregateID: task.ID,
 		Data: map[string]interface{}{
-			"task_id":    task.ID,
-			"title":      task.Title,
-			"created_by": task.CreatedBy,
+			"task_id":     task.ID,
+			"title":       task.Title,
+			"created_by":  task.CreatedBy,
 			"assignee_id": task.AssigneeID,
-			"priority":   task.Priority,
+			"priority":    task.Priority,
 		},
 		OccurredAt: time.Now(),
 		Version:    1,
@@ -101,8 +101,8 @@ func (s *TaskService) CreateTask(ctx context.Context, req CreateTaskRequest) (*d
 	// Clear cache
 	s.invalidateTaskCache(ctx)
 
-	s.logger.Info("Task created", 
-		zap.String("task_id", task.ID.String()), 
+	s.logger.Info("Task created",
+		zap.String("task_id", task.ID.String()),
 		zap.String("title", task.Title),
 		zap.String("created_by", creator.Email))
 
@@ -315,13 +315,13 @@ func (s *TaskService) invalidateTaskCache(ctx context.Context) {
 
 // Request and Response types
 type CreateTaskRequest struct {
-	Title       string            `json:"title"`
-	Description string            `json:"description"`
-	Priority    domain.Priority   `json:"priority"`
-	AssigneeID  *uuid.UUID        `json:"assignee_id"`
-	CreatedBy   uuid.UUID         `json:"created_by"`
-	DueDate     *time.Time        `json:"due_date"`
-	Tags        []string          `json:"tags"`
+	Title       string          `json:"title"`
+	Description string          `json:"description"`
+	Priority    domain.Priority `json:"priority"`
+	AssigneeID  *uuid.UUID      `json:"assignee_id"`
+	CreatedBy   uuid.UUID       `json:"created_by"`
+	DueDate     *time.Time      `json:"due_date"`
+	Tags        []string        `json:"tags"`
 }
 
 func (r CreateTaskRequest) Validate() error {
@@ -335,10 +335,10 @@ func (r CreateTaskRequest) Validate() error {
 }
 
 type UpdateTaskRequest struct {
-	Title       *string           `json:"title"`
-	Description *string           `json:"description"`
-	Priority    *domain.Priority  `json:"priority"`
-	AssigneeID  *uuid.UUID        `json:"assignee_id"`
-	DueDate     *time.Time        `json:"due_date"`
-	Tags        []string          `json:"tags"`
+	Title       *string          `json:"title"`
+	Description *string          `json:"description"`
+	Priority    *domain.Priority `json:"priority"`
+	AssigneeID  *uuid.UUID       `json:"assignee_id"`
+	DueDate     *time.Time       `json:"due_date"`
+	Tags        []string         `json:"tags"`
 }

@@ -9,29 +9,29 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	
+
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
-	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // CacheStrategy represents different caching strategies
 type CacheStrategy string
 
 const (
-	StrategyWriteThrough  CacheStrategy = "write_through"
-	StrategyWriteBehind   CacheStrategy = "write_behind"
-	StrategyWriteAround   CacheStrategy = "write_around"
-	StrategyReadThrough   CacheStrategy = "read_through"
+	StrategyWriteThrough CacheStrategy = "write_through"
+	StrategyWriteBehind  CacheStrategy = "write_behind"
+	StrategyWriteAround  CacheStrategy = "write_around"
+	StrategyReadThrough  CacheStrategy = "read_through"
 )
 
 // EvictionPolicy represents cache eviction policies
 type EvictionPolicy string
 
 const (
-	EvictionLRU     EvictionPolicy = "lru"
-	EvictionLFU     EvictionPolicy = "lfu"
-	EvictionTTL     EvictionPolicy = "ttl"
-	EvictionRandom  EvictionPolicy = "random"
+	EvictionLRU    EvictionPolicy = "lru"
+	EvictionLFU    EvictionPolicy = "lfu"
+	EvictionTTL    EvictionPolicy = "ttl"
+	EvictionRandom EvictionPolicy = "random"
 )
 
 // CacheConfig configures the distributed cache system
@@ -46,92 +46,92 @@ type CacheConfig struct {
 	PoolTimeout        time.Duration `yaml:"pool_timeout"`
 	IdleTimeout        time.Duration `yaml:"idle_timeout"`
 	IdleCheckFrequency time.Duration `yaml:"idle_check_frequency"`
-	
+
 	// Cache Settings
-	DefaultTTL         time.Duration `yaml:"default_ttl"`
-	MaxMemory          int64         `yaml:"max_memory"`
-	Strategy           CacheStrategy `yaml:"strategy"`
-	EvictionPolicy     EvictionPolicy `yaml:"eviction_policy"`
-	
+	DefaultTTL     time.Duration  `yaml:"default_ttl"`
+	MaxMemory      int64          `yaml:"max_memory"`
+	Strategy       CacheStrategy  `yaml:"strategy"`
+	EvictionPolicy EvictionPolicy `yaml:"eviction_policy"`
+
 	// Consistency Settings
-	ReadPreference     string        `yaml:"read_preference"`     // "primary", "secondary", "nearest"
-	WriteConsistency   string        `yaml:"write_consistency"`   // "strong", "eventual"
-	ReplicationFactor  int           `yaml:"replication_factor"`
-	
+	ReadPreference    string `yaml:"read_preference"`   // "primary", "secondary", "nearest"
+	WriteConsistency  string `yaml:"write_consistency"` // "strong", "eventual"
+	ReplicationFactor int    `yaml:"replication_factor"`
+
 	// Performance Settings
-	CompressionEnabled bool          `yaml:"compression_enabled"`
-	CompressionLevel   int           `yaml:"compression_level"`
-	SerializationMode  string        `yaml:"serialization_mode"` // "json", "msgpack", "protobuf"
-	
+	CompressionEnabled bool   `yaml:"compression_enabled"`
+	CompressionLevel   int    `yaml:"compression_level"`
+	SerializationMode  string `yaml:"serialization_mode"` // "json", "msgpack", "protobuf"
+
 	// Monitoring
 	EnableMetrics      bool          `yaml:"enable_metrics"`
 	EnableTracing      bool          `yaml:"enable_tracing"`
 	SlowQueryThreshold time.Duration `yaml:"slow_query_threshold"`
-	
+
 	// Partitioning
-	EnableSharding     bool          `yaml:"enable_sharding"`
-	ShardingStrategy   string        `yaml:"sharding_strategy"` // "hash", "range", "directory"
-	VirtualNodes       int           `yaml:"virtual_nodes"`
-	
+	EnableSharding   bool   `yaml:"enable_sharding"`
+	ShardingStrategy string `yaml:"sharding_strategy"` // "hash", "range", "directory"
+	VirtualNodes     int    `yaml:"virtual_nodes"`
+
 	// Circuit Breaker
-	CircuitBreakerEnabled    bool          `yaml:"circuit_breaker_enabled"`
-	FailureThreshold        int           `yaml:"failure_threshold"`
-	RecoveryTimeout         time.Duration `yaml:"recovery_timeout"`
-	HalfOpenMaxRequests     int           `yaml:"half_open_max_requests"`
+	CircuitBreakerEnabled bool          `yaml:"circuit_breaker_enabled"`
+	FailureThreshold      int           `yaml:"failure_threshold"`
+	RecoveryTimeout       time.Duration `yaml:"recovery_timeout"`
+	HalfOpenMaxRequests   int           `yaml:"half_open_max_requests"`
 }
 
 // DefaultCacheConfig returns default cache configuration
 func DefaultCacheConfig() CacheConfig {
 	return CacheConfig{
-		Addrs:                   []string{"localhost:6379"},
-		PoolSize:                10,
-		MinIdleConns:            5,
-		MaxConnAge:              time.Hour,
-		PoolTimeout:             30 * time.Second,
-		IdleTimeout:             5 * time.Minute,
-		IdleCheckFrequency:      time.Minute,
-		DefaultTTL:              time.Hour,
-		MaxMemory:               1024 * 1024 * 1024, // 1GB
-		Strategy:                StrategyWriteThrough,
-		EvictionPolicy:          EvictionLRU,
-		ReadPreference:          "primary",
-		WriteConsistency:        "strong",
-		ReplicationFactor:       3,
-		CompressionEnabled:      true,
-		CompressionLevel:        6,
-		SerializationMode:       "json",
-		EnableMetrics:           true,
-		EnableTracing:           true,
-		SlowQueryThreshold:      100 * time.Millisecond,
-		EnableSharding:          true,
-		ShardingStrategy:        "hash",
-		VirtualNodes:            150,
-		CircuitBreakerEnabled:   true,
-		FailureThreshold:        5,
-		RecoveryTimeout:         30 * time.Second,
-		HalfOpenMaxRequests:     3,
+		Addrs:                 []string{"localhost:6379"},
+		PoolSize:              10,
+		MinIdleConns:          5,
+		MaxConnAge:            time.Hour,
+		PoolTimeout:           30 * time.Second,
+		IdleTimeout:           5 * time.Minute,
+		IdleCheckFrequency:    time.Minute,
+		DefaultTTL:            time.Hour,
+		MaxMemory:             1024 * 1024 * 1024, // 1GB
+		Strategy:              StrategyWriteThrough,
+		EvictionPolicy:        EvictionLRU,
+		ReadPreference:        "primary",
+		WriteConsistency:      "strong",
+		ReplicationFactor:     3,
+		CompressionEnabled:    true,
+		CompressionLevel:      6,
+		SerializationMode:     "json",
+		EnableMetrics:         true,
+		EnableTracing:         true,
+		SlowQueryThreshold:    100 * time.Millisecond,
+		EnableSharding:        true,
+		ShardingStrategy:      "hash",
+		VirtualNodes:          150,
+		CircuitBreakerEnabled: true,
+		FailureThreshold:      5,
+		RecoveryTimeout:       30 * time.Second,
+		HalfOpenMaxRequests:   3,
 	}
 }
 
 // DistributedCache provides distributed caching capabilities
 type DistributedCache struct {
-	client     *redis.ClusterClient
-	config     CacheConfig
-	logger     logger.Logger
-	telemetry  *observability.TelemetryService
-	
+	client    *redis.ClusterClient
+	config    CacheConfig
+	logger    logger.Logger
+	telemetry *observability.TelemetryService
+
 	// State tracking
-	mu          sync.RWMutex
-	shards      []CacheShard
-	consistent  *ConsistentHash
-	breaker     *CircuitBreaker
-	stats       CacheStats
-	
+	mu         sync.RWMutex
+	shards     []CacheShard
+	consistent *ConsistentHash
+	breaker    *CircuitBreaker
+	stats      CacheStats
+
 	// Background tasks
-	ctx        context.Context
-	cancel     context.CancelFunc
-	wg         sync.WaitGroup
-	
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
+
 	// Write-behind buffer
 	writeBuffer chan WriteOperation
 }
@@ -156,32 +156,32 @@ type WriteOperation struct {
 
 // CacheStats tracks cache performance metrics
 type CacheStats struct {
-	Hits            int64     `json:"hits"`
-	Misses          int64     `json:"misses"`
-	Sets            int64     `json:"sets"`
-	Deletes         int64     `json:"deletes"`
-	Evictions       int64     `json:"evictions"`
-	Errors          int64     `json:"errors"`
-	TotalOperations int64     `json:"total_operations"`
+	Hits            int64         `json:"hits"`
+	Misses          int64         `json:"misses"`
+	Sets            int64         `json:"sets"`
+	Deletes         int64         `json:"deletes"`
+	Evictions       int64         `json:"evictions"`
+	Errors          int64         `json:"errors"`
+	TotalOperations int64         `json:"total_operations"`
 	AvgLatency      time.Duration `json:"avg_latency"`
 	P95Latency      time.Duration `json:"p95_latency"`
 	P99Latency      time.Duration `json:"p99_latency"`
-	LastReset       time.Time `json:"last_reset"`
-	MemoryUsage     int64     `json:"memory_usage"`
-	ConnectionCount int       `json:"connection_count"`
+	LastReset       time.Time     `json:"last_reset"`
+	MemoryUsage     int64         `json:"memory_usage"`
+	ConnectionCount int           `json:"connection_count"`
 }
 
 // CacheEntry represents a cached item with metadata
 type CacheEntry struct {
-	Key       string      `json:"key"`
-	Value     interface{} `json:"value"`
-	TTL       time.Duration `json:"ttl"`
-	CreatedAt time.Time   `json:"created_at"`
-	ExpiresAt time.Time   `json:"expires_at"`
-	AccessCount int       `json:"access_count"`
-	LastAccess  time.Time `json:"last_access"`
-	Size        int64     `json:"size"`
-	Compressed  bool      `json:"compressed"`
+	Key         string        `json:"key"`
+	Value       interface{}   `json:"value"`
+	TTL         time.Duration `json:"ttl"`
+	CreatedAt   time.Time     `json:"created_at"`
+	ExpiresAt   time.Time     `json:"expires_at"`
+	AccessCount int           `json:"access_count"`
+	LastAccess  time.Time     `json:"last_access"`
+	Size        int64         `json:"size"`
+	Compressed  bool          `json:"compressed"`
 }
 
 // NewDistributedCache creates a new distributed cache instance
@@ -190,7 +190,7 @@ func NewDistributedCache(config CacheConfig, logger logger.Logger, telemetry *ob
 	if len(config.Addrs) == 0 {
 		return nil, fmt.Errorf("at least one Redis address is required")
 	}
-	
+
 	// Create Redis cluster client
 	rdb := redis.NewClusterClient(&redis.ClusterOptions{
 		Addrs:              config.Addrs,
@@ -206,15 +206,15 @@ func NewDistributedCache(config CacheConfig, logger logger.Logger, telemetry *ob
 		RouteByLatency:     true,
 		RouteRandomly:      true,
 	})
-	
+
 	// Test connection
 	ctx := context.Background()
 	if err := rdb.Ping(ctx).Err(); err != nil {
 		return nil, fmt.Errorf("failed to connect to Redis cluster: %w", err)
 	}
-	
+
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	cache := &DistributedCache{
 		client:      rdb,
 		config:      config,
@@ -228,24 +228,24 @@ func NewDistributedCache(config CacheConfig, logger logger.Logger, telemetry *ob
 		cancel:      cancel,
 		writeBuffer: make(chan WriteOperation, 1000),
 	}
-	
+
 	// Initialize sharding if enabled
 	if config.EnableSharding {
 		if err := cache.initializeSharding(ctx); err != nil {
 			return nil, fmt.Errorf("failed to initialize sharding: %w", err)
 		}
 	}
-	
+
 	// Start background tasks
 	cache.startBackgroundTasks()
-	
+
 	logger.Info("Distributed cache initialized",
 		"strategy", config.Strategy,
 		"eviction_policy", config.EvictionPolicy,
 		"sharding_enabled", config.EnableSharding,
 		"compression_enabled", config.CompressionEnabled,
 	)
-	
+
 	return cache, nil
 }
 
@@ -256,13 +256,13 @@ func (dc *DistributedCache) Set(ctx context.Context, key string, value interface
 		dc.recordLatency("set", time.Since(start))
 		dc.incrementCounter("sets")
 	}()
-	
+
 	// Check circuit breaker
 	if !dc.breaker.Allow() {
 		dc.incrementCounter("errors")
 		return fmt.Errorf("cache circuit breaker is open")
 	}
-	
+
 	// Serialize value
 	data, err := dc.serialize(value)
 	if err != nil {
@@ -270,7 +270,7 @@ func (dc *DistributedCache) Set(ctx context.Context, key string, value interface
 		dc.breaker.RecordFailure()
 		return fmt.Errorf("serialization failed: %w", err)
 	}
-	
+
 	// Compress if enabled
 	if dc.config.CompressionEnabled {
 		data, err = dc.compress(data)
@@ -280,7 +280,7 @@ func (dc *DistributedCache) Set(ctx context.Context, key string, value interface
 			return fmt.Errorf("compression failed: %w", err)
 		}
 	}
-	
+
 	// Apply caching strategy
 	switch dc.config.Strategy {
 	case StrategyWriteThrough:
@@ -292,15 +292,15 @@ func (dc *DistributedCache) Set(ctx context.Context, key string, value interface
 	default:
 		err = dc.setDirect(ctx, key, data, ttl)
 	}
-	
+
 	if err != nil {
 		dc.incrementCounter("errors")
 		dc.breaker.RecordFailure()
 		return err
 	}
-	
+
 	dc.breaker.RecordSuccess()
-	
+
 	// Record metrics
 	if dc.telemetry != nil && dc.config.EnableMetrics {
 		dc.telemetry.RecordCounter("cache_operations_total", 1, map[string]string{
@@ -308,7 +308,7 @@ func (dc *DistributedCache) Set(ctx context.Context, key string, value interface
 			"strategy":  string(dc.config.Strategy),
 		})
 	}
-	
+
 	return nil
 }
 
@@ -318,13 +318,13 @@ func (dc *DistributedCache) Get(ctx context.Context, key string) (interface{}, b
 	defer func() {
 		dc.recordLatency("get", time.Since(start))
 	}()
-	
+
 	// Check circuit breaker
 	if !dc.breaker.Allow() {
 		dc.incrementCounter("errors")
 		return nil, false, fmt.Errorf("cache circuit breaker is open")
 	}
-	
+
 	// Apply read strategy
 	data, found, err := dc.getDirect(ctx, key)
 	if err != nil {
@@ -333,21 +333,21 @@ func (dc *DistributedCache) Get(ctx context.Context, key string) (interface{}, b
 		dc.breaker.RecordFailure()
 		return nil, false, err
 	}
-	
+
 	if !found {
 		dc.incrementCounter("misses")
-		
+
 		// Try read-through if configured
 		if dc.config.Strategy == StrategyReadThrough {
 			return dc.getReadThrough(ctx, key)
 		}
-		
+
 		return nil, false, nil
 	}
-	
+
 	dc.incrementCounter("hits")
 	dc.breaker.RecordSuccess()
-	
+
 	// Decompress if needed
 	if dc.config.CompressionEnabled {
 		data, err = dc.decompress(data)
@@ -356,14 +356,14 @@ func (dc *DistributedCache) Get(ctx context.Context, key string) (interface{}, b
 			return nil, false, fmt.Errorf("decompression failed: %w", err)
 		}
 	}
-	
+
 	// Deserialize
 	value, err := dc.deserialize(data)
 	if err != nil {
 		dc.incrementCounter("errors")
 		return nil, false, fmt.Errorf("deserialization failed: %w", err)
 	}
-	
+
 	// Record metrics
 	if dc.telemetry != nil && dc.config.EnableMetrics {
 		dc.telemetry.RecordCounter("cache_operations_total", 1, map[string]string{
@@ -371,7 +371,7 @@ func (dc *DistributedCache) Get(ctx context.Context, key string) (interface{}, b
 			"result":    "hit",
 		})
 	}
-	
+
 	return value, true, nil
 }
 
@@ -382,29 +382,29 @@ func (dc *DistributedCache) Delete(ctx context.Context, key string) error {
 		dc.recordLatency("delete", time.Since(start))
 		dc.incrementCounter("deletes")
 	}()
-	
+
 	// Check circuit breaker
 	if !dc.breaker.Allow() {
 		dc.incrementCounter("errors")
 		return fmt.Errorf("cache circuit breaker is open")
 	}
-	
+
 	err := dc.client.Del(ctx, key).Err()
 	if err != nil {
 		dc.incrementCounter("errors")
 		dc.breaker.RecordFailure()
 		return fmt.Errorf("delete failed: %w", err)
 	}
-	
+
 	dc.breaker.RecordSuccess()
-	
+
 	// Record metrics
 	if dc.telemetry != nil && dc.config.EnableMetrics {
 		dc.telemetry.RecordCounter("cache_operations_total", 1, map[string]string{
 			"operation": "delete",
 		})
 	}
-	
+
 	return nil
 }
 
@@ -414,13 +414,13 @@ func (dc *DistributedCache) Exists(ctx context.Context, key string) (bool, error
 	defer func() {
 		dc.recordLatency("exists", time.Since(start))
 	}()
-	
+
 	count, err := dc.client.Exists(ctx, key).Result()
 	if err != nil {
 		dc.incrementCounter("errors")
 		return false, fmt.Errorf("exists check failed: %w", err)
 	}
-	
+
 	return count > 0, nil
 }
 
@@ -430,13 +430,13 @@ func (dc *DistributedCache) Expire(ctx context.Context, key string, ttl time.Dur
 	defer func() {
 		dc.recordLatency("expire", time.Since(start))
 	}()
-	
+
 	err := dc.client.Expire(ctx, key, ttl).Err()
 	if err != nil {
 		dc.incrementCounter("errors")
 		return fmt.Errorf("expire failed: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -444,9 +444,9 @@ func (dc *DistributedCache) Expire(ctx context.Context, key string, ttl time.Dur
 func (dc *DistributedCache) GetStats() CacheStats {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	
+
 	stats := dc.stats
-	
+
 	// Add real-time memory usage
 	if info, err := dc.client.Info(context.Background(), "memory").Result(); err == nil {
 		// Parse memory usage from Redis INFO command
@@ -461,12 +461,12 @@ func (dc *DistributedCache) GetStats() CacheStats {
 			}
 		}
 	}
-	
+
 	// Add connection count
 	if poolStats := dc.client.PoolStats(); poolStats != nil {
-		stats.ConnectionCount = poolStats.TotalConns
+		stats.ConnectionCount = int(poolStats.TotalConns)
 	}
-	
+
 	return stats
 }
 
@@ -474,21 +474,21 @@ func (dc *DistributedCache) GetStats() CacheStats {
 func (dc *DistributedCache) ResetStats() {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	
+
 	dc.stats = CacheStats{LastReset: time.Now()}
 }
 
 // Close gracefully shuts down the cache
 func (dc *DistributedCache) Close() error {
 	dc.logger.Info("Shutting down distributed cache")
-	
+
 	// Cancel context and wait for background tasks
 	dc.cancel()
 	dc.wg.Wait()
-	
+
 	// Close write buffer
 	close(dc.writeBuffer)
-	
+
 	// Close Redis client
 	return dc.client.Close()
 }
@@ -499,17 +499,17 @@ func (dc *DistributedCache) HealthCheck(ctx context.Context) error {
 	if err := dc.client.Ping(ctx).Err(); err != nil {
 		return fmt.Errorf("ping failed: %w", err)
 	}
-	
+
 	// Check cluster health
 	if err := dc.checkClusterHealth(ctx); err != nil {
 		return fmt.Errorf("cluster health check failed: %w", err)
 	}
-	
+
 	// Check circuit breaker state
 	if dc.breaker.State() == CircuitBreakerOpen {
 		return fmt.Errorf("circuit breaker is open")
 	}
-	
+
 	return nil
 }
 
@@ -619,21 +619,21 @@ func (dc *DistributedCache) initializeSharding(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to get cluster nodes: %w", err)
 	}
-	
+
 	// Parse nodes and initialize shards
 	for _, line := range strings.Split(nodes, "\n") {
 		if line == "" {
 			continue
 		}
-		
+
 		parts := strings.Fields(line)
 		if len(parts) < 8 {
 			continue
 		}
-		
+
 		nodeID := parts[0]
 		nodeAddr := parts[1]
-		
+
 		shard := CacheShard{
 			ID:       nodeID,
 			Node:     nodeAddr,
@@ -641,11 +641,11 @@ func (dc *DistributedCache) initializeSharding(ctx context.Context) error {
 			Healthy:  true,
 			LastSeen: time.Now(),
 		}
-		
+
 		dc.shards = append(dc.shards, shard)
 		dc.consistent.Add(nodeID, 1)
 	}
-	
+
 	dc.logger.Info("Sharding initialized", "shards_count", len(dc.shards))
 	return nil
 }
@@ -655,40 +655,40 @@ func (dc *DistributedCache) checkClusterHealth(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	
+
 	healthyNodes := 0
 	totalNodes := 0
-	
+
 	for _, line := range strings.Split(nodes, "\n") {
 		if line == "" {
 			continue
 		}
 		totalNodes++
-		
+
 		if strings.Contains(line, "connected") {
 			healthyNodes++
 		}
 	}
-	
+
 	if healthyNodes == 0 {
 		return fmt.Errorf("no healthy nodes found")
 	}
-	
+
 	healthRatio := float64(healthyNodes) / float64(totalNodes)
 	if healthRatio < 0.5 {
 		return fmt.Errorf("cluster health below threshold: %.2f", healthRatio)
 	}
-	
+
 	return nil
 }
 
 func (dc *DistributedCache) recordLatency(operation string, latency time.Duration) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	
+
 	// Simple moving average for demonstration
 	dc.stats.AvgLatency = (dc.stats.AvgLatency + latency) / 2
-	
+
 	// Update P95/P99 (simplified)
 	if latency > dc.stats.P95Latency {
 		dc.stats.P95Latency = latency
@@ -696,7 +696,7 @@ func (dc *DistributedCache) recordLatency(operation string, latency time.Duratio
 	if latency > dc.stats.P99Latency {
 		dc.stats.P99Latency = latency
 	}
-	
+
 	// Record slow queries
 	if latency > dc.config.SlowQueryThreshold {
 		dc.logger.Warn("Slow cache operation detected",
@@ -710,7 +710,7 @@ func (dc *DistributedCache) recordLatency(operation string, latency time.Duratio
 func (dc *DistributedCache) incrementCounter(counter string) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	
+
 	switch counter {
 	case "hits":
 		dc.stats.Hits++
@@ -732,13 +732,13 @@ func (dc *DistributedCache) startBackgroundTasks() {
 		dc.wg.Add(1)
 		go dc.writeBehindProcessor()
 	}
-	
+
 	// Stats collector
 	if dc.config.EnableMetrics {
 		dc.wg.Add(1)
 		go dc.statsCollector()
 	}
-	
+
 	// Health monitor
 	dc.wg.Add(1)
 	go dc.healthMonitor()
@@ -746,12 +746,12 @@ func (dc *DistributedCache) startBackgroundTasks() {
 
 func (dc *DistributedCache) writeBehindProcessor() {
 	defer dc.wg.Done()
-	
+
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
-	
+
 	batch := make([]WriteOperation, 0, 100)
-	
+
 	for {
 		select {
 		case <-dc.ctx.Done():
@@ -777,12 +777,12 @@ func (dc *DistributedCache) processBatch(batch []WriteOperation) {
 	if len(batch) == 0 {
 		return
 	}
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	
+
 	pipe := dc.client.Pipeline()
-	
+
 	for _, op := range batch {
 		switch op.Operation {
 		case "set":
@@ -791,7 +791,7 @@ func (dc *DistributedCache) processBatch(batch []WriteOperation) {
 				dc.logger.Error("Serialization failed in batch", "key", op.Key, "error", err)
 				continue
 			}
-			
+
 			if dc.config.CompressionEnabled {
 				data, err = dc.compress(data)
 				if err != nil {
@@ -799,7 +799,7 @@ func (dc *DistributedCache) processBatch(batch []WriteOperation) {
 					continue
 				}
 			}
-			
+
 			pipe.Set(ctx, op.Key, data, op.TTL)
 		case "del":
 			pipe.Del(ctx, op.Key)
@@ -807,7 +807,7 @@ func (dc *DistributedCache) processBatch(batch []WriteOperation) {
 			pipe.Expire(ctx, op.Key, op.TTL)
 		}
 	}
-	
+
 	_, err := pipe.Exec(ctx)
 	if err != nil {
 		dc.logger.Error("Batch write failed", "batch_size", len(batch), "error", err)
@@ -818,10 +818,10 @@ func (dc *DistributedCache) processBatch(batch []WriteOperation) {
 
 func (dc *DistributedCache) statsCollector() {
 	defer dc.wg.Done()
-	
+
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-dc.ctx.Done():
@@ -834,13 +834,13 @@ func (dc *DistributedCache) statsCollector() {
 
 func (dc *DistributedCache) collectAndReportMetrics() {
 	stats := dc.GetStats()
-	
+
 	if dc.telemetry != nil {
 		dc.telemetry.RecordGauge("cache_hits_total", float64(stats.Hits), nil)
 		dc.telemetry.RecordGauge("cache_misses_total", float64(stats.Misses), nil)
 		dc.telemetry.RecordGauge("cache_memory_usage_bytes", float64(stats.MemoryUsage), nil)
 		dc.telemetry.RecordGauge("cache_connections", float64(stats.ConnectionCount), nil)
-		
+
 		// Hit rate calculation
 		total := stats.Hits + stats.Misses
 		if total > 0 {
@@ -852,10 +852,10 @@ func (dc *DistributedCache) collectAndReportMetrics() {
 
 func (dc *DistributedCache) healthMonitor() {
 	defer dc.wg.Done()
-	
+
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-dc.ctx.Done():

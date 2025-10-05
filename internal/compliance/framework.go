@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-
-	"github.com/vertikon/mcp-ultra/internal/config"
 )
 
 // ComplianceFramework provides comprehensive data protection compliance
@@ -23,16 +21,16 @@ type ComplianceFramework struct {
 
 // ComplianceConfig holds all compliance-related configuration
 type ComplianceConfig struct {
-	Enabled          bool                    `yaml:"enabled" envconfig:"COMPLIANCE_ENABLED" default:"true"`
-	DefaultRegion    string                  `yaml:"default_region" envconfig:"DEFAULT_REGION" default:"BR"`
-	PIIDetection     PIIDetectionConfig      `yaml:"pii_detection"`
-	Consent          ConsentConfig           `yaml:"consent"`
-	DataRetention    DataRetentionConfig     `yaml:"data_retention"`
-	AuditLogging     AuditLoggingConfig      `yaml:"audit_logging"`
-	LGPD             LGPDConfig              `yaml:"lgpd"`
-	GDPR             GDPRConfig              `yaml:"gdpr"`
-	Anonymization    AnonymizationConfig     `yaml:"anonymization"`
-	DataRights       DataRightsConfig        `yaml:"data_rights"`
+	Enabled       bool                `yaml:"enabled" envconfig:"COMPLIANCE_ENABLED" default:"true"`
+	DefaultRegion string              `yaml:"default_region" envconfig:"DEFAULT_REGION" default:"BR"`
+	PIIDetection  PIIDetectionConfig  `yaml:"pii_detection"`
+	Consent       ConsentConfig       `yaml:"consent"`
+	DataRetention DataRetentionConfig `yaml:"data_retention"`
+	AuditLogging  AuditLoggingConfig  `yaml:"audit_logging"`
+	LGPD          LGPDConfig          `yaml:"lgpd"`
+	GDPR          GDPRConfig          `yaml:"gdpr"`
+	Anonymization AnonymizationConfig `yaml:"anonymization"`
+	DataRights    DataRightsConfig    `yaml:"data_rights"`
 }
 
 // PIIDetectionConfig configures PII detection and classification
@@ -54,11 +52,11 @@ type ConsentConfig struct {
 
 // DataRetentionConfig configures data retention policies
 type DataRetentionConfig struct {
-	Enabled         bool                         `yaml:"enabled" default:"true"`
-	DefaultPeriod   time.Duration                `yaml:"default_period" default:"2y"`
-	CategoryPeriods map[string]time.Duration     `yaml:"category_periods"`
-	AutoDelete      bool                         `yaml:"auto_delete" default:"true"`
-	BackupRetention time.Duration                `yaml:"backup_retention" default:"7y"`
+	Enabled         bool                     `yaml:"enabled" default:"true"`
+	DefaultPeriod   time.Duration            `yaml:"default_period" default:"2y"`
+	CategoryPeriods map[string]time.Duration `yaml:"category_periods"`
+	AutoDelete      bool                     `yaml:"auto_delete" default:"true"`
+	BackupRetention time.Duration            `yaml:"backup_retention" default:"7y"`
 }
 
 // AuditLoggingConfig configures compliance audit logging
@@ -73,21 +71,21 @@ type AuditLoggingConfig struct {
 
 // LGPDConfig specific configuration for Brazilian LGPD compliance
 type LGPDConfig struct {
-	Enabled         bool     `yaml:"enabled" default:"true"`
-	DPOContact      string   `yaml:"dpo_contact"`
-	LegalBasis      []string `yaml:"legal_basis"`
-	DataCategories  []string `yaml:"data_categories"`
-	SharedThirdParty bool    `yaml:"shared_third_party" default:"false"`
+	Enabled          bool     `yaml:"enabled" default:"true"`
+	DPOContact       string   `yaml:"dpo_contact"`
+	LegalBasis       []string `yaml:"legal_basis"`
+	DataCategories   []string `yaml:"data_categories"`
+	SharedThirdParty bool     `yaml:"shared_third_party" default:"false"`
 }
 
 // GDPRConfig specific configuration for European GDPR compliance
 type GDPRConfig struct {
-	Enabled           bool     `yaml:"enabled" default:"true"`
-	DPOContact        string   `yaml:"dpo_contact"`
-	LegalBasis        []string `yaml:"legal_basis"`
-	DataCategories    []string `yaml:"data_categories"`
-	CrossBorderTransfer bool   `yaml:"cross_border_transfer" default:"false"`
-	AdequacyDecisions []string `yaml:"adequacy_decisions"`
+	Enabled             bool     `yaml:"enabled" default:"true"`
+	DPOContact          string   `yaml:"dpo_contact"`
+	LegalBasis          []string `yaml:"legal_basis"`
+	DataCategories      []string `yaml:"data_categories"`
+	CrossBorderTransfer bool     `yaml:"cross_border_transfer" default:"false"`
+	AdequacyDecisions   []string `yaml:"adequacy_decisions"`
 }
 
 // AnonymizationConfig configures data anonymization
@@ -102,11 +100,11 @@ type AnonymizationConfig struct {
 
 // DataRightsConfig configures individual data rights handling
 type DataRightsConfig struct {
-	Enabled          bool          `yaml:"enabled" default:"true"`
-	ResponseTime     time.Duration `yaml:"response_time" default:"720h"` // 30 days
-	AutoFulfillment  bool          `yaml:"auto_fulfillment" default:"false"`
-	VerificationRequired bool      `yaml:"verification_required" default:"true"`
-	NotificationChannels []string  `yaml:"notification_channels"`
+	Enabled              bool          `yaml:"enabled" default:"true"`
+	ResponseTime         time.Duration `yaml:"response_time" default:"720h"` // 30 days
+	AutoFulfillment      bool          `yaml:"auto_fulfillment" default:"false"`
+	VerificationRequired bool          `yaml:"verification_required" default:"true"`
+	NotificationChannels []string      `yaml:"notification_channels"`
 }
 
 // DataSubject represents an individual whose data is being processed
@@ -122,37 +120,37 @@ type DataSubject struct {
 
 // ConsentInfo represents consent information for a specific purpose
 type ConsentInfo struct {
-	Purpose     string    `json:"purpose"`
-	Granted     bool      `json:"granted"`
-	Timestamp   time.Time `json:"timestamp"`
-	Source      string    `json:"source"`
-	LegalBasis  string    `json:"legal_basis"`
+	Purpose     string     `json:"purpose"`
+	Granted     bool       `json:"granted"`
+	Timestamp   time.Time  `json:"timestamp"`
+	Source      string     `json:"source"`
+	LegalBasis  string     `json:"legal_basis"`
 	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
 	WithdrawnAt *time.Time `json:"withdrawn_at,omitempty"`
 }
 
 // DataRightRequest represents a data subject's rights request
 type DataRightRequest struct {
-	ID           string                 `json:"id"`
-	Type         DataRightType          `json:"type"`
-	Status       DataRightStatus        `json:"status"`
-	RequestedAt  time.Time              `json:"requested_at"`
-	CompletedAt  *time.Time             `json:"completed_at,omitempty"`
-	Data         map[string]interface{} `json:"data,omitempty"`
-	Reason       string                 `json:"reason,omitempty"`
-	VerificationCode string             `json:"verification_code,omitempty"`
+	ID               string                 `json:"id"`
+	Type             DataRightType          `json:"type"`
+	Status           DataRightStatus        `json:"status"`
+	RequestedAt      time.Time              `json:"requested_at"`
+	CompletedAt      *time.Time             `json:"completed_at,omitempty"`
+	Data             map[string]interface{} `json:"data,omitempty"`
+	Reason           string                 `json:"reason,omitempty"`
+	VerificationCode string                 `json:"verification_code,omitempty"`
 }
 
 // DataRightType represents the type of data rights request
 type DataRightType string
 
 const (
-	DataRightAccess       DataRightType = "access"       // Right to access (Art. 15 GDPR / Art. 18 LGPD)
-	DataRightRectification DataRightType = "rectification" // Right to rectification (Art. 16 GDPR / Art. 18 LGPD)
-	DataRightErasure      DataRightType = "erasure"      // Right to erasure (Art. 17 GDPR / Art. 18 LGPD)
-	DataRightPortability  DataRightType = "portability"  // Right to data portability (Art. 20 GDPR / Art. 18 LGPD)
-	DataRightRestriction  DataRightType = "restriction"  // Right to restriction (Art. 18 GDPR)
-	DataRightObjection    DataRightType = "objection"    // Right to object (Art. 21 GDPR / Art. 18 LGPD)
+	DataRightAccess          DataRightType = "access"           // Right to access (Art. 15 GDPR / Art. 18 LGPD)
+	DataRightRectification   DataRightType = "rectification"    // Right to rectification (Art. 16 GDPR / Art. 18 LGPD)
+	DataRightErasure         DataRightType = "erasure"          // Right to erasure (Art. 17 GDPR / Art. 18 LGPD)
+	DataRightPortability     DataRightType = "portability"      // Right to data portability (Art. 20 GDPR / Art. 18 LGPD)
+	DataRightRestriction     DataRightType = "restriction"      // Right to restriction (Art. 18 GDPR)
+	DataRightObjection       DataRightType = "objection"        // Right to object (Art. 21 GDPR / Art. 18 LGPD)
 	DataRightWithdrawConsent DataRightType = "withdraw_consent" // Right to withdraw consent
 )
 
@@ -160,11 +158,11 @@ const (
 type DataRightStatus string
 
 const (
-	DataRightStatusPending     DataRightStatus = "pending"
-	DataRightStatusInProgress  DataRightStatus = "in_progress"
-	DataRightStatusCompleted   DataRightStatus = "completed"
-	DataRightStatusRejected    DataRightStatus = "rejected"
-	DataRightStatusPartial     DataRightStatus = "partial"
+	DataRightStatusPending    DataRightStatus = "pending"
+	DataRightStatusInProgress DataRightStatus = "in_progress"
+	DataRightStatusCompleted  DataRightStatus = "completed"
+	DataRightStatusRejected   DataRightStatus = "rejected"
+	DataRightStatusPartial    DataRightStatus = "partial"
 )
 
 // NewComplianceFramework creates a new compliance framework instance
@@ -302,11 +300,11 @@ func (cf *ComplianceFramework) GetComplianceStatus(ctx context.Context) (map[str
 		"lgpd_enabled":   cf.config.LGPD.Enabled,
 		"gdpr_enabled":   cf.config.GDPR.Enabled,
 		"components": map[string]interface{}{
-			"pii_detection":   cf.config.PIIDetection.Enabled,
-			"consent_mgmt":    cf.config.Consent.Enabled,
-			"audit_logging":   cf.config.AuditLogging.Enabled,
-			"data_retention":  cf.config.DataRetention.Enabled,
-			"anonymization":   cf.config.Anonymization.Enabled,
+			"pii_detection":  cf.config.PIIDetection.Enabled,
+			"consent_mgmt":   cf.config.Consent.Enabled,
+			"audit_logging":  cf.config.AuditLogging.Enabled,
+			"data_retention": cf.config.DataRetention.Enabled,
+			"anonymization":  cf.config.Anonymization.Enabled,
 		},
 	}
 

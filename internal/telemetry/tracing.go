@@ -7,52 +7,53 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 type TracingConfig struct {
-	Enabled      bool          `yaml:"enabled" envconfig:"TRACING_ENABLED" default:"true"`
-	ServiceName  string        `yaml:"service_name" envconfig:"SERVICE_NAME" default:"mcp-ultra"`
-	ServiceVersion string      `yaml:"service_version" envconfig:"SERVICE_VERSION" default:"v1.0.0"`
-	Environment  string        `yaml:"environment" envconfig:"ENVIRONMENT" default:"development"`
-	Exporter     string        `yaml:"exporter" envconfig:"TRACE_EXPORTER" default:"jaeger"`
-	SampleRate   float64       `yaml:"sample_rate" envconfig:"TRACING_SAMPLE_RATE" default:"0.1"`
-	BatchTimeout time.Duration `yaml:"batch_timeout" envconfig:"TRACE_BATCH_TIMEOUT" default:"5s"`
-	
+	Enabled        bool          `yaml:"enabled" envconfig:"TRACING_ENABLED" default:"true"`
+	ServiceName    string        `yaml:"service_name" envconfig:"SERVICE_NAME" default:"mcp-ultra"`
+	ServiceVersion string        `yaml:"service_version" envconfig:"SERVICE_VERSION" default:"v1.0.0"`
+	Environment    string        `yaml:"environment" envconfig:"ENVIRONMENT" default:"development"`
+	Exporter       string        `yaml:"exporter" envconfig:"TRACE_EXPORTER" default:"jaeger"`
+	SampleRate     float64       `yaml:"sample_rate" envconfig:"TRACING_SAMPLE_RATE" default:"0.1"`
+	BatchTimeout   time.Duration `yaml:"batch_timeout" envconfig:"TRACE_BATCH_TIMEOUT" default:"5s"`
+
 	// OTLP HTTP Configuration
-	OTLPEndpoint string `yaml:"otlp_endpoint" envconfig:"OTEL_EXPORTER_OTLP_ENDPOINT" default:"http://localhost:4318"`
+	OTLPEndpoint string            `yaml:"otlp_endpoint" envconfig:"OTEL_EXPORTER_OTLP_ENDPOINT" default:"http://localhost:4318"`
 	OTLPHeaders  map[string]string `yaml:"otlp_headers" envconfig:"OTEL_EXPORTER_OTLP_HEADERS"`
-	
+
 	// Jaeger Configuration
 	JaegerEndpoint string `yaml:"jaeger_endpoint" envconfig:"JAEGER_ENDPOINT" default:"http://localhost:14268/api/traces"`
 	JaegerUser     string `yaml:"jaeger_user" envconfig:"JAEGER_USER"`
 	JaegerPassword string `yaml:"jaeger_password" envconfig:"JAEGER_PASSWORD"`
-	
+
 	// Additional attributes
 	ResourceAttributes map[string]string `yaml:"resource_attributes"`
 }
 
 type TracingProvider struct {
-	provider   *sdktrace.TracerProvider
-	config     *TracingConfig
-	logger     *zap.Logger
-	shutdown   func(context.Context) error
+	provider *sdktrace.TracerProvider
+	config   *TracingConfig
+	logger   *zap.Logger
+	shutdown func(context.Context) error
 }
 
 func NewTracingProvider(config *TracingConfig, logger *zap.Logger) (*TracingProvider, error) {
 	if !config.Enabled {
 		logger.Info("Distributed tracing is disabled")
 		return &TracingProvider{
-			config: config,
-			logger: logger,
+			config:   config,
+			logger:   logger,
 			shutdown: func(context.Context) error { return nil },
 		}, nil
 	}
@@ -77,7 +78,7 @@ func NewTracingProvider(config *TracingConfig, logger *zap.Logger) (*TracingProv
 		for key, value := range config.ResourceAttributes {
 			attrs = append(attrs, attribute.String(key, value))
 		}
-		
+
 		customRes := resource.NewWithAttributes(semconv.SchemaURL, attrs...)
 		res, err = resource.Merge(res, customRes)
 		if err != nil {
@@ -135,7 +136,7 @@ func createSpanExporter(config *TracingConfig, logger *zap.Logger) (sdktrace.Spa
 	case "noop":
 		return &noopExporter{}, nil
 	default:
-		logger.Warn("Unknown trace exporter, falling back to stdout", 
+		logger.Warn("Unknown trace exporter, falling back to stdout",
 			zap.String("exporter", config.Exporter))
 		return createStdoutExporter()
 	}
@@ -206,7 +207,7 @@ func TraceFunction(ctx context.Context, tracer trace.Tracer, name string, fn fun
 
 	if err := fn(ctx); err != nil {
 		span.RecordError(err)
-		span.SetStatus(trace.SpanStatusError, err.Error())
+		span.SetStatus(codes.Error, err.Error())
 		return err
 	}
 
@@ -221,7 +222,7 @@ func TraceFunctionWithResult[T any](ctx context.Context, tracer trace.Tracer, na
 	result, err := fn(ctx)
 	if err != nil {
 		span.RecordError(err)
-		span.SetStatus(trace.SpanStatusError, err.Error())
+		span.SetStatus(codes.Error, err.Error())
 		var zero T
 		return zero, err
 	}
@@ -250,7 +251,7 @@ func SetSpanError(ctx context.Context, err error) {
 	span := trace.SpanFromContext(ctx)
 	if span.IsRecording() {
 		span.RecordError(err)
-		span.SetStatus(trace.SpanStatusError, err.Error())
+		span.SetStatus(codes.Error, err.Error())
 	}
 }
 
@@ -316,24 +317,24 @@ func (e *noopExporter) Shutdown(context.Context) error {
 
 // Span naming conventions
 const (
-	SpanNameHTTPRequest  = "http.request"
-	SpanNameHTTPHandler  = "http.handler"
-	SpanNameDBQuery      = "db.query"
+	SpanNameHTTPRequest   = "http.request"
+	SpanNameHTTPHandler   = "http.handler"
+	SpanNameDBQuery       = "db.query"
 	SpanNameDBTransaction = "db.transaction"
-	SpanNameRedisOp      = "redis.operation"
-	SpanNameNATSPublish  = "nats.publish"
-	SpanNameNATSConsume  = "nats.consume"
-	SpanNameServiceCall  = "service.call"
+	SpanNameRedisOp       = "redis.operation"
+	SpanNameNATSPublish   = "nats.publish"
+	SpanNameNATSConsume   = "nats.consume"
+	SpanNameServiceCall   = "service.call"
 	SpanNameBusinessLogic = "business.logic"
 )
 
 // Common span attributes
 var (
-	AttrServiceName     = attribute.Key("service.name")
-	AttrServiceVersion  = attribute.Key("service.version")
-	AttrEnvironment     = attribute.Key("deployment.environment")
-	AttrUserID          = attribute.Key("user.id")
-	AttrSessionID       = attribute.Key("session.id")
-	AttrRequestID       = attribute.Key("request.id")
-	AttrCorrelationID   = attribute.Key("correlation.id")
+	AttrServiceName    = attribute.Key("service.name")
+	AttrServiceVersion = attribute.Key("service.version")
+	AttrEnvironment    = attribute.Key("deployment.environment")
+	AttrUserID         = attribute.Key("user.id")
+	AttrSessionID      = attribute.Key("session.id")
+	AttrRequestID      = attribute.Key("request.id")
+	AttrCorrelationID  = attribute.Key("correlation.id")
 )

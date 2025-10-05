@@ -10,7 +10,7 @@ database:
     port: ${POSTGRES_PORT:5432}
     database: ${POSTGRES_DB:mcp_ultra}
     user: ${POSTGRES_USER:postgres}
-    password: ${POSTGRES_PASSWORD:change_me}
+    password: ${POSTGRES_PASSWORD}
     ssl_mode: ${POSTGRES_SSLMODE:disable}
     max_open_conns: ${POSTGRES_MAX_CONNECTIONS:25}
     max_idle_conns: ${POSTGRES_MAX_IDLE_CONNECTIONS:5}

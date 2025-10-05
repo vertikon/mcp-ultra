@@ -27,15 +27,15 @@ type EnhancedVaultService struct {
 	config         VaultConfig
 	rotationConfig SecretRotationConfig
 	logger         *zap.Logger
-	
+
 	// Secret rotation management
 	rotationSchedules map[string]*RotationSchedule
 	rotationMutex     sync.RWMutex
-	
+
 	// Secret cache with TTL
 	secretCache map[string]*CachedSecret
 	cacheMutex  sync.RWMutex
-	
+
 	// Notification channels
 	notificationChan chan RotationEvent
 	errorChan        chan error
@@ -43,14 +43,14 @@ type EnhancedVaultService struct {
 
 // RotationSchedule manages the rotation of a specific secret
 type RotationSchedule struct {
-	SecretPath     string
-	Config         SecretRotationConfig
-	NextRotation   time.Time
-	LastRotation   time.Time
-	RotationCount  int
-	IsActive       bool
-	ticker         *time.Ticker
-	stopChan       chan struct{}
+	SecretPath    string
+	Config        SecretRotationConfig
+	NextRotation  time.Time
+	LastRotation  time.Time
+	RotationCount int
+	IsActive      bool
+	ticker        *time.Ticker
+	stopChan      chan struct{}
 }
 
 // CachedSecret represents a cached secret with TTL
@@ -62,12 +62,12 @@ type CachedSecret struct {
 
 // RotationEvent represents a secret rotation event
 type RotationEvent struct {
-	SecretPath  string
-	EventType   string // "started", "completed", "failed"
-	Timestamp   time.Time
-	OldVersion  int
-	NewVersion  int
-	Error       error
+	SecretPath string
+	EventType  string // "started", "completed", "failed"
+	Timestamp  time.Time
+	OldVersion int
+	NewVersion int
+	Error      error
 }
 
 // NewEnhancedVaultService creates a new enhanced Vault service
@@ -76,13 +76,22 @@ func NewEnhancedVaultService(
 	rotationConfig SecretRotationConfig,
 	logger *zap.Logger,
 ) (*EnhancedVaultService, error) {
-	client, err := NewVaultService(config, logger)
+	// Create Vault API client
+	vaultConfig := api.DefaultConfig()
+	vaultConfig.Address = config.Address
+
+	vaultClient, err := api.NewClient(vaultConfig)
 	if err != nil {
 		return nil, fmt.Errorf("creating vault client: %w", err)
 	}
 
+	vaultClient.SetToken(config.Token)
+	if config.Namespace != "" {
+		vaultClient.SetNamespace(config.Namespace)
+	}
+
 	service := &EnhancedVaultService{
-		client:            client.client,
+		client:            vaultClient,
 		config:            config,
 		rotationConfig:    rotationConfig,
 		logger:            logger,
@@ -95,7 +104,7 @@ func NewEnhancedVaultService(
 	// Start background workers
 	go service.rotationWorker()
 	go service.cacheCleanupWorker()
-	
+
 	return service, nil
 }
 
@@ -144,7 +153,7 @@ func (evs *EnhancedVaultService) rotateSecretPeriodically(schedule *RotationSche
 					zap.String("secret_path", schedule.SecretPath),
 					zap.Error(err),
 				)
-				
+
 				evs.notificationChan <- RotationEvent{
 					SecretPath: schedule.SecretPath,
 					EventType:  "failed",
@@ -164,7 +173,7 @@ func (evs *EnhancedVaultService) rotateSecretPeriodically(schedule *RotationSche
 // rotateSecret performs the actual secret rotation
 func (evs *EnhancedVaultService) rotateSecret(schedule *RotationSchedule) error {
 	secretPath := schedule.SecretPath
-	
+
 	evs.logger.Info("Starting secret rotation",
 		zap.String("secret_path", secretPath),
 	)
@@ -257,7 +266,7 @@ func (evs *EnhancedVaultService) rotateSecret(schedule *RotationSchedule) error 
 // generateNewSecretValue generates a new secret value based on the type
 func (evs *EnhancedVaultService) generateNewSecretValue(secretPath string, currentData map[string]interface{}) (map[string]interface{}, error) {
 	newData := make(map[string]interface{})
-	
+
 	// Copy non-secret metadata
 	for key, value := range currentData {
 		if !evs.isSecretField(key) {
@@ -329,7 +338,7 @@ func (evs *EnhancedVaultService) isSecretField(fieldName string) bool {
 		"password", "secret", "api_key", "token", "jwt_secret",
 		"encryption_key", "private_key", "client_secret",
 	}
-	
+
 	fieldName = fmt.Sprintf("%v", fieldName) // Convert to string
 	for _, secretField := range secretFields {
 		if fieldName == secretField {
@@ -358,9 +367,9 @@ func (evs *EnhancedVaultService) cleanupOldVersions(secretPath string, keepVersi
 		return fmt.Errorf("getting secret metadata: %w", err)
 	}
 
-	versions := make([]int, 0, len(metadata.Versions))
-	for version := range metadata.Versions {
-		versions = append(versions, version)
+	versions := make([]string, 0, len(metadata.Versions))
+	for versionKey := range metadata.Versions {
+		versions = append(versions, versionKey)
 	}
 
 	if len(versions) <= keepVersions {
@@ -370,7 +379,7 @@ func (evs *EnhancedVaultService) cleanupOldVersions(secretPath string, keepVersi
 	// Sort versions and determine which to delete
 	// Keep the latest 'keepVersions' versions
 	toDelete := len(versions) - keepVersions
-	
+
 	// Delete old versions (implementation depends on Vault API)
 	evs.logger.Info("Cleaning up old secret versions",
 		zap.String("secret_path", secretPath),
@@ -387,7 +396,7 @@ func (evs *EnhancedVaultService) GetSecretWithCache(ctx context.Context, path st
 	if cached, exists := evs.secretCache[path]; exists && cached.ExpiresAt.After(time.Now()) {
 		evs.cacheMutex.RUnlock()
 		evs.logger.Debug("Secret cache hit", zap.String("path", path))
-		
+
 		// Return cached value parsed back to map
 		return map[string]interface{}{"value": cached.Value}, nil
 	}
@@ -453,10 +462,10 @@ func (evs *EnhancedVaultService) Stop() {
 	for _, schedule := range evs.rotationSchedules {
 		schedule.Stop()
 	}
-	
+
 	close(evs.notificationChan)
 	close(evs.errorChan)
-	
+
 	evs.logger.Info("Enhanced Vault service stopped")
 }
 
@@ -474,11 +483,11 @@ func (evs *EnhancedVaultService) GetRotationStatus() map[string]RotationStatus {
 	status := make(map[string]RotationStatus)
 	for path, schedule := range evs.rotationSchedules {
 		status[path] = RotationStatus{
-			SecretPath:     schedule.SecretPath,
-			IsActive:       schedule.IsActive,
-			LastRotation:   schedule.LastRotation,
-			NextRotation:   schedule.NextRotation,
-			RotationCount:  schedule.RotationCount,
+			SecretPath:       schedule.SecretPath,
+			IsActive:         schedule.IsActive,
+			LastRotation:     schedule.LastRotation,
+			NextRotation:     schedule.NextRotation,
+			RotationCount:    schedule.RotationCount,
 			RotationInterval: schedule.Config.RotationInterval,
 		}
 	}

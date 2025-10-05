@@ -136,7 +136,7 @@ func (m *FlagManager) SetFlag(ctx context.Context, flag *domain.FeatureFlag) err
 		m.logger.Error("Failed to cache feature flag", zap.Error(err))
 	}
 
-	m.logger.Info("Feature flag updated", 
+	m.logger.Info("Feature flag updated",
 		zap.String("key", flag.Key),
 		zap.Bool("enabled", flag.Enabled))
 
@@ -185,7 +185,7 @@ func (m *FlagManager) RefreshFlags(ctx context.Context) error {
 	// Load new flags
 	for _, flag := range flags {
 		m.flags[flag.Key] = flag
-		
+
 		// Update Redis cache
 		cacheKey := fmt.Sprintf("flag:%s", flag.Key)
 		if err := m.cache.Set(ctx, cacheKey, flag, 300); err != nil {
@@ -245,8 +245,8 @@ func (m *FlagManager) EvaluateFlag(ctx context.Context, key string, userID strin
 	case "attribute":
 		return m.evaluateAttribute(flag, attributes)
 	default:
-		m.logger.Warn("Unknown flag strategy", 
-			zap.String("key", key), 
+		m.logger.Warn("Unknown flag strategy",
+			zap.String("key", key),
 			zap.String("strategy", flag.Strategy))
 		return false
 	}
@@ -260,7 +260,7 @@ func (m *FlagManager) evaluatePercentage(flag *domain.FeatureFlag, userID string
 		for _, c := range userID {
 			hash = hash*31 + int(c)
 		}
-		return (hash%100) < int(percentage)
+		return (hash % 100) < int(percentage)
 	}
 	return false
 }
