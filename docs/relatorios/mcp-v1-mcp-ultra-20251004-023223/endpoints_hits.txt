@@ -1,9 +1,0 @@
-
-[OK] /health -> 200
-[OK] /healthz -> 200
-[OK] /health/live -> 200
-[OK] /health/ready -> 200
-[OK] /livez -> 200
-[OK] /readyz -> 200
-[OK] /ping -> 200
-[OK] /metrics -> 200
