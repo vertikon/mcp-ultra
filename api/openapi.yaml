@@ -488,6 +488,75 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  # AI Inference Endpoints
+  /ai/infer:
+    post:
+      tags:
+        - AI
+      summary: AI Inference
+      description: |
+        Perform AI inference with automatic routing, policy enforcement, and budget tracking.
+        Supports classification, generation, and reranking use cases.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InferenceRequest'
+      responses:
+        '200':
+          description: Inference completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InferenceResponse'
+        '400':
+          description: Bad request - invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - policy violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyViolationResponse'
+        '429':
+          description: Budget limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BudgetExceededResponse'
+
+  /ai/router/status:
+    get:
+      tags:
+        - AI
+      summary: Get AI router status
+      description: Get current AI routing configuration and provider health
+      security:
+        - BearerAuth: ['admin']
+      responses:
+        '200':
+          description: Router status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouterStatusResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1008,6 +1077,171 @@ components:
           format: date-time
           example: "2024-01-15T10:30:00Z"
 
+    # AI Inference Schemas
+    InferenceRequest:
+      type: object
+      required:
+        - prompt
+        - use_case
+      properties:
+        prompt:
+          type: string
+          minLength: 1
+          description: Input prompt for AI inference
+          example: "Classify this text: This is a great product!"
+        use_case:
+          type: string
+          enum: [classification, generation, rerank]
+          description: Type of AI task to perform
+          example: "classification"
+        temperature:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 2
+          description: Sampling temperature for generation
+          example: 0.7
+        max_tokens:
+          type: integer
+          minimum: 1
+          maximum: 32000
+          description: Maximum tokens to generate
+          example: 1000
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional request metadata
+          example:
+            user_context: "premium_user"
+            session_id: "abc123"
+
+    InferenceResponse:
+      type: object
+      properties:
+        content:
+          type: string
+          description: AI-generated response
+          example: "This text expresses a positive sentiment"
+        provider:
+          type: string
+          description: AI provider used
+          example: "openai"
+        model:
+          type: string
+          description: Model used for inference
+          example: "gpt-4o"
+        tokens_in:
+          type: integer
+          description: Input tokens consumed
+          example: 50
+        tokens_out:
+          type: integer
+          description: Output tokens generated
+          example: 200
+        latency_ms:
+          type: integer
+          description: Request latency in milliseconds
+          example: 1250
+        cost_brl:
+          type: number
+          format: float
+          description: Cost in Brazilian Reais
+          example: 0.015
+        cached:
+          type: boolean
+          description: Whether response was served from cache
+          example: false
+
+    RouterStatusResponse:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          example: true
+        mode:
+          type: string
+          enum: [fast, balanced, quality]
+          example: "balanced"
+        canary_percent:
+          type: number
+          format: float
+          example: 10.0
+        providers:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              healthy:
+                type: boolean
+              latency_p50_ms:
+                type: integer
+              latency_p99_ms:
+                type: integer
+              error_rate:
+                type: number
+                format: float
+          example:
+            openai:
+              healthy: true
+              latency_p50_ms: 800
+              latency_p99_ms: 2500
+              error_rate: 0.01
+            qwen:
+              healthy: true
+              latency_p50_ms: 600
+              latency_p99_ms: 1800
+              error_rate: 0.02
+
+    PolicyViolationResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "policy_violation"
+        message:
+          type: string
+          example: "Content blocked by pre-inference policy"
+        policy:
+          type: string
+          example: "pre_profanity_filter"
+        details:
+          type: object
+          additionalProperties: true
+          example:
+            violated_terms: ["blocked_word1", "blocked_word2"]
+        timestamp:
+          type: string
+          format: date-time
+
+    BudgetExceededResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "budget_exceeded"
+        message:
+          type: string
+          example: "Monthly budget limit reached"
+        budget_type:
+          type: string
+          enum: [global, tenant, mcp]
+          example: "tenant"
+        current_usage:
+          type: number
+          format: float
+          description: Current usage in BRL
+          example: 1500.50
+        limit:
+          type: number
+          format: float
+          description: Budget limit in BRL
+          example: 1500.00
+        reset_at:
+          type: string
+          format: date-time
+          description: When budget resets
+          example: "2024-02-01T00:00:00Z"
+
 tags:
   - name: System
     description: System health and monitoring endpoints
@@ -1019,3 +1253,5 @@ tags:
     description: User profile and authentication
   - name: Analytics
     description: Analytics and reporting endpoints
+  - name: AI
+    description: AI inference, routing, and policy management

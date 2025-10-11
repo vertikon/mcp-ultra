@@ -28,18 +28,140 @@ mcp-ultra/
 └── 🐳 deploy/               # Configurações de deployment
 ```
 
-## 📦 Install
+## 📦 Installation
+
+### Prerequisites
+
+- **Go**: 1.21+ ([download](https://golang.org/dl/))
+- **PostgreSQL**: 14+ ([download](https://www.postgresql.org/download/))
+- **NATS**: 2.10+ with JetStream ([download](https://nats.io/download/))
+- **Redis**: 7.0+ (optional, for caching) ([download](https://redis.io/download))
+- **Docker**: 20+ (optional, for containerized deployment) ([download](https://www.docker.com/get-started))
+
+### Quick Install
 
 ```bash
+# Clone the repository
+git clone https://github.com/vertikon/mcp-ultra.git
+cd mcp-ultra
+
+# Install dependencies
+go mod download
 go mod tidy
+
+# Build the project
 go build ./...
+
+# Run database migrations
+psql -U postgres -d mcp_ultra -f migrations/0001_baseline.sql
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
+# Start the server
+go run ./cmd/server
+```
+
+### Docker Installation
+
+```bash
+# Build the Docker image
+docker build -t mcp-ultra:latest .
+
+# Run with docker-compose (includes PostgreSQL, NATS, Redis)
+docker-compose up -d
+
+# Check health
+curl http://localhost:9655/healthz
+```
+
+### Configuration
+
+Create a `.env` file in the project root:
+
+```env
+# Server Configuration
+SERVER_PORT=9655
+SERVER_HOST=0.0.0.0
+
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=your_secure_password
+DB_NAME=mcp_ultra
+DB_SSL_MODE=disable
+
+# NATS Configuration
+NATS_URL=nats://localhost:4222
+NATS_CLUSTER_ID=mcp-ultra-cluster
+
+# Redis Configuration (optional)
+REDIS_URL=redis://localhost:6379
+REDIS_DB=0
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_here
+JWT_ISSUER=mcp-ultra
+JWT_EXPIRY=24h
+
+# AI Configuration (opt-in)
+ENABLE_AI=false
+AI_ROUTER_MODE=balanced
+AI_OPENAI_KEY=your_openai_key
+AI_QWEN_KEY=your_qwen_key
+
+# Feature Flags
+ENABLE_METRICS=true
+ENABLE_TRACING=true
+LOG_LEVEL=info
+```
+
+### Verify Installation
+
+```bash
+# Run tests
+go test ./...
+
+# Check code coverage
+go test ./... -coverprofile=coverage.out
+go tool cover -html=coverage.out
+
+# Run linter
+golangci-lint run
+
+# Format code
+go fmt ./...
 ```
 
 ## 🏃 Usage
 
+### Development Mode
+
 ```bash
-# Dev server (example)
+# Start with hot reload (requires air)
+air
+
+# Or run directly
 go run ./cmd/server
+
+# Access the API
+curl http://localhost:9655/healthz
+```
+
+### Production Mode
+
+```bash
+# Build optimized binary
+CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o bin/server ./cmd/server
+
+# Run the binary
+./bin/server
+
+# Or use systemd service
+sudo systemctl start mcp-ultra
+sudo systemctl enable mcp-ultra
 ```
 
 ## 📊 Test & Coverage

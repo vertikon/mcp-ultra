@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -161,7 +162,7 @@ func (r *TaskRepository) List(ctx context.Context, filter domain.TaskFilter) ([]
 	}
 
 	// Count query
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM tasks %s", whereClause)
+	countQuery := "SELECT COUNT(*) FROM tasks " + whereClause
 	var total int
 	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
@@ -169,13 +170,12 @@ func (r *TaskRepository) List(ctx context.Context, filter domain.TaskFilter) ([]
 	}
 
 	// Data query
-	query := fmt.Sprintf(`
+	query := `
 		SELECT id, title, description, status, priority, assignee_id, created_by,
 		       created_at, updated_at, completed_at, due_date, tags, metadata
-		FROM tasks %s
+		FROM tasks ` + whereClause + `
 		ORDER BY created_at DESC
-		LIMIT $%d OFFSET $%d
-	`, whereClause, argIndex, argIndex+1)
+		LIMIT $` + strconv.Itoa(argIndex) + ` OFFSET $` + strconv.Itoa(argIndex+1)
 
 	limit := filter.Limit
 	if limit <= 0 {
