@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
@@ -193,18 +193,18 @@ func NewDistributedCache(config CacheConfig, logger logger.Logger, telemetry *ob
 
 	// Create Redis cluster client
 	rdb := redis.NewClusterClient(&redis.ClusterOptions{
-		Addrs:              config.Addrs,
-		Password:           config.Password,
-		PoolSize:           config.PoolSize,
-		MinIdleConns:       config.MinIdleConns,
-		MaxConnAge:         config.MaxConnAge,
-		PoolTimeout:        config.PoolTimeout,
-		IdleTimeout:        config.IdleTimeout,
-		IdleCheckFrequency: config.IdleCheckFrequency,
-		ReadTimeout:        5 * time.Second,
-		WriteTimeout:       5 * time.Second,
-		RouteByLatency:     true,
-		RouteRandomly:      true,
+		Addrs:        config.Addrs,
+		Password:     config.Password,
+		PoolSize:     config.PoolSize,
+		MinIdleConns: config.MinIdleConns,
+		// MaxConnAge removed in v9 (managed automatically)
+		PoolTimeout: config.PoolTimeout,
+		// IdleTimeout removed in v9 (managed automatically)
+		// IdleCheckFrequency removed in v9 (managed automatically)
+		ReadTimeout:    5 * time.Second,
+		WriteTimeout:   5 * time.Second,
+		RouteByLatency: true,
+		RouteRandomly:  true,
 	})
 
 	// Test connection

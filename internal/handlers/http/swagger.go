@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 )
 
 // SwaggerUIHandler serves the Swagger UI
@@ -49,20 +49,20 @@ func SwaggerUIHandler() http.Handler {
 }
 
 // RegisterSwaggerRoutes registers Swagger UI routes
-func RegisterSwaggerRoutes(router *mux.Router) {
+func RegisterSwaggerRoutes(router chi.Router) {
 	// Swagger UI routes
-	router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs", SwaggerUIHandler())).Methods("GET")
+	router.Handle("/docs/*", http.StripPrefix("/docs", SwaggerUIHandler()))
 
 	// Direct OpenAPI spec access
-	router.HandleFunc("/api/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/api/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./api/openapi.yaml")
-	}).Methods("GET")
+	})
 
-	router.HandleFunc("/api/openapi.json", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/api/openapi.json", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		// In production, serve actual JSON conversion
 		w.Write([]byte(`{"info": {"title": "See /api/openapi.yaml for full spec"}}`))
-	}).Methods("GET")
+	})
 }
 
 const swaggerUIHTML = `<!DOCTYPE html>
