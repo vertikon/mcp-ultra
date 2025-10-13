@@ -17,7 +17,7 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.uber.org/zap"
 
-	"github.com/vertikon/mcp-ultra/internal/config"
+	"{{MODULE_PATH}}/internal/config"
 )
 
 var (

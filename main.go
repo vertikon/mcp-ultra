@@ -16,8 +16,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra-fix/pkg/version"
-	"github.com/vertikon/mcp-ultra/internal/config"
-	"github.com/vertikon/mcp-ultra/internal/handlers"
+	"{{MODULE_PATH}}/internal/config"
+	"{{MODULE_PATH}}/internal/handlers"
 	"go.uber.org/zap"
 )
 

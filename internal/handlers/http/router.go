@@ -9,9 +9,9 @@ import (
 	"github.com/go-chi/cors"
 	"go.uber.org/zap"
 
-	"github.com/vertikon/mcp-ultra/internal/features"
-	"github.com/vertikon/mcp-ultra/internal/services"
-	"github.com/vertikon/mcp-ultra/internal/telemetry"
+	"{{MODULE_PATH}}/internal/features"
+	"{{MODULE_PATH}}/internal/services"
+	"{{MODULE_PATH}}/internal/telemetry"
 )
 
 // Router creates and configures the HTTP router

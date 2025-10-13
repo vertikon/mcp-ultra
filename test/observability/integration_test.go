@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package observability_test
 
 import (
@@ -15,8 +18,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"github.com/vertikon/mcp-ultra/internal/config"
-	"github.com/vertikon/mcp-ultra/internal/observability"
+	"{{MODULE_PATH}}/internal/config"
+	"{{MODULE_PATH}}/internal/observability"
 )
 
 // TestObservabilityIntegration tests the complete observability stack

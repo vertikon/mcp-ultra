@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package compliance_test
 
 import (
@@ -9,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"github.com/vertikon/mcp-ultra/internal/compliance"
-	"github.com/vertikon/mcp-ultra/internal/config"
+	"{{MODULE_PATH}}/internal/compliance"
+	"{{MODULE_PATH}}/internal/config"
 )
 
 // TestComplianceFrameworkIntegration tests the complete compliance framework

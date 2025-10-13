@@ -7,7 +7,7 @@ import (
 \t"os"
 \t"regexp"
 
-\t"github.com/vertikon/mcp-ultra/templates/ai/go/types"
+\t"{{MODULE_PATH}}/templates/ai/go/types"
 )
 
 type PolicyConfig struct {

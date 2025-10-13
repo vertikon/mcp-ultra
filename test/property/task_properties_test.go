@@ -10,7 +10,7 @@ import (
 	"github.com/leanovate/gopter/prop"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/vertikon/mcp-ultra/internal/domain"
+	"{{MODULE_PATH}}/internal/domain"
 )
 
 // TestTaskCreationProperties tests invariants for task creation

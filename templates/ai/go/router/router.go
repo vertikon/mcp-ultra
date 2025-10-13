@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"os"
 
-	"github.com/vertikon/mcp-ultra/templates/ai/go/types"
+	"{{MODULE_PATH}}/templates/ai/go/types"
 )
 
 type RouterConfig struct {

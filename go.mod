@@ -1,4 +1,4 @@
-module github.com/vertikon/mcp-ultra
+module {{MODULE_PATH}}
 
 go 1.24.0
 

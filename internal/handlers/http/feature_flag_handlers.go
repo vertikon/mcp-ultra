@@ -9,8 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 
-	"github.com/vertikon/mcp-ultra/internal/domain"
-	"github.com/vertikon/mcp-ultra/internal/features"
+	"{{MODULE_PATH}}/internal/domain"
+	"{{MODULE_PATH}}/internal/features"
 )
 
 // FeatureFlagHandlers handles HTTP requests for feature flags

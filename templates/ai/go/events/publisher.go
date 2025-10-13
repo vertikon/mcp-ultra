@@ -7,7 +7,7 @@ import (
 \t"time"
 
 \t"github.com/nats-io/nats.go"
-\t"github.com/vertikon/mcp-ultra/templates/ai/go/types"
+\t"{{MODULE_PATH}}/templates/ai/go/types"
 )
 
 type NATSPublisher struct {

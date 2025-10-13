@@ -9,7 +9,7 @@ import (
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 
-	"github.com/vertikon/mcp-ultra/internal/domain"
+	"{{MODULE_PATH}}/internal/domain"
 )
 
 // NATSEventBus implements EventBus using NATS

@@ -8,7 +8,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"
 
-	"github.com/vertikon/mcp-ultra/internal/config"
+	"{{MODULE_PATH}}/internal/config"
 )
 
 // Service aggregates all observability functionality

@@ -11,7 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
-	"github.com/vertikon/mcp-ultra/internal/observability"
+	"{{MODULE_PATH}}/internal/observability"
 )
 
 // CacheStrategy represents different caching strategies

@@ -14,7 +14,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
-	"github.com/vertikon/mcp-ultra/internal/observability"
+	"{{MODULE_PATH}}/internal/observability"
 )
 
 // BusinessTransactionTracer provides advanced tracing for critical business transactions

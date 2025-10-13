@@ -17,11 +17,11 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/modules/redis"
 
-	"github.com/vertikon/mcp-ultra/internal/config"
-	"github.com/vertikon/mcp-ultra/internal/constants"
-	"github.com/vertikon/mcp-ultra/internal/domain"
-	postgresRepo "github.com/vertikon/mcp-ultra/internal/repository/postgres"
-	redisRepo "github.com/vertikon/mcp-ultra/internal/repository/redis"
+	"{{MODULE_PATH}}/internal/config"
+	"{{MODULE_PATH}}/internal/constants"
+	"{{MODULE_PATH}}/internal/domain"
+	postgresRepo "{{MODULE_PATH}}/internal/repository/postgres"
+	redisRepo "{{MODULE_PATH}}/internal/repository/redis"
 )
 
 // DatabaseIntegrationTestSuite tests database operations with real databases

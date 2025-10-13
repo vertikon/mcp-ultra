@@ -13,7 +13,8 @@ import (
 	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 )
 
-func newTestLogger(t *testing.T) logger.Logger {
+func newTestLogger(t *testing.T) *logger.Logger {
+	t.Helper()
 	l, err := logger.NewLogger()
 	if err != nil {
 		t.Fatalf("Failed to create logger: %v", err)

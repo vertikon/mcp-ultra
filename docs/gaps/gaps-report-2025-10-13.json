@@ -1,6 +1,6 @@
 {
   "ProjectName": "mcp-ultra",
-  "Timestamp": "2025-10-13 03:11:31",
+  "Timestamp": "2025-10-13 04:17:22",
   "Critical": [
     {
       "Type": "Erros não tratados",
@@ -19,7 +19,7 @@
       },
       "Examples": [
         "error: failed to check packages: errors while loading package github.com/vertikon/mcp-ultra/internal/cache [github.com/vertikon/mcp-ultra/internal/cache.test]: [-: # github.com/vertikon/mcp-ultra/internal/cache [github.com/vertikon/mcp-ultra/internal/cache.test]",
-        "internal\\cache\\distributed_test.go:21:9: cannot use l (variable of type *logger.Logger) as logger.Logger value in return statement E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed_test.go:21:9: cannot use l (variable of type *logger.Logger) as logger.Logger value in return statement]"
+        "internal\\cache\\distributed_test.go:23:9: cannot use l (variable of type *logger.Logger) as logger.Logger value in return statement E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed_test.go:23:9: cannot use l (variable of type *logger.Logger) as logger.Logger value in return statement]"
       ],
       "NonFixableReason": "BUSINESS_LOGIC"
     }
@@ -60,7 +60,7 @@
         "NonFixableReason": "BUSINESS_LOGIC"
       },
       "Examples": [
-        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/cache [github.com/vertikon/mcp-ultra/internal/cache.test]\\ninternal\\\\cache\\\\distributed_test.go:21:9: cannot use l (variable of type *logger.Logger) as logger.Logger value in return statement\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/cache [github.com/vertikon/mcp-ultra/internal/cache.test]\\ninternal\\\\cache\\\\distributed_test.go:23:9: cannot use l (variable of type *logger.Logger) as logger.Logger value in return statement\"",
         "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/compliance [github.com/vertikon/mcp-ultra/internal/compliance.test]\\ninternal\\\\compliance\\\\framework_test.go:111:27: framework.ScanForPII undefined (type *ComplianceFramework has no field or method ScanForPII)\\ninternal\\\\compliance\\\\framework_test.go:133:19: framework.RecordConsent undefined (type *ComplianceFramework has no field or method RecordConsent)\\ninternal\\\\compliance\\\\framework_test.go:137:31: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)\\ninternal\\\\compliance\\\\framework_test.go:142:30: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)\\ninternal\\\\compliance\\\\framework_test.go:147:18: framework.WithdrawConsent undefined (type *ComplianceFramework has no field or method WithdrawConsent)\\ninternal\\\\compliance\\\\framework_test.go:151:30: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)\\ninternal\\\\compliance\\\\framework_test.go:156:30: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)\\ninternal\\\\compliance\\\\framework_test.go:169:19: framework.RecordDataCreation undefined (type *ComplianceFramework has no field or method RecordDataCreation)\\ninternal\\\\compliance\\\\framework_test.go:176:27: framework.GetRetentionPolicy undefined (type *ComplianceFramework has no field or method GetRetentionPolicy)\\ninternal\\\\compliance\\\\framework_test.go:182:33: framework.ShouldDeleteData undefined (type *ComplianceFramework has no field or method ShouldDeleteData)\\ninternal\\\\compliance\\\\framework_test.go:182:33: too many errors\"",
         "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/features [github.com/vertikon/mcp-ultra/internal/features.test]\\ninternal\\\\features\\\\manager_test.go:6:2: \\\"time\\\" imported and not used\"",
         "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/handlers/http [github.com/vertikon/mcp-ultra/internal/handlers/http.test]\\ninternal\\\\handlers\\\\http\\\\router_test.go:23:76: undefined: services.HealthStatus\\ninternal\\\\handlers\\\\http\\\\router_test.go:25:42: undefined: services.HealthStatus\\ninternal\\\\handlers\\\\http\\\\router_test.go:38:75: undefined: services.HealthChecker\\ninternal\\\\handlers\\\\http\\\\router_test.go:47:70: undefined: domain.CreateTaskRequest\\ninternal\\\\handlers\\\\http\\\\router_test.go:60:85: undefined: domain.UpdateTaskRequest\\ninternal\\\\handlers\\\\http\\\\router_test.go:70:73: undefined: domain.TaskFilters\\ninternal\\\\handlers\\\\http\\\\router_test.go:70:95: undefined: domain.TaskList\\ninternal\\\\handlers\\\\http\\\\router_test.go:72:30: undefined: domain.TaskList\\ninternal\\\\handlers\\\\http\\\\health_test.go:272:27: undefined: fmt\\ninternal\\\\handlers\\\\http\\\\health_test.go:273:14: undefined: fmt\\ninternal\\\\handlers\\\\http\\\\router_test.go:72:30: too many errors\"",

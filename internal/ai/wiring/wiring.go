@@ -8,8 +8,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/vertikon/mcp-ultra/internal/ai/router"
-	"github.com/vertikon/mcp-ultra/internal/ai/telemetry"
+	"{{MODULE_PATH}}/internal/ai/router"
+	"{{MODULE_PATH}}/internal/ai/telemetry"
 )
 
 type Config struct {

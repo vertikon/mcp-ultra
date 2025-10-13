@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
 
-	"github.com/vertikon/mcp-ultra/internal/domain"
+	"{{MODULE_PATH}}/internal/domain"
 )
 
 // Mock repositories

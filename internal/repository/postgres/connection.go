@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	_ "github.com/lib/pq"
-	"github.com/vertikon/mcp-ultra/internal/config"
+	"{{MODULE_PATH}}/internal/config"
 )
 
 // Connect creates a PostgreSQL database connection

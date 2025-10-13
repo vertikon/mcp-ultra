@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
-	"github.com/vertikon/mcp-ultra/internal/observability"
+	"{{MODULE_PATH}}/internal/observability"
 )
 
 // LifecycleState represents the current state of the application

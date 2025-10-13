@@ -9,7 +9,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/vertikon/mcp-ultra/internal/domain"
+	"{{MODULE_PATH}}/internal/domain"
 )
 
 // FlagManager manages feature flags with persistence
