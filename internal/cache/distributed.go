@@ -440,6 +440,62 @@ func (dc *DistributedCache) Expire(ctx context.Context, key string, ttl time.Dur
 	return nil
 }
 
+// Clear removes all keys matching the pattern
+func (dc *DistributedCache) Clear(ctx context.Context, pattern string) error {
+	start := time.Now()
+	defer func() {
+		dc.recordLatency("clear", time.Since(start))
+	}()
+
+	// Check circuit breaker
+	if !dc.breaker.Allow() {
+		dc.incrementCounter("errors")
+		return fmt.Errorf("cache circuit breaker is open")
+	}
+
+	// Use SCAN to find keys matching the pattern
+	var cursor uint64
+	var keys []string
+
+	for {
+		var scanKeys []string
+		var err error
+		scanKeys, cursor, err = dc.client.Scan(ctx, cursor, pattern, 100).Result()
+		if err != nil {
+			dc.incrementCounter("errors")
+			dc.breaker.RecordFailure()
+			return fmt.Errorf("scan failed: %w", err)
+		}
+
+		keys = append(keys, scanKeys...)
+
+		if cursor == 0 {
+			break
+		}
+	}
+
+	// Delete all matched keys
+	if len(keys) > 0 {
+		err := dc.client.Del(ctx, keys...).Err()
+		if err != nil {
+			dc.incrementCounter("errors")
+			dc.breaker.RecordFailure()
+			return fmt.Errorf("delete failed: %w", err)
+		}
+	}
+
+	dc.breaker.RecordSuccess()
+
+	// Record metrics
+	if dc.telemetry != nil && dc.config.EnableMetrics {
+		dc.telemetry.RecordCounter("cache_operations_total", float64(len(keys)), map[string]string{
+			"operation": "clear",
+		})
+	}
+
+	return nil
+}
+
 // GetStats returns cache performance statistics
 func (dc *DistributedCache) GetStats() CacheStats {
 	dc.mu.RLock()

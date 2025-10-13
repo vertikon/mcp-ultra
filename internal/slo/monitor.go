@@ -381,13 +381,19 @@ func (m *Monitor) queryPrometheus(ctx context.Context, query string, timestamp t
 
 	switch result.Type() {
 	case model.ValVector:
-		vector := result.(model.Vector)
+		vector, ok := result.(model.Vector)
+		if !ok {
+			return 0, fmt.Errorf("failed to cast result to Vector")
+		}
 		if len(vector) == 0 {
 			return 0, fmt.Errorf("no data points returned")
 		}
 		return float64(vector[0].Value), nil
 	case model.ValScalar:
-		scalar := result.(*model.Scalar)
+		scalar, ok := result.(*model.Scalar)
+		if !ok {
+			return 0, fmt.Errorf("failed to cast result to Scalar")
+		}
 		return float64(scalar.Value), nil
 	default:
 		return 0, fmt.Errorf("unexpected result type: %s", result.Type())

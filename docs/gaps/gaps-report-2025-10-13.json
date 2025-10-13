@@ -1,0 +1,101 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-13 03:11:31",
+  "Critical": [
+    {
+      "Type": "Erros não tratados",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "2 erro(s) não tratado(s)",
+      "Suggestion": "Adicione verificação de erro: if err != nil { ... }",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": true,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Para cada erro não tratado, decida:\n   a) Retornar o erro (wrap com context)\n   b) Logar e continuar\n   c) Logar e retornar\n2. Adicione if err != nil { } manualmente",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "error: failed to check packages: errors while loading package github.com/vertikon/mcp-ultra/internal/cache [github.com/vertikon/mcp-ultra/internal/cache.test]: [-: # github.com/vertikon/mcp-ultra/internal/cache [github.com/vertikon/mcp-ultra/internal/cache.test]",
+        "internal\\cache\\distributed_test.go:21:9: cannot use l (variable of type *logger.Logger) as logger.Logger value in return statement E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed_test.go:21:9: cannot use l (variable of type *logger.Logger) as logger.Logger value in return statement]"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Formatação (gofmt)",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Erro ao verificar formatação",
+      "Suggestion": "",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": null,
+      "NonFixableReason": ""
+    },
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/cache [github.com/vertikon/mcp-ultra/internal/cache.test]\\ninternal\\\\cache\\\\distributed_test.go:21:9: cannot use l (variable of type *logger.Logger) as logger.Logger value in return statement\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/compliance [github.com/vertikon/mcp-ultra/internal/compliance.test]\\ninternal\\\\compliance\\\\framework_test.go:111:27: framework.ScanForPII undefined (type *ComplianceFramework has no field or method ScanForPII)\\ninternal\\\\compliance\\\\framework_test.go:133:19: framework.RecordConsent undefined (type *ComplianceFramework has no field or method RecordConsent)\\ninternal\\\\compliance\\\\framework_test.go:137:31: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)\\ninternal\\\\compliance\\\\framework_test.go:142:30: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)\\ninternal\\\\compliance\\\\framework_test.go:147:18: framework.WithdrawConsent undefined (type *ComplianceFramework has no field or method WithdrawConsent)\\ninternal\\\\compliance\\\\framework_test.go:151:30: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)\\ninternal\\\\compliance\\\\framework_test.go:156:30: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)\\ninternal\\\\compliance\\\\framework_test.go:169:19: framework.RecordDataCreation undefined (type *ComplianceFramework has no field or method RecordDataCreation)\\ninternal\\\\compliance\\\\framework_test.go:176:27: framework.GetRetentionPolicy undefined (type *ComplianceFramework has no field or method GetRetentionPolicy)\\ninternal\\\\compliance\\\\framework_test.go:182:33: framework.ShouldDeleteData undefined (type *ComplianceFramework has no field or method ShouldDeleteData)\\ninternal\\\\compliance\\\\framework_test.go:182:33: too many errors\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/features [github.com/vertikon/mcp-ultra/internal/features.test]\\ninternal\\\\features\\\\manager_test.go:6:2: \\\"time\\\" imported and not used\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/handlers/http [github.com/vertikon/mcp-ultra/internal/handlers/http.test]\\ninternal\\\\handlers\\\\http\\\\router_test.go:23:76: undefined: services.HealthStatus\\ninternal\\\\handlers\\\\http\\\\router_test.go:25:42: undefined: services.HealthStatus\\ninternal\\\\handlers\\\\http\\\\router_test.go:38:75: undefined: services.HealthChecker\\ninternal\\\\handlers\\\\http\\\\router_test.go:47:70: undefined: domain.CreateTaskRequest\\ninternal\\\\handlers\\\\http\\\\router_test.go:60:85: undefined: domain.UpdateTaskRequest\\ninternal\\\\handlers\\\\http\\\\router_test.go:70:73: undefined: domain.TaskFilters\\ninternal\\\\handlers\\\\http\\\\router_test.go:70:95: undefined: domain.TaskList\\ninternal\\\\handlers\\\\http\\\\router_test.go:72:30: undefined: domain.TaskList\\ninternal\\\\handlers\\\\http\\\\health_test.go:272:27: undefined: fmt\\ninternal\\\\handlers\\\\http\\\\health_test.go:273:14: undefined: fmt\\ninternal\\\\handlers\\\\http\\\\router_test.go:72:30: too many errors\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/middleware [github.com/vertikon/mcp-ultra/internal/middleware.test]\\ninternal\\\\middleware\\\\auth_test.go:95:30: undefined: testhelpers.GetTestAPIKeys\\ninternal\\\\middleware\\\\auth_test.go:284:9: undefined: fmt\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/observability [github.com/vertikon/mcp-ultra/internal/observability.test]\\ninternal\\\\observability\\\\telemetry_test.go:60:20: service.GetTracer undefined (type *TelemetryService has no field or method GetTracer)\\ninternal\\\\observability\\\\telemetry_test.go:63:19: service.GetMeter undefined (type *TelemetryService has no field or method GetMeter)\\ninternal\\\\observability\\\\telemetry_test.go:83:20: service.GetTracer undefined (type *TelemetryService has no field or method GetTracer)\\ninternal\\\\observability\\\\telemetry_test.go:96:3: undefined: attribute\\ninternal\\\\observability\\\\telemetry_test.go:97:3: undefined: attribute\\ninternal\\\\observability\\\\telemetry_test.go:102:26: undefined: attribute\\ninternal\\\\observability\\\\telemetry_test.go:118:19: service.GetMeter undefined (type *TelemetryService has no field or method GetMeter)\\ninternal\\\\observability\\\\telemetry_test.go:123:3: undefined: metric\\ninternal\\\\observability\\\\telemetry_test.go:124:3: undefined: metric\\ninternal\\\\observability\\\\telemetry_test.go:129:22: undefined: metric\\ninternal\\\\observability\\\\telemetry_test.go:129:22: too many errors\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/security [github.com/vertikon/mcp-ultra/internal/security.test]\\ninternal\\\\security\\\\enhanced_auth_test.go:22:6: MockOPAService redeclared in this block\\n\\tinternal\\\\security\\\\auth_test.go:23:6: other declaration of MockOPAService\\ninternal\\\\security\\\\enhanced_auth_test.go:26:26: method MockOPAService.IsAuthorized already declared at internal\\\\security\\\\auth_test.go:27:26\\ninternal\\\\security\\\\enhanced_auth_test.go:36:6: TestNewAuthService redeclared in this block\\n\\tinternal\\\\security\\\\auth_test.go:42:6: other declaration of TestNewAuthService\\ninternal\\\\security\\\\enhanced_auth_test.go:326:6: TestGetUserFromContext redeclared in this block\\n\\tinternal\\\\security\\\\auth_test.go:414:6: other declaration of TestGetUserFromContext\\ninternal\\\\security\\\\enhanced_auth_test.go:391:6: TestRequireScope redeclared in this block\\n\\tinternal\\\\security\\\\auth_test.go:285:6: other declaration of TestRequireScope\\ninternal\\\\security\\\\enhanced_auth_test.go:459:6: TestRequireRole redeclared in this block\\n\\tinternal\\\\security\\\\auth_test.go:345:6: other declaration of TestRequireRole\\ninternal\\\\security\\\\auth_test.go:52:48: cannot use opa (variable of type *MockOPAService) as *OPAService value in argument to NewAuthService\\ninternal\\\\security\\\\auth_test.go:70:48: cannot use opa (variable of type *MockOPAService) as *OPAService value in argument to NewAuthService\\ninternal\\\\security\\\\auth_test.go:143:48: cannot use opa (variable of type *MockOPAService) as *OPAService value in argument to NewAuthService\\ninternal\\\\security\\\\auth_test.go:166:48: cannot use opa (variable of type *MockOPAService) as *OPAService value in argument to NewAuthService\\ninternal\\\\security\\\\auth_test.go:166:48: too many errors\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/services [github.com/vertikon/mcp-ultra/internal/services.test]\\ninternal\\\\services\\\\task_service_test.go:104:70: undefined: domain.UserFilter\\ninternal\\\\services\\\\task_service_test.go:171:28: cannot use taskRepo (variable of type *mockTaskRepository) as domain.TaskRepository value in argument to NewTaskService: *mockTaskRepository does not implement domain.TaskRepository (wrong type for method List)\\n\\t\\thave List(context.Context, domain.TaskFilter) ([]*domain.Task, error)\\n\\t\\twant List(context.Context, domain.TaskFilter) ([]*domain.Task, int, error)\\ninternal\\\\services\\\\task_service_test.go:171:48: cannot use eventRepo (variable of type *mockEventRepository) as domain.EventRepository value in argument to NewTaskService: *mockEventRepository does not implement domain.EventRepository (missing method GetByType)\\ninternal\\\\services\\\\task_service_test.go:171:59: cannot use cacheRepo (variable of type *mockCacheRepository) as domain.CacheRepository value in argument to NewTaskService: *mockCacheRepository does not implement domain.CacheRepository (missing method Exists)\\ninternal\\\\services\\\\task_service_test.go:199:31: declared and not used: eventRepo\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/test/compliance_test [github.com/vertikon/mcp-ultra/test/compliance.test]\\ntest\\\\compliance\\\\compliance_integration_test.go:366:3: declared and not used: result\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/test/component [github.com/vertikon/mcp-ultra/test/component.test]\\ntest\\\\component\\\\task_service_test.go:39:3: cannot use suite.taskRepo (variable of type *mocks.MockTaskRepository) as domain.TaskRepository value in argument to services.NewTaskService: *mocks.MockTaskRepository does not implement domain.TaskRepository (wrong type for method Delete)\\n\\t\\thave Delete(context.Context, string) error\\n\\t\\twant Delete(context.Context, uuid.UUID) error\\ntest\\\\component\\\\task_service_test.go:40:3: cannot use suite.validator (variable of type *mocks.MockValidator) as domain.UserRepository value in argument to services.NewTaskService: *mocks.MockValidator does not implement domain.UserRepository (missing method Create)\\ntest\\\\component\\\\task_service_test.go:42:3: cannot use suite.cacheRepo (variable of type *mocks.MockCacheRepository) as domain.CacheRepository value in argument to services.NewTaskService: *mocks.MockCacheRepository does not implement domain.CacheRepository (wrong type for method Get)\\n\\t\\thave Get(context.Context, string) (interface{}, error)\\n\\t\\twant Get(context.Context, string) (string, error)\\ntest\\\\component\\\\task_service_test.go:44:3: cannot use suite.eventBus (variable of type *mocks.MockEventBus) as services.EventBus value in argument to services.NewTaskService: *mocks.MockEventBus does not implement services.EventBus (wrong type for method Publish)\\n\\t\\thave Publish(context.Context, string, []byte) error\\n\\t\\twant Publish(context.Context, *domain.Event) error\\ntest\\\\component\\\\task_service_test.go:65:3: unknown field Metadata in struct literal of type services.CreateTaskRequest\\ntest\\\\component\\\\task_service_test.go:78:20: req.Metadata undefined (type *services.CreateTaskRequest has no field or method Metadata)\\ntest\\\\component\\\\task_service_test.go:97:55: too many arguments in call to suite.service.CreateTask\\n\\thave (context.Context, uuid.UUID, *services.CreateTaskRequest)\\n\\twant (context.Context, services.CreateTaskRequest)\\ntest\\\\component\\\\task_service_test.go:118:29: undefined: services.ValidationError\\ntest\\\\component\\\\task_service_test.go:127:55: too many arguments in call to suite.service.CreateTask\\n\\thave (context.Context, uuid.UUID, *services.CreateTaskRequest)\\n\\twant (context.Context, services.CreateTaskRequest)\\ntest\\\\component\\\\task_service_test.go:151:52: too many arguments in call to suite.service.GetTask\\n\\thave (context.Context, uuid.UUID, uuid.UUID)\\n\\twant (context.Context, uuid.UUID)\\ntest\\\\component\\\\task_service_test.go:151:52: too many errors\""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    },
+    {
+      "Type": "README completo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "README incompleto",
+      "Suggestion": "Adicione seções: instalação",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": true,
+        "AffectsBehavior": false,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Adicione as seções faltantes no README.md",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "instalação"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 4,
+  "Score": 80,
+  "AutoFixable": 0,
+  "Manual": 4
+}

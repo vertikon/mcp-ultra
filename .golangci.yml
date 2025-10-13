@@ -7,22 +7,12 @@ run:
   build-tags:
     - integration
     - unit
-  skip-dirs:
-    - vendor
-    - third_party
-    - testdata
-    - examples
-    - mocks
-  skip-files:
-    - ".*\\.pb\\.go$"
-    - ".*\\.gen\\.go$"
-    - "mock_.*\\.go$"
 
 output:
-  format: colored-line-number
+  formats:
+    - format: colored-line-number
   print-issued-lines: true
   print-linter-name: true
-  uniq-by-line: true
 
 linters:
   enable-all: false
@@ -44,7 +34,6 @@ linters:
 
     # Performance
     - prealloc
-    - maligned
     - govet
 
     # Style & Convention
@@ -81,16 +70,10 @@ linters:
     - testpackage
     - paralleltest
     - tparallel
-    - gomnd
     - lll
     - dupl
     - gochecknoglobals
     - gochecknoinits
-    - interfacer
-    - scopelint
-    - golint
-    - maligned
-    - exhaustivestruct
     - nlreturn
     - nolintlint
     - forbidigo
@@ -116,10 +99,10 @@ linters-settings:
 
   # Code Quality
   govet:
-    check-shadowing: true
     enable-all: true
     disable:
       - fieldalignment # too many false positives
+      - shadow # moved to separate linter
 
   gocritic:
     enabled-tags:
@@ -133,11 +116,9 @@ linters-settings:
       - paramTypeCombine
 
   staticcheck:
-    go: "1.22"
     checks: ["all", "-ST1000", "-ST1003"]
 
   stylecheck:
-    go: "1.22"
     checks: ["all", "-ST1000", "-ST1003"]
 
   revive:
@@ -259,6 +240,18 @@ issues:
   max-same-issues: 0
   new: false
   exclude-use-default: false
+
+  exclude-dirs:
+    - vendor
+    - third_party
+    - testdata
+    - examples
+    - mocks
+
+  exclude-files:
+    - ".*\\.pb\\.go$"
+    - ".*\\.gen\\.go$"
+    - "mock_.*\\.go$"
 
   exclude-rules:
     # Exclude test files from some linters

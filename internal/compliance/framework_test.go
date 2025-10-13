@@ -49,14 +49,14 @@ func createTestComplianceFramework(t *testing.T) *ComplianceFramework {
 		LGPD: LGPDConfig{
 			Enabled:          true,
 			DPOContact:       "dpo@example.com",
-			LegalBasis:       "consent",
+			LegalBasis:       []string{"consent"},
 			DataCategories:   []string{"personal", "sensitive"},
-			SharedThirdParty: []string{"analytics-provider"},
+			SharedThirdParty: false,
 		},
 		GDPR: GDPRConfig{
 			Enabled:             true,
 			DPOContact:          "dpo@example.com",
-			LegalBasis:          "consent",
+			LegalBasis:          []string{"consent"},
 			DataCategories:      []string{"personal", "sensitive"},
 			CrossBorderTransfer: true,
 			AdequacyDecisions:   []string{"US", "CA"},
@@ -326,7 +326,7 @@ func TestComplianceFramework_ValidateCompliance(t *testing.T) {
 		Action:       "process_data",
 		DataType:     "personal",
 		Purpose:      "processing",
-		LegalBasis:   "consent",
+		LegalBasis:   []string{"consent"},
 		Jurisdiction: "BR",
 	})
 	assert.NoError(t, err)
@@ -340,7 +340,7 @@ func TestComplianceFramework_ValidateCompliance(t *testing.T) {
 		Action:       "process_data",
 		DataType:     "personal",
 		Purpose:      "processing",
-		LegalBasis:   "consent",
+		LegalBasis:   []string{"consent"},
 		Jurisdiction: "BR",
 	})
 	assert.NoError(t, err)
