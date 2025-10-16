@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
-	"{{MODULE_PATH}}/internal/testhelpers"
+	"github.com/vertikon/mcp-ultra/internal/testhelpers"
 )
 
 func TestAuthMiddleware_JWTAuth(t *testing.T) {

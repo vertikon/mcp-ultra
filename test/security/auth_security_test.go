@@ -20,8 +20,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
-	"{{MODULE_PATH}}/internal/constants"
-	"{{MODULE_PATH}}/internal/security"
+	"github.com/vertikon/mcp-ultra/internal/constants"
+	"github.com/vertikon/mcp-ultra/internal/security"
 )
 
 // SecurityTestSuite provides comprehensive security testing

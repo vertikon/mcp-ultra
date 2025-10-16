@@ -1,0 +1,112 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-16 08:57:53",
+  "Critical": [
+    {
+      "Type": "Código compila",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "Não compila: # github.com/vertikon/mcp-ultra/internal/telemetry\ninternal\\telemetry\\telemetry.go:25:11: undefined: metrics.CounterOpts\ninternal\\telemetry\\telemetry.go:33:11: undefined: metrics.HistogramOpts\ninterna...",
+      "Suggestion": "Corrija os erros de compilação listados",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Corrija os erros de compilação manualmente, um por um",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "# github.com/vertikon/mcp-ultra/internal/telemetry",
+        "internal\\telemetry\\telemetry.go:25:11: undefined: metrics.CounterOpts",
+        "internal\\telemetry\\telemetry.go:33:11: undefined: metrics.HistogramOpts",
+        "internal\\telemetry\\telemetry.go:36:21: undefined: metrics.DefBuckets",
+        "internal\\telemetry\\telemetry.go:43:11: undefined: metrics.CounterOpts",
+        "internal\\telemetry\\telemetry.go:51:11: undefined: metrics.HistogramOpts",
+        "internal\\telemetry\\telemetry.go:61:11: undefined: metrics.GaugeOpts",
+        "internal\\telemetry\\telemetry.go:69:11: undefined: metrics.CounterOpts",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    },
+    {
+      "Type": "Erros não tratados",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "12 erro(s) não tratado(s)",
+      "Suggestion": "Adicione verificação de erro: if err != nil { ... }",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": true,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Para cada erro não tratado, decida:\n   a) Retornar o erro (wrap com context)\n   b) Logar e continuar\n   c) Logar e retornar\n2. Adicione if err != nil { } manualmente",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "error: failed to check packages: errors while loading package github.com/vertikon/mcp-ultra/internal/compliance [github.com/vertikon/mcp-ultra/internal/compliance.test]: [-: # github.com/vertikon/mcp-ultra/internal/compliance [github.com/vertikon/mcp-ultra/internal/compliance.test]",
+        "internal\\compliance\\framework_test.go:111:27: framework.ScanForPII undefined (type *ComplianceFramework has no field or method ScanForPII)",
+        "internal\\compliance\\framework_test.go:133:19: framework.RecordConsent undefined (type *ComplianceFramework has no field or method RecordConsent)",
+        "internal\\compliance\\framework_test.go:137:31: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)",
+        "internal\\compliance\\framework_test.go:142:30: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)",
+        "internal\\compliance\\framework_test.go:147:18: framework.WithdrawConsent undefined (type *ComplianceFramework has no field or method WithdrawConsent)",
+        "internal\\compliance\\framework_test.go:151:30: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)",
+        "internal\\compliance\\framework_test.go:156:30: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)",
+        "internal\\compliance\\framework_test.go:169:19: framework.RecordDataCreation undefined (type *ComplianceFramework has no field or method RecordDataCreation)",
+        "internal\\compliance\\framework_test.go:176:27: framework.GetRetentionPolicy undefined (type *ComplianceFramework has no field or method GetRetentionPolicy)",
+        "internal\\compliance\\framework_test.go:182:33: framework.ShouldDeleteData undefined (type *ComplianceFramework has no field or method ShouldDeleteData)",
+        "internal\\compliance\\framework_test.go:182:33: too many errors E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:111:27: framework.ScanForPII undefined (type *ComplianceFramework has no field or method ScanForPII) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:133:19: framework.RecordConsent undefined (type *ComplianceFramework has no field or method RecordConsent) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:137:31: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:142:30: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:147:18: framework.WithdrawConsent undefined (type *ComplianceFramework has no field or method WithdrawConsent) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:151:30: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:156:30: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:169:19: framework.RecordDataCreation undefined (type *ComplianceFramework has no field or method RecordDataCreation) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:176:27: framework.GetRetentionPolicy undefined (type *ComplianceFramework has no field or method GetRetentionPolicy) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:182:33: framework.ShouldDeleteData undefined (type *ComplianceFramework has no field or method ShouldDeleteData) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:194:19: framework.RecordDataCreation undefined (type *ComplianceFramework has no field or method RecordDataCreation) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:201:13: undefined: DataAccessRequest E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:208:27: framework.ProcessDataAccessRequest undefined (type *ComplianceFramework has no field or method ProcessDataAccessRequest) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:222:19: framework.RecordDataCreation undefined (type *ComplianceFramework has no field or method RecordDataCreation) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:229:13: undefined: DataDeletionRequest E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:236:27: framework.ProcessDataDeletionRequest undefined (type *ComplianceFramework has no field or method ProcessDataDeletionRequest) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:254:35: framework.AnonymizeData undefined (type *ComplianceFramework has no field or method AnonymizeData) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:279:19: framework.LogAuditEvent undefined (type *ComplianceFramework has no field or method LogAuditEvent) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:283:25: framework.GetAuditLogs undefined (type *ComplianceFramework has no field or method GetAuditLogs) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:283:43: undefined: AuditFilter E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:302:24: status.Enabled undefined (type map[string]interface{} has no field or method Enabled) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:303:31: status.Region undefined (type map[string]interface{} has no field or method Region) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:304:28: status.EnabledFeatures undefined (type map[string]interface{} has no field or method EnabledFeatures) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:305:28: status.EnabledFeatures undefined (type map[string]interface{} has no field or method EnabledFeatures) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:306:28: status.EnabledFeatures undefined (type map[string]interface{} has no field or method EnabledFeatures) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:307:28: status.EnabledFeatures undefined (type map[string]interface{} has no field or method EnabledFeatures) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:308:28: status.EnabledFeatures undefined (type map[string]interface{} has no field or method EnabledFeatures) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:309:28: status.EnabledFeatures undefined (type map[string]interface{} has no field or method EnabledFeatures) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:310:28: status.EnabledFeatures undefined (type map[string]interface{} has no field or method EnabledFeatures) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:320:19: framework.RecordConsent undefined (type *ComplianceFramework has no field or method RecordConsent) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:324:27: framework.ValidateCompliance undefined (type *ComplianceFramework has no field or method ValidateCompliance) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:324:51: undefined: ComplianceValidationRequest E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:338:26: framework.ValidateCompliance undefined (type *ComplianceFramework has no field or method ValidateCompliance) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:338:50: undefined: ComplianceValidationRequest E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:365:21: framework.RecordConsent undefined (type *ComplianceFramework has no field or method RecordConsent) E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\compliance\\framework_test.go:368:33: framework.HasConsent undefined (type *ComplianceFramework has no field or method HasConsent)]"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Formatação (gofmt)",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Erro ao verificar formatação",
+      "Suggestion": "",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": null,
+      "NonFixableReason": ""
+    },
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "Error: parallel golangci-lint is running",
+        "Failed executing command with error: parallel golangci-lint is running",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 4,
+  "Score": 80,
+  "AutoFixable": 0,
+  "Manual": 4
+}

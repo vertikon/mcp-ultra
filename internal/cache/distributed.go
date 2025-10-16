@@ -11,7 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
-	"{{MODULE_PATH}}/internal/observability"
+	"github.com/vertikon/mcp-ultra/internal/observability"
 )
 
 // CacheStrategy represents different caching strategies
@@ -117,7 +117,7 @@ func DefaultCacheConfig() CacheConfig {
 type DistributedCache struct {
 	client    *redis.ClusterClient
 	config    CacheConfig
-	logger    logger.Logger
+	logger    *logger.Logger
 	telemetry *observability.TelemetryService
 
 	// State tracking
@@ -185,7 +185,7 @@ type CacheEntry struct {
 }
 
 // NewDistributedCache creates a new distributed cache instance
-func NewDistributedCache(config CacheConfig, logger logger.Logger, telemetry *observability.TelemetryService) (*DistributedCache, error) {
+func NewDistributedCache(config CacheConfig, log *logger.Logger, telemetry *observability.TelemetryService) (*DistributedCache, error) {
 	// Validate configuration
 	if len(config.Addrs) == 0 {
 		return nil, fmt.Errorf("at least one Redis address is required")
@@ -218,7 +218,7 @@ func NewDistributedCache(config CacheConfig, logger logger.Logger, telemetry *ob
 	cache := &DistributedCache{
 		client:      rdb,
 		config:      config,
-		logger:      logger,
+		logger:      log,
 		telemetry:   telemetry,
 		shards:      make([]CacheShard, 0),
 		consistent:  NewConsistentHash(config.VirtualNodes),
@@ -239,7 +239,7 @@ func NewDistributedCache(config CacheConfig, logger logger.Logger, telemetry *ob
 	// Start background tasks
 	cache.startBackgroundTasks()
 
-	logger.Info("Distributed cache initialized",
+	log.Info("Distributed cache initialized",
 		"strategy", config.Strategy,
 		"eviction_policy", config.EvictionPolicy,
 		"sharding_enabled", config.EnableSharding,

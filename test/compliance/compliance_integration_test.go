@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"{{MODULE_PATH}}/internal/compliance"
-	"{{MODULE_PATH}}/internal/config"
+	"github.com/vertikon/mcp-ultra/internal/compliance"
+	"github.com/vertikon/mcp-ultra/internal/config"
 )
 
 // TestComplianceFrameworkIntegration tests the complete compliance framework
@@ -166,7 +166,7 @@ func TestComplianceFrameworkIntegration(t *testing.T) {
 			"email":       "test@example.com",
 			"cpf":         "12345678901",
 			"phone":       "+5511987654321",
-			"name":        "João Silva",
+			"name":        "JoÃ£o Silva",
 			"description": "Task description without PII",
 		}
 

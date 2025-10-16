@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
-	"{{MODULE_PATH}}/internal/domain"
+	"github.com/vertikon/mcp-ultra/internal/domain"
 )
 
 // TaskService handles task business logic

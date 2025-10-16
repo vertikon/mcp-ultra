@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"{{MODULE_PATH}}/internal/domain"
-	"{{MODULE_PATH}}/internal/services"
+	"github.com/vertikon/mcp-ultra/internal/domain"
+	"github.com/vertikon/mcp-ultra/internal/services"
 	"go.uber.org/zap"
 )
 

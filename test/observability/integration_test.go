@@ -18,8 +18,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"{{MODULE_PATH}}/internal/config"
-	"{{MODULE_PATH}}/internal/observability"
+	"github.com/vertikon/mcp-ultra/internal/config"
+	"github.com/vertikon/mcp-ultra/internal/observability"
 )
 
 // TestObservabilityIntegration tests the complete observability stack

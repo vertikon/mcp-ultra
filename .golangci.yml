@@ -194,11 +194,39 @@ linters-settings:
 
   # Dependencies
   depguard:
-    list-type: blacklist
-    include-go-root: false
-    packages:
-      - github.com/sirupsen/logrus # use go.uber.org/zap
-      - github.com/pkg/errors # use stdlib errors with %w
+    rules:
+      Main:
+        list-mode: lax
+        deny:
+          # Block internal imports from Main
+          - pkg: "github.com/vertikon/mcp-ultra/internal"
+            desc: "Internal packages should not be imported. Use facades from mcp-ultra-fix/pkg/*"
+
+          # Block direct 3P imports that should come from FIX
+          - pkg: "github.com/go-chi/chi"
+            desc: "Use github.com/vertikon/mcp-ultra-fix/pkg/httpx"
+          - pkg: "github.com/go-chi/cors"
+            desc: "Use github.com/vertikon/mcp-ultra-fix/pkg/httpx"
+          - pkg: "github.com/prometheus/client_golang"
+            desc: "Use github.com/vertikon/mcp-ultra-fix/pkg/metrics"
+          - pkg: "go.uber.org/zap"
+            desc: "Use github.com/vertikon/mcp-ultra-fix/pkg/logger"
+          - pkg: "go.opentelemetry.io/otel"
+            desc: "Use github.com/vertikon/mcp-ultra-fix/pkg/observability"
+          - pkg: "github.com/redis/go-redis"
+            desc: "Use github.com/vertikon/mcp-ultra-fix/pkg/redisx"
+          - pkg: "github.com/nats-io/nats.go"
+            desc: "Use github.com/vertikon/mcp-ultra-fix/pkg/natsx"
+          - pkg: "gopkg.in/yaml.v3"
+            desc: "Use github.com/vertikon/mcp-ultra-fix/pkg/config"
+          - pkg: "github.com/kelseyhightower/envconfig"
+            desc: "Use github.com/vertikon/mcp-ultra-fix/pkg/config"
+          - pkg: "github.com/google/uuid"
+            desc: "Use github.com/vertikon/mcp-ultra-fix/pkg/types"
+          - pkg: "github.com/sirupsen/logrus"
+            desc: "Use github.com/vertikon/mcp-ultra-fix/pkg/logger"
+          - pkg: "github.com/pkg/errors"
+            desc: "Use stdlib errors with %w"
 
   gomodguard:
     blocked:
@@ -264,6 +292,7 @@ issues:
         - errcheck
         - dupl
         - goconst
+        - depguard
 
     # Exclude generated files
     - path: \.(pb|gen)\.go

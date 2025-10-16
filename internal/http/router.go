@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"{{MODULE_PATH}}/internal/features"
+	"github.com/vertikon/mcp-ultra/internal/features"
 )
 
 func RegisterRoutes(mux *http.ServeMux) {

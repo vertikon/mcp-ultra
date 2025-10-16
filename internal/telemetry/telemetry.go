@@ -7,49 +7,48 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	promexporter "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.uber.org/zap"
 
-	"{{MODULE_PATH}}/internal/config"
+	"github.com/vertikon/mcp-ultra-fix/pkg/httpx"
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
+	"github.com/vertikon/mcp-ultra-fix/pkg/metrics"
+	"github.com/vertikon/mcp-ultra/internal/config"
 )
 
 var (
 	// HTTP Metrics
-	httpRequestsTotal = promauto.NewCounterVec(
-		prometheus.CounterOpts{
+	httpRequestsTotal = metrics.NewCounterVec(
+		metrics.CounterOpts{
 			Name: "http_requests_total",
 			Help: "Total number of HTTP requests",
 		},
 		[]string{"method", "path", "status"},
 	)
 
-	httpRequestDuration = promauto.NewHistogramVec(
-		prometheus.HistogramOpts{
+	httpRequestDuration = metrics.NewHistogramVec(
+		metrics.HistogramOpts{
 			Name:    "http_request_duration_seconds",
 			Help:    "Duration of HTTP requests in seconds",
-			Buckets: prometheus.DefBuckets,
+			Buckets: metrics.DefBuckets,
 		},
 		[]string{"method", "path", "status"},
 	)
 
 	// Business Metrics
-	tasksTotal = promauto.NewCounterVec(
-		prometheus.CounterOpts{
+	tasksTotal = metrics.NewCounterVec(
+		metrics.CounterOpts{
 			Name: "tasks_total",
 			Help: "Total number of tasks",
 		},
 		[]string{"status", "priority"},
 	)
 
-	tasksProcessingTime = promauto.NewHistogramVec(
-		prometheus.HistogramOpts{
+	tasksProcessingTime = metrics.NewHistogramVec(
+		metrics.HistogramOpts{
 			Name:    "task_processing_seconds",
 			Help:    "Time taken to process tasks",
 			Buckets: []float64{0.1, 0.5, 1.0, 2.5, 5.0, 10.0},
@@ -58,16 +57,16 @@ var (
 	)
 
 	// System Metrics
-	databaseConnections = promauto.NewGaugeVec(
-		prometheus.GaugeOpts{
+	databaseConnections = metrics.NewGaugeVec(
+		metrics.GaugeOpts{
 			Name: "database_connections",
 			Help: "Number of database connections",
 		},
 		[]string{"database", "state"},
 	)
 
-	cacheOperations = promauto.NewCounterVec(
-		prometheus.CounterOpts{
+	cacheOperations = metrics.NewCounterVec(
+		metrics.CounterOpts{
 			Name: "cache_operations_total",
 			Help: "Total number of cache operations",
 		},
@@ -78,12 +77,15 @@ var (
 // Telemetry holds telemetry configuration and clients
 type Telemetry struct {
 	meter  metric.Meter
-	logger *zap.Logger
+	logger *logger.Logger
 }
 
 // Init initializes telemetry system
 func Init(cfg config.TelemetryConfig) (*Telemetry, error) {
-	logger, _ := zap.NewProduction()
+	log, err := logger.NewLogger()
+	if err != nil {
+		return nil, fmt.Errorf("creating logger: %w", err)
+	}
 
 	// Initialize Prometheus exporter
 	exporter, err := promexporter.New()
@@ -100,7 +102,7 @@ func Init(cfg config.TelemetryConfig) (*Telemetry, error) {
 
 	return &Telemetry{
 		meter:  meter,
-		logger: logger,
+		logger: log,
 	}, nil
 }
 
@@ -110,7 +112,7 @@ func HTTPMetrics(next http.Handler) http.Handler {
 		start := time.Now()
 
 		// Wrap response writer to capture status code
-		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+		ww := httpx.NewWrapResponseWriter(w, r.ProtoMajor)
 
 		// Process request
 		next.ServeHTTP(ww, r)

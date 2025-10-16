@@ -8,7 +8,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v3"
 
-	"{{MODULE_PATH}}/internal/security"
+	"github.com/vertikon/mcp-ultra/internal/security"
 )
 
 // Config represents the application configuration

@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
-	"{{MODULE_PATH}}/internal/domain"
-	"{{MODULE_PATH}}/internal/services"
-	"{{MODULE_PATH}}/test/mocks"
+	"github.com/vertikon/mcp-ultra/internal/domain"
+	"github.com/vertikon/mcp-ultra/internal/services"
+	"github.com/vertikon/mcp-ultra/test/mocks"
 )
 
 // TaskServiceTestSuite provides isolated testing for TaskService

@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"{{MODULE_PATH}}/templates/ai/go"
-	"{{MODULE_PATH}}/templates/ai/go/types"
+	"github.com/vertikon/mcp-ultra/templates/ai/go"
+	"github.com/vertikon/mcp-ultra/templates/ai/go/types"
 )
 
 func TestAIServiceDryRun(t *testing.T) {

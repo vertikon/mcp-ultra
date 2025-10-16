@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"{{MODULE_PATH}}/internal/domain"
+	"github.com/vertikon/mcp-ultra/internal/domain"
 )
 
 // TaskRepository implements domain.TaskRepository using PostgreSQL

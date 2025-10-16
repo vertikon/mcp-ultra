@@ -10,7 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
-	"{{MODULE_PATH}}/internal/observability"
+	"github.com/vertikon/mcp-ultra/internal/observability"
 )
 
 // Algorithm represents different rate limiting algorithms

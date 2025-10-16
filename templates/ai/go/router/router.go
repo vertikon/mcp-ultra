@@ -1,4 +1,4 @@
-package router
+﻿package router
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"os"
 
-	"{{MODULE_PATH}}/templates/ai/go/types"
+	"github.com/vertikon/mcp-ultra/templates/ai/go/types"
 )
 
 type RouterConfig struct {

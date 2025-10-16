@@ -10,8 +10,8 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
-	"{{MODULE_PATH}}/internal/domain"
-	"{{MODULE_PATH}}/internal/services"
+	"github.com/vertikon/mcp-ultra/internal/domain"
+	"github.com/vertikon/mcp-ultra/internal/services"
 )
 
 // TaskHandlers handles HTTP requests for tasks

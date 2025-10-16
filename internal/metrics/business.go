@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
-	"{{MODULE_PATH}}/internal/observability"
+	"github.com/vertikon/mcp-ultra/internal/observability"
 )
 
 // MetricType represents different types of business metrics

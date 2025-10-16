@@ -1,4 +1,4 @@
-package budgets
+﻿package budgets
 
 import (
 \t"context"
@@ -8,7 +8,7 @@ import (
 \t"sync"
 \t"time"
 
-\t"{{MODULE_PATH}}/templates/ai/go/types"
+\t"github.com/vertikon/mcp-ultra/templates/ai/go/types"
 )
 
 type BudgetConfig struct {

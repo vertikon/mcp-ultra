@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/redis/go-redis/v9"
-	"{{MODULE_PATH}}/internal/config"
+	"github.com/vertikon/mcp-ultra/internal/config"
 )
 
 // NewClient creates a new Redis client

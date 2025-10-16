@@ -1,4 +1,4 @@
-package events
+﻿package events
 
 import (
 \t"context"
@@ -7,7 +7,7 @@ import (
 \t"time"
 
 \t"github.com/nats-io/nats.go"
-\t"{{MODULE_PATH}}/templates/ai/go/types"
+\t"github.com/vertikon/mcp-ultra/templates/ai/go/types"
 )
 
 type NATSPublisher struct {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"{{MODULE_PATH}}/templates/ai/go/types"
+	"github.com/vertikon/mcp-ultra/templates/ai/go/types"
 )
 
 // AIAdapter interface para providers

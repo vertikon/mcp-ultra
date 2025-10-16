@@ -1,4 +1,4 @@
-module {{MODULE_PATH}}
+module github.com/vertikon/mcp-ultra
 
 go 1.24.0
 
@@ -125,3 +125,5 @@ require (
 )
 
 replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20250825161204-c5933d9347a5
+
+replace github.com/vertikon/mcp-ultra-fix => E:/vertikon/.ecosistema-vertikon/shared/mcp-ultra-fix
