@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go build:*)",
+      "Read(//e/vertikon/.ecosistema-vertikon/mcp-tester-system/**)",
+      "Bash('E:\\go1.25.0\\go\\bin\\go.exe' run enhanced_validator_v7.go 'E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\')",
+      "Bash('E:\\go1.25.0\\go\\bin\\go.exe' build ./...)",
+      "Bash('E:\\go1.25.0\\go\\bin\\go.exe' fmt ./...)",
+      "Bash('E:\\go1.25.0\\go\\bin\\go.exe' test ./internal/observability/... -v)",
+      "Bash('E:\\go1.25.0\\go\\bin\\go.exe' test ./internal/observability/...)",
+      "Bash('E:\\go1.25.0\\go\\bin\\go.exe' test ./internal/observability/... -v -run \"^TestTelemetryService\")",
+      "Bash('E:\\go1.25.0\\go\\bin\\go.exe' test:*)",
+      "Bash('E:\\go1.25.0\\go\\bin\\go.exe' test ./... -timeout 2m)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

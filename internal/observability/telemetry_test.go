@@ -9,7 +9,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap/zaptest"
 )
@@ -344,7 +346,7 @@ func TestTelemetryService_SpanAttributes(t *testing.T) {
 
 	// Test error recording
 	span.RecordError(assert.AnError)
-	span.SetStatus(trace.StatusError, "Test error")
+	span.SetStatus(codes.Error, "Test error")
 }
 
 func TestTelemetryConfig_Validation(t *testing.T) {

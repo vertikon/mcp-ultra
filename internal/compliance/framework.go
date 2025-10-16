@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -377,4 +378,164 @@ func (cf *ComplianceFramework) GetDataMapper() *DataMapper {
 // GetRetentionManager returns the retention manager for direct access
 func (cf *ComplianceFramework) GetRetentionManager() *RetentionManager {
 	return cf.retentionMgr
+}
+
+// PIIScanResult represents the result of a PII scan
+type PIIScanResult struct {
+	DetectedFields  []string                     `json:"detected_fields"`
+	Classifications map[string]PIIClassification `json:"classifications"`
+	TotalFields     int                          `json:"total_fields"`
+	PIIFields       int                          `json:"pii_fields"`
+}
+
+// ScanForPII scans data for Personally Identifiable Information
+func (cf *ComplianceFramework) ScanForPII(ctx context.Context, data interface{}) (*PIIScanResult, error) {
+	if !cf.config.Enabled || cf.piiManager == nil {
+		return &PIIScanResult{
+			DetectedFields:  []string{},
+			Classifications: make(map[string]PIIClassification),
+		}, nil
+	}
+
+	// Convert data to map if needed
+	dataMap, ok := data.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("data must be a map[string]interface{}")
+	}
+
+	result := &PIIScanResult{
+		DetectedFields:  []string{},
+		Classifications: make(map[string]PIIClassification),
+		TotalFields:     len(dataMap),
+		PIIFields:       0,
+	}
+
+	// Scan each field for PII
+	for fieldName, value := range dataMap {
+		if value == nil {
+			continue
+		}
+
+		// Use PIIManager's internal detection
+		for piiType, detector := range cf.piiManager.detectors {
+			detected, confidence, context := detector.Detect(fieldName, value)
+			if detected && confidence >= cf.config.PIIDetection.Confidence {
+				result.DetectedFields = append(result.DetectedFields, fieldName)
+				result.PIIFields++
+				result.Classifications[fieldName] = PIIClassification{
+					FieldName:     fieldName,
+					PIIType:       piiType,
+					Sensitivity:   detector.GetSensitivity(),
+					Confidence:    confidence,
+					OriginalValue: value,
+					Timestamp:     time.Now(),
+					Context:       context,
+				}
+				break // Use first match
+			}
+		}
+	}
+
+	return result, nil
+}
+
+// RecordConsent records user consent for specified purposes
+func (cf *ComplianceFramework) RecordConsent(ctx context.Context, userID uuid.UUID, purposes []string, source string) error {
+	if !cf.config.Enabled || cf.consentMgr == nil {
+		return nil
+	}
+
+	for _, purpose := range purposes {
+		if err := cf.consentMgr.RecordConsent(ctx, userID.String(), purpose, source); err != nil {
+			return fmt.Errorf("failed to record consent for purpose %s: %w", purpose, err)
+		}
+	}
+
+	// Audit the consent recording
+	if cf.auditLogger != nil {
+		cf.auditLogger.LogConsent(ctx, userID.String(), purposes, source, "granted")
+	}
+
+	return nil
+}
+
+// HasConsent checks if user has valid consent for a specific purpose
+func (cf *ComplianceFramework) HasConsent(ctx context.Context, userID uuid.UUID, purpose string) (bool, error) {
+	if !cf.config.Enabled || cf.consentMgr == nil {
+		return true, nil // If compliance disabled, allow by default
+	}
+
+	return cf.consentMgr.HasValidConsent(ctx, userID.String(), purpose)
+}
+
+// WithdrawConsent withdraws user consent for specified purposes
+func (cf *ComplianceFramework) WithdrawConsent(ctx context.Context, userID uuid.UUID, purposes []string) error {
+	if !cf.config.Enabled || cf.consentMgr == nil {
+		return nil
+	}
+
+	for _, purpose := range purposes {
+		if err := cf.consentMgr.WithdrawConsent(ctx, userID.String(), purpose); err != nil {
+			return fmt.Errorf("failed to withdraw consent for purpose %s: %w", purpose, err)
+		}
+	}
+
+	// Audit the consent withdrawal
+	if cf.auditLogger != nil {
+		cf.auditLogger.LogConsent(ctx, userID.String(), purposes, "system", "withdrawn")
+	}
+
+	return nil
+}
+
+// RecordDataCreation records data creation for retention tracking
+func (cf *ComplianceFramework) RecordDataCreation(ctx context.Context, userID uuid.UUID, dataCategory string, data map[string]interface{}) error {
+	if !cf.config.Enabled || cf.retentionMgr == nil {
+		return nil
+	}
+
+	return cf.retentionMgr.RecordDataCreation(ctx, userID.String(), dataCategory, data)
+}
+
+// GetRetentionPolicy gets retention policy for a data category
+func (cf *ComplianceFramework) GetRetentionPolicy(ctx context.Context, dataCategory string) (*RetentionPolicy, error) {
+	if !cf.config.Enabled {
+		return nil, fmt.Errorf("compliance framework is disabled")
+	}
+
+	// Check if a policy exists for this category in the retention manager
+	if cf.retentionMgr != nil {
+		for _, policy := range cf.retentionMgr.GetPolicies() {
+			if policy.Category == dataCategory && policy.IsActive {
+				return &policy, nil
+			}
+		}
+	}
+
+	// Return a default policy based on configuration
+	period := cf.config.DataRetention.DefaultPeriod
+	if categoryPeriod, exists := cf.config.DataRetention.CategoryPeriods[dataCategory]; exists {
+		period = categoryPeriod
+	}
+
+	return &RetentionPolicy{
+		ID:              fmt.Sprintf("%s_policy", dataCategory),
+		Name:            fmt.Sprintf("%s Data Retention", dataCategory),
+		Description:     fmt.Sprintf("Data retention policy for %s category", dataCategory),
+		Category:        dataCategory,
+		RetentionPeriod: period,
+		Action:          RetentionActionDelete,
+		IsActive:        true,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+	}, nil
+}
+
+// ShouldDeleteData checks if data should be deleted based on retention policy
+func (cf *ComplianceFramework) ShouldDeleteData(ctx context.Context, userID uuid.UUID, dataCategory string) (bool, error) {
+	if !cf.config.Enabled || cf.retentionMgr == nil {
+		return false, nil
+	}
+
+	return cf.retentionMgr.ShouldDeleteData(ctx, userID.String(), dataCategory)
 }

@@ -374,6 +374,61 @@ func (rm *RetentionManager) GetRetentionStatus(ctx context.Context, subjectID st
 	return rm.repository.GetRetentionRecords(ctx, subjectID)
 }
 
+// GetPolicies returns all retention policies
+func (rm *RetentionManager) GetPolicies() map[string]RetentionPolicy {
+	return rm.policies
+}
+
+// RecordDataCreation records data creation for retention tracking
+func (rm *RetentionManager) RecordDataCreation(ctx context.Context, subjectID, dataCategory string, data map[string]interface{}) error {
+	if !rm.config.Enabled {
+		return nil
+	}
+
+	// Add category metadata to data
+	dataWithCategory := make(map[string]interface{})
+	for k, v := range data {
+		dataWithCategory[k] = v
+	}
+	dataWithCategory["_category"] = dataCategory
+
+	// Apply retention policy
+	return rm.ApplyRetentionPolicy(ctx, subjectID, dataWithCategory)
+}
+
+// ShouldDeleteData checks if data should be deleted based on retention policy
+func (rm *RetentionManager) ShouldDeleteData(ctx context.Context, subjectID, dataCategory string) (bool, error) {
+	if !rm.config.Enabled {
+		return false, nil
+	}
+
+	records, err := rm.repository.GetRetentionRecords(ctx, subjectID)
+	if err != nil {
+		return false, fmt.Errorf("failed to get retention records: %w", err)
+	}
+
+	now := time.Now()
+	for _, record := range records {
+		// Skip records on legal hold
+		if record.LegalHold {
+			continue
+		}
+
+		// Check if record matches the data category and is expired
+		if record.DataType == dataCategory || dataCategory == "" {
+			// Check if retention period has expired
+			if now.After(record.RetentionEnd) {
+				// Check if grace period has also expired (if applicable)
+				if record.GraceEnd == nil || now.After(*record.GraceEnd) {
+					return true, nil
+				}
+			}
+		}
+	}
+
+	return false, nil
+}
+
 // Helper methods
 
 func (rm *RetentionManager) executeRetentionAction(ctx context.Context, record RetentionRecord) error {

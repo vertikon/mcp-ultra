@@ -3,11 +3,13 @@ package observability
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"runtime"
 	"time"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/prometheus"
@@ -180,7 +182,15 @@ func (ts *TelemetryService) initTracing(res *resource.Resource) error {
 		}
 		ts.logger.Info("Using OTLP exporter", zap.String("endpoint", ts.config.OTLPEndpoint))
 	} else {
-		return fmt.Errorf("no tracing endpoint configured")
+		// No exporter configured - use no-op for tests/disabled telemetry
+		ts.logger.Debug("No tracing exporter configured, using no-op tracer")
+		ts.tracerProvider = otel.GetTracerProvider()
+		ts.tracer = ts.tracerProvider.Tracer(
+			ts.config.ServiceName,
+			trace.WithInstrumentationVersion(ts.config.ServiceVersion),
+			trace.WithSchemaURL(semconv.SchemaURL),
+		)
+		return nil
 	}
 
 	// Create trace provider
@@ -418,12 +428,36 @@ func (ts *TelemetryService) Tracer() trace.Tracer {
 	return ts.tracer
 }
 
+// GetTracer returns a named tracer from the tracer provider
+func (ts *TelemetryService) GetTracer(name string) trace.Tracer {
+	if ts.tracerProvider == nil {
+		return otel.Tracer(name)
+	}
+	return ts.tracerProvider.Tracer(
+		name,
+		trace.WithInstrumentationVersion(ts.config.ServiceVersion),
+		trace.WithSchemaURL(semconv.SchemaURL),
+	)
+}
+
 // Meter returns the configured meter
 func (ts *TelemetryService) Meter() metric.Meter {
 	if ts.meter == nil {
 		return otel.Meter("noop")
 	}
 	return ts.meter
+}
+
+// GetMeter returns a named meter from the meter provider
+func (ts *TelemetryService) GetMeter(name string) metric.Meter {
+	if ts.meterProvider == nil {
+		return otel.Meter(name)
+	}
+	return ts.meterProvider.Meter(
+		name,
+		metric.WithInstrumentationVersion(ts.config.ServiceVersion),
+		metric.WithSchemaURL(semconv.SchemaURL),
+	)
 }
 
 // StartSpan starts a new trace span
@@ -519,6 +553,166 @@ func (ts *TelemetryService) DecrementActiveConnections() {
 		return
 	}
 	ts.activeConnections.Add(context.Background(), -1)
+}
+
+// IncrementRequestCounter increments the HTTP request counter
+func (ts *TelemetryService) IncrementRequestCounter(ctx context.Context, method, path, statusCode string) error {
+	if !ts.config.Enabled || ts.requestCounter == nil {
+		return nil
+	}
+
+	attrs := []attribute.KeyValue{
+		attribute.String("http.method", method),
+		attribute.String("http.path", path),
+		attribute.String("http.status", statusCode),
+	}
+
+	ts.requestCounter.Add(ctx, 1, metric.WithAttributes(attrs...))
+	return nil
+}
+
+// RecordRequestDuration records HTTP request duration
+func (ts *TelemetryService) RecordRequestDuration(ctx context.Context, method, path string, duration time.Duration) error {
+	if !ts.config.Enabled || ts.requestDuration == nil {
+		return nil
+	}
+
+	attrs := []attribute.KeyValue{
+		attribute.String("http.method", method),
+		attribute.String("http.path", path),
+	}
+
+	ts.requestDuration.Record(ctx, duration.Seconds(), metric.WithAttributes(attrs...))
+	return nil
+}
+
+// IncrementErrorCounter increments the error counter
+func (ts *TelemetryService) IncrementErrorCounter(ctx context.Context, errorType, errorCode string) error {
+	if !ts.config.Enabled || ts.errorCounter == nil {
+		return nil
+	}
+
+	attrs := []attribute.KeyValue{
+		attribute.String("error.type", errorType),
+		attribute.String("error.code", errorCode),
+	}
+
+	ts.errorCounter.Add(ctx, 1, metric.WithAttributes(attrs...))
+	return nil
+}
+
+// RecordProcessingTime records processing time for an operation
+func (ts *TelemetryService) RecordProcessingTime(ctx context.Context, operationType string, duration time.Duration) error {
+	if !ts.config.Enabled || ts.meter == nil {
+		return nil
+	}
+
+	// Create or get a histogram for processing time
+	histogram, err := ts.meter.Float64Histogram(
+		"processing_time_seconds",
+		metric.WithDescription("Processing time in seconds"),
+		metric.WithUnit("s"),
+	)
+	if err != nil {
+		return err
+	}
+
+	attrs := []attribute.KeyValue{
+		attribute.String("operation.type", operationType),
+	}
+
+	histogram.Record(ctx, duration.Seconds(), metric.WithAttributes(attrs...))
+	return nil
+}
+
+// HTTPMiddleware returns an HTTP middleware that instruments requests with tracing and metrics
+func (ts *TelemetryService) HTTPMiddleware() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if !ts.config.Enabled {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			start := time.Now()
+
+			// Start span for tracing
+			ctx, span := ts.tracer.Start(r.Context(), r.Method+" "+r.URL.Path,
+				trace.WithAttributes(
+					attribute.String("http.method", r.Method),
+					attribute.String("http.url", r.URL.String()),
+					attribute.String("http.host", r.Host),
+					attribute.String("http.scheme", r.URL.Scheme),
+					attribute.String("http.user_agent", r.UserAgent()),
+				),
+			)
+			defer span.End()
+
+			// Wrap response writer to capture status code
+			wrapped := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+
+			// Serve the request
+			next.ServeHTTP(wrapped, r.WithContext(ctx))
+
+			// Record metrics
+			duration := time.Since(start)
+			statusCode := fmt.Sprintf("%d", wrapped.statusCode)
+
+			ts.IncrementRequestCounter(ctx, r.Method, r.URL.Path, statusCode)
+			ts.RecordRequestDuration(ctx, r.Method, r.URL.Path, duration)
+
+			// Add status to span
+			span.SetAttributes(attribute.Int("http.status_code", wrapped.statusCode))
+			if wrapped.statusCode >= 400 {
+				span.SetStatus(codes.Error, fmt.Sprintf("HTTP %d", wrapped.statusCode))
+			}
+		})
+	}
+}
+
+// HealthCheck returns health status of the telemetry service
+func (ts *TelemetryService) HealthCheck() map[string]interface{} {
+	health := map[string]interface{}{
+		"status": "healthy",
+		"components": map[string]interface{}{
+			"telemetry": map[string]interface{}{
+				"enabled": ts.config.Enabled,
+				"service": ts.config.ServiceName,
+			},
+		},
+	}
+
+	if !ts.config.Enabled {
+		health["status"] = "disabled"
+		return health
+	}
+
+	components := health["components"].(map[string]interface{})
+
+	// Check tracer provider
+	if ts.tracerProvider != nil {
+		components["tracing"] = map[string]interface{}{
+			"status":  "active",
+			"exporter": ts.config.Exporter,
+		}
+	} else {
+		components["tracing"] = map[string]interface{}{
+			"status": "inactive",
+		}
+	}
+
+	// Check meter provider
+	if ts.meterProvider != nil {
+		components["metrics"] = map[string]interface{}{
+			"status": "active",
+		}
+	} else {
+		components["metrics"] = map[string]interface{}{
+			"status": "inactive",
+		}
+	}
+
+	return health
 }
 
 // collectSystemMetrics collects system-level metrics
