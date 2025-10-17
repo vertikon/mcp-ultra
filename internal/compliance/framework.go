@@ -539,3 +539,173 @@ func (cf *ComplianceFramework) ShouldDeleteData(ctx context.Context, userID uuid
 
 	return cf.retentionMgr.ShouldDeleteData(ctx, userID.String(), dataCategory)
 }
+
+// DataAccessRequest represents a request to access personal data
+type DataAccessRequest struct {
+	SubjectID string                 `json:"subject_id"`
+	RequestID string                 `json:"request_id"`
+	Scope     string                 `json:"scope"`    // all, specific
+	Category  string                 `json:"category"` // optional filter
+	Format    string                 `json:"format"`   // json, xml, csv
+	Metadata  map[string]interface{} `json:"metadata"`
+}
+
+// DataDeletionRequest represents a request to delete personal data
+type DataDeletionRequest struct {
+	SubjectID string                 `json:"subject_id"`
+	RequestID string                 `json:"request_id"`
+	Scope     string                 `json:"scope"`    // all, specific
+	Category  string                 `json:"category"` // optional filter
+	Reason    string                 `json:"reason"`
+	Metadata  map[string]interface{} `json:"metadata"`
+}
+
+// AuditFilter represents filters for querying audit logs
+type AuditFilter struct {
+	SubjectID string    `json:"subject_id,omitempty"`
+	EventType string    `json:"event_type,omitempty"`
+	Action    string    `json:"action,omitempty"`
+	StartTime time.Time `json:"start_time,omitempty"`
+	EndTime   time.Time `json:"end_time,omitempty"`
+	Limit     int       `json:"limit,omitempty"`
+	Offset    int       `json:"offset,omitempty"`
+}
+
+// ComplianceValidationRequest represents a compliance validation request
+type ComplianceValidationRequest struct {
+	SubjectID    string                 `json:"subject_id"`
+	DataCategory string                 `json:"data_category"`
+	Purpose      string                 `json:"purpose"`
+	Metadata     map[string]interface{} `json:"metadata"`
+}
+
+// ProcessDataAccessRequest processes a data access request (GDPR Art. 15 / LGPD Art. 18)
+func (cf *ComplianceFramework) ProcessDataAccessRequest(ctx context.Context, req DataAccessRequest) error {
+	if !cf.config.Enabled {
+		return fmt.Errorf("compliance framework is disabled")
+	}
+
+	cf.logger.Info("Processing data access request",
+		zap.String("subject_id", req.SubjectID),
+		zap.String("request_id", req.RequestID),
+		zap.String("scope", req.Scope))
+
+	// TODO: Implement actual data extraction and export
+	// 1. Gather all data for subject_id across systems
+	// 2. Format according to req.Format
+	// 3. Apply PII handling if needed
+	// 4. Return structured data
+
+	return nil
+}
+
+// ProcessDataDeletionRequest processes a data deletion request (Right to be forgotten)
+func (cf *ComplianceFramework) ProcessDataDeletionRequest(ctx context.Context, req DataDeletionRequest) error {
+	if !cf.config.Enabled {
+		return fmt.Errorf("compliance framework is disabled")
+	}
+
+	cf.logger.Info("Processing data deletion request",
+		zap.String("subject_id", req.SubjectID),
+		zap.String("request_id", req.RequestID),
+		zap.String("reason", req.Reason))
+
+	// TODO: Implement actual data deletion
+	// 1. Identify all data for subject_id
+	// 2. Check retention policies and legal holds
+	// 3. Delete or anonymize data
+	// 4. Log deletion audit event
+
+	return nil
+}
+
+// AnonymizeData anonymizes personal data for a subject
+func (cf *ComplianceFramework) AnonymizeData(ctx context.Context, subjectID string) error {
+	if !cf.config.Enabled {
+		return fmt.Errorf("compliance framework is disabled")
+	}
+
+	cf.logger.Info("Anonymizing data", zap.String("subject_id", subjectID))
+
+	// TODO: Implement data anonymization
+	// 1. Identify all PII fields for subject_id
+	// 2. Apply anonymization techniques (hash, tokenize, generalize)
+	// 3. Update records with anonymized values
+	// 4. Log anonymization event
+
+	return nil
+}
+
+// LogAuditEvent logs a compliance audit event
+func (cf *ComplianceFramework) LogAuditEvent(ctx context.Context, event AuditEvent) error {
+	if !cf.config.Enabled || cf.auditLogger == nil {
+		return nil
+	}
+
+	cf.logger.Debug("Logging audit event",
+		zap.String("event_id", event.ID),
+		zap.String("event_type", string(event.EventType)),
+		zap.String("subject_id", event.SubjectID))
+
+	// Route to audit logger
+	return cf.auditLogger.logEvent(event)
+}
+
+// GetAuditLogs retrieves audit logs based on filters
+func (cf *ComplianceFramework) GetAuditLogs(ctx context.Context, filter AuditFilter) ([]AuditEvent, error) {
+	if !cf.config.Enabled || cf.auditLogger == nil {
+		return []AuditEvent{}, nil
+	}
+
+	cf.logger.Debug("Retrieving audit logs",
+		zap.String("subject_id", filter.SubjectID),
+		zap.String("event_type", filter.EventType))
+
+	// Convert AuditFilter to map for the query
+	filters := make(map[string]interface{})
+	if filter.SubjectID != "" {
+		filters["subject_id"] = filter.SubjectID
+	}
+	if filter.EventType != "" {
+		filters["event_type"] = filter.EventType
+	}
+	if filter.Action != "" {
+		filters["action"] = filter.Action
+	}
+
+	limit := filter.Limit
+	if limit == 0 {
+		limit = 100 // default limit
+	}
+
+	return cf.auditLogger.QueryAuditLogs(ctx, filters, limit)
+}
+
+// ValidateCompliance validates compliance requirements for an operation
+func (cf *ComplianceFramework) ValidateCompliance(ctx context.Context, req ComplianceValidationRequest) (bool, error) {
+	if !cf.config.Enabled {
+		return true, nil // Allow by default if compliance disabled
+	}
+
+	cf.logger.Debug("Validating compliance",
+		zap.String("subject_id", req.SubjectID),
+		zap.String("purpose", req.Purpose),
+		zap.String("category", req.DataCategory))
+
+	// TODO: Implement compliance validation logic
+	// 1. Check consent for purpose
+	// 2. Validate against retention policies
+	// 3. Check legal basis
+	// 4. Verify data minimization principles
+
+	// For now, check basic consent
+	if cf.consentMgr != nil {
+		hasConsent, err := cf.consentMgr.HasValidConsent(ctx, req.SubjectID, req.Purpose)
+		if err != nil {
+			return false, fmt.Errorf("failed to check consent: %w", err)
+		}
+		return hasConsent, nil
+	}
+
+	return true, nil
+}
