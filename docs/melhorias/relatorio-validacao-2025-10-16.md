@@ -1,9 +1,9 @@
 # 📊 Relatório de Validação - mcp-ultra
 
-**Data:** 2025-10-16 10:16:27
+**Data:** 2025-10-16 11:19:01
 **Validador:** Enhanced Validator V7.0 (Filosofia Go)
 **Projeto:** mcp-ultra
-**Score Geral:** 90%
+**Score Geral:** 85%
 
 ---
 
@@ -11,8 +11,8 @@
 
 ```
 Falhas Críticas: 1
-Warnings: 1
-Tempo de Execução: 95.28s
+Warnings: 2
+Tempo de Execução: 259.58s
 Status: ❌ BLOQUEADO - Corrija falhas críticas
 ```
 

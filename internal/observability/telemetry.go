@@ -692,7 +692,7 @@ func (ts *TelemetryService) HealthCheck() map[string]interface{} {
 	// Check tracer provider
 	if ts.tracerProvider != nil {
 		components["tracing"] = map[string]interface{}{
-			"status":  "active",
+			"status":   "active",
 			"exporter": ts.config.Exporter,
 		}
 	} else {
