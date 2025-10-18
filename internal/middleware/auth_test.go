@@ -93,7 +93,8 @@ func TestAuthMiddleware_APIKeyAuth(t *testing.T) {
 	}
 
 	authMiddleware := NewAuthMiddleware(config, logger)
-	validAPIKeys := testhelpers.GetTestAPIKeys()
+	publicKey, privateKey := testhelpers.GetTestAPIKeys(t)
+	validAPIKeys := map[string]string{publicKey: privateKey}
 
 	t.Run("should validate valid API key", func(t *testing.T) {
 		handler := authMiddleware.APIKeyAuth(validAPIKeys)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

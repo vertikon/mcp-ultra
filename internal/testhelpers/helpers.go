@@ -3,6 +3,7 @@ package testhelpers
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"testing"
 )
 
 // GetTestJWTSecret returns a safe test JWT secret
@@ -32,4 +33,11 @@ func GetTestRedisURL() string {
 // GetTestNATSURL returns a test NATS URL
 func GetTestNATSURL() string {
 	return "nats://localhost:4222"
+}
+
+// GetTestAPIKeys returns test API keys for authentication testing
+func GetTestAPIKeys(t *testing.T) (publicKey, privateKey string) {
+	t.Helper()
+	return "test-public-key-" + hex.EncodeToString([]byte("public")),
+		"test-private-key-" + hex.EncodeToString([]byte("private"))
 }

@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/vertikon/mcp-ultra/internal/domain"
@@ -39,12 +41,16 @@ func (m *MockHealthService) RegisterChecker(name string, checker services.Health
 	m.Called(name, checker)
 }
 
+func (m *MockHealthService) RegisterRoutes(r chi.Router) {
+	m.Called(r)
+}
+
 // MockTaskService for testing
 type MockTaskService struct {
 	mock.Mock
 }
 
-func (m *MockTaskService) CreateTask(ctx context.Context, req domain.CreateTaskRequest) (*domain.Task, error) {
+func (m *MockTaskService) CreateTask(ctx context.Context, req services.CreateTaskRequest) (*domain.Task, error) {
 	args := m.Called(ctx, req)
 	return args.Get(0).(*domain.Task), args.Error(1)
 }
@@ -57,7 +63,7 @@ func (m *MockTaskService) GetTask(ctx context.Context, taskID string) (*domain.T
 	return args.Get(0).(*domain.Task), args.Error(1)
 }
 
-func (m *MockTaskService) UpdateTask(ctx context.Context, taskID string, req domain.UpdateTaskRequest) (*domain.Task, error) {
+func (m *MockTaskService) UpdateTask(ctx context.Context, taskID string, req services.UpdateTaskRequest) (*domain.Task, error) {
 	args := m.Called(ctx, taskID, req)
 	return args.Get(0).(*domain.Task), args.Error(1)
 }
@@ -67,9 +73,32 @@ func (m *MockTaskService) DeleteTask(ctx context.Context, taskID string) error {
 	return args.Error(0)
 }
 
-func (m *MockTaskService) ListTasks(ctx context.Context, filters domain.TaskFilters) (*domain.TaskList, error) {
+func (m *MockTaskService) ListTasks(ctx context.Context, filters domain.TaskFilter) (*domain.TaskList, error) {
 	args := m.Called(ctx, filters)
 	return args.Get(0).(*domain.TaskList), args.Error(1)
+}
+
+func (m *MockTaskService) CompleteTask(ctx context.Context, taskID uuid.UUID) (*domain.Task, error) {
+	args := m.Called(ctx, taskID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Task), args.Error(1)
+}
+
+func (m *MockTaskService) GetTasksByStatus(ctx context.Context, status domain.TaskStatus) ([]*domain.Task, error) {
+	args := m.Called(ctx, status)
+	return args.Get(0).([]*domain.Task), args.Error(1)
+}
+
+func (m *MockTaskService) GetTasksByAssignee(ctx context.Context, assigneeID uuid.UUID) ([]*domain.Task, error) {
+	args := m.Called(ctx, assigneeID)
+	return args.Get(0).([]*domain.Task), args.Error(1)
+}
+
+// ptr is a helper function to create pointer to string
+func ptr(s string) *string {
+	return &s
 }
 
 func TestNewRouter(t *testing.T) {
@@ -77,7 +106,7 @@ func TestNewRouter(t *testing.T) {
 	mockHealthService := &MockHealthService{}
 	mockTaskService := &MockTaskService{}
 
-	router := NewRouter(logger, mockHealthService, mockTaskService)
+	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
 
 	assert.NotNil(t, router)
 }
@@ -99,8 +128,8 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 			endpoint: "/health",
 			setupMock: func() {
 				mockHealthService.On("Check", mock.Anything).Return(map[string]services.HealthStatus{
-					"database": {Status: "healthy", Message: "Connected"},
-					"redis":    {Status: "healthy", Message: "Connected"},
+					"database": {Status: "healthy"},
+					"redis":    {Status: "healthy"},
 				})
 			},
 			expectedStatus: http.StatusOK,
@@ -150,7 +179,7 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 
 			tt.setupMock()
 
-			router := NewRouter(logger, mockHealthService, mockTaskService)
+			router := NewRouter(mockTaskService, nil, mockHealthService, logger)
 			req := httptest.NewRequest(http.MethodGet, tt.endpoint, nil)
 			w := httptest.NewRecorder()
 
@@ -172,22 +201,22 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	mockHealthService := &MockHealthService{}
 	mockTaskService := &MockTaskService{}
 
-	router := NewRouter(logger, mockHealthService, mockTaskService)
+	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
 
 	t.Run("POST /tasks - create task", func(t *testing.T) {
-		taskRequest := domain.CreateTaskRequest{
+		creatorID := uuid.New()
+		taskRequest := services.CreateTaskRequest{
 			Title:       "Test Task",
 			Description: "Test Description",
-			Priority:    "high",
-			Category:    "development",
+			Priority:    domain.PriorityHigh,
+			CreatedBy:   creatorID,
 		}
 
 		expectedTask := &domain.Task{
-			ID:          "task-123",
+			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000123"),
 			Title:       "Test Task",
 			Description: "Test Description",
 			Priority:    "high",
-			Category:    "development",
 			Status:      "pending",
 		}
 
@@ -212,7 +241,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	})
 
 	t.Run("GET /tasks/:id - get task", func(t *testing.T) {
-		taskID := "task-123"
+		taskID := uuid.MustParse("00000000-0000-0000-0000-000000000123")
 		expectedTask := &domain.Task{
 			ID:          taskID,
 			Title:       "Test Task",
@@ -222,7 +251,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 
 		mockTaskService.On("GetTask", mock.Anything, taskID).Return(expectedTask, nil)
 
-		req := httptest.NewRequest(http.MethodGet, "/api/v1/tasks/"+taskID, nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/tasks/"+taskID.String(), nil)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -238,16 +267,17 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	})
 
 	t.Run("PUT /tasks/:id - update task", func(t *testing.T) {
-		taskID := "task-123"
-		updateRequest := domain.UpdateTaskRequest{
-			Title:  "Updated Task",
-			Status: "completed",
+		taskUUID := uuid.MustParse("00000000-0000-0000-0000-000000000123")
+		taskID := taskUUID.String()
+		updateRequest := services.UpdateTaskRequest{
+			Title:       ptr("Updated Task"),
+			Description: ptr("Updated Description"),
 		}
 
 		expectedTask := &domain.Task{
-			ID:     taskID,
+			ID:     taskUUID,
 			Title:  "Updated Task",
-			Status: "completed",
+			Status: domain.TaskStatusCompleted,
 		}
 
 		mockTaskService.On("UpdateTask", mock.Anything, taskID, updateRequest).Return(expectedTask, nil)
@@ -270,7 +300,8 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	})
 
 	t.Run("DELETE /tasks/:id - delete task", func(t *testing.T) {
-		taskID := "task-123"
+		taskUUID := uuid.MustParse("00000000-0000-0000-0000-000000000123")
+		taskID := taskUUID.String()
 
 		mockTaskService.On("DeleteTask", mock.Anything, taskID).Return(nil)
 
@@ -285,23 +316,33 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	})
 
 	t.Run("GET /tasks - list tasks", func(t *testing.T) {
-		filters := domain.TaskFilters{
-			Status:   "pending",
-			Priority: "high",
+		task1ID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
+		task2ID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
+
+		tasks := []*domain.Task{
+			{
+				ID:          task1ID,
+				Title:       "Task 1",
+				Description: "Test 1",
+				Status:      domain.TaskStatusPending,
+				Priority:    domain.PriorityHigh,
+			},
+			{
+				ID:          task2ID,
+				Title:       "Task 2",
+				Description: "Test 2",
+				Status:      domain.TaskStatusPending,
+				Priority:    domain.PriorityHigh,
+			},
 		}
 
 		taskList := &domain.TaskList{
-			Tasks: []domain.Task{
-				{ID: "task-1", Title: "Task 1", Status: "pending", Priority: "high"},
-				{ID: "task-2", Title: "Task 2", Status: "pending", Priority: "high"},
-			},
-			Total: 2,
-			Page:  1,
-			Size:  10,
+			Items: tasks,
+			Total: len(tasks),
 		}
 
-		mockTaskService.On("ListTasks", mock.Anything, mock.MatchedBy(func(f domain.TaskFilters) bool {
-			return f.Status == "pending" && f.Priority == "high"
+		mockTaskService.On("ListTasks", mock.Anything, mock.MatchedBy(func(f domain.TaskFilter) bool {
+			return f.Limit == 10
 		})).Return(taskList, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/tasks?status=pending&priority=high", nil)
@@ -314,7 +355,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 		var response domain.TaskList
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, len(response.Tasks))
+		assert.Equal(t, 2, len(response.Items))
 		assert.Equal(t, 2, response.Total)
 
 		mockTaskService.AssertExpectations(t)
@@ -326,7 +367,7 @@ func TestRouter_Middleware(t *testing.T) {
 	mockHealthService := &MockHealthService{}
 	mockTaskService := &MockTaskService{}
 
-	router := NewRouter(logger, mockHealthService, mockTaskService)
+	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
 
 	t.Run("CORS headers are set", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodOptions, "/api/v1/tasks", nil)
@@ -361,7 +402,7 @@ func TestRouter_ErrorHandling(t *testing.T) {
 	mockHealthService := &MockHealthService{}
 	mockTaskService := &MockTaskService{}
 
-	router := NewRouter(logger, mockHealthService, mockTaskService)
+	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
 
 	t.Run("404 for non-existent endpoint", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/non-existent", nil)

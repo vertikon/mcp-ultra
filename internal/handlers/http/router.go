@@ -1,24 +1,44 @@
 package http
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 
+	"github.com/vertikon/mcp-ultra/internal/domain"
 	"github.com/vertikon/mcp-ultra/internal/features"
 	"github.com/vertikon/mcp-ultra/internal/services"
 	"github.com/vertikon/mcp-ultra/internal/telemetry"
 )
 
+// TaskService interface defines methods for task operations
+type TaskService interface {
+	CreateTask(ctx context.Context, req services.CreateTaskRequest) (*domain.Task, error)
+	GetTask(ctx context.Context, taskID string) (*domain.Task, error)
+	UpdateTask(ctx context.Context, taskID string, req services.UpdateTaskRequest) (*domain.Task, error)
+	DeleteTask(ctx context.Context, taskID string) error
+	ListTasks(ctx context.Context, filters domain.TaskFilter) (*domain.TaskList, error)
+	CompleteTask(ctx context.Context, taskID uuid.UUID) (*domain.Task, error)
+	GetTasksByStatus(ctx context.Context, status domain.TaskStatus) ([]*domain.Task, error)
+	GetTasksByAssignee(ctx context.Context, assigneeID uuid.UUID) ([]*domain.Task, error)
+}
+
+// HealthServiceInterface defines the interface for health service
+type HealthServiceInterface interface {
+	RegisterRoutes(r chi.Router)
+}
+
 // Router creates and configures the HTTP router
 func NewRouter(
-	taskService *services.TaskService,
+	taskService TaskService,
 	flagManager *features.FlagManager,
-	healthService *HealthService,
+	healthService HealthServiceInterface,
 	logger *zap.Logger,
 ) *chi.Mux {
 	r := chi.NewRouter()
@@ -63,7 +83,7 @@ func NewRouter(
 }
 
 // TaskRoutes creates task-related routes
-func TaskRoutes(taskService *services.TaskService, logger *zap.Logger) chi.Router {
+func TaskRoutes(taskService TaskService, logger *zap.Logger) chi.Router {
 	r := chi.NewRouter()
 	handlers := NewTaskHandlers(taskService, logger)
 

@@ -1,6 +1,6 @@
 # 🔍 Relatório de GAPs Complexos - mcp-ultra
 
-**Data:** 2025-10-17 15:54:30
+**Data:** 2025-10-17 22:23:08
 **Validador:** Enhanced Validator V7.0
 **Score Geral:** 90.0%
 
@@ -25,7 +25,7 @@
 
 ### 1. Erros não tratados
 
-**Descrição:** 20 erro(s) não tratado(s)
+**Descrição:** 24 erro(s) não tratado(s)
 
 **Sugestão:** Adicione verificação de erro: if err != nil { ... }
 

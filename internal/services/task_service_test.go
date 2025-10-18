@@ -42,12 +42,12 @@ func (m *mockTaskRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return args.Error(0)
 }
 
-func (m *mockTaskRepository) List(ctx context.Context, filter domain.TaskFilter) ([]*domain.Task, error) {
+func (m *mockTaskRepository) List(ctx context.Context, filter domain.TaskFilter) ([]*domain.Task, int, error) {
 	args := m.Called(ctx, filter)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, 0, args.Error(2)
 	}
-	return args.Get(0).([]*domain.Task), args.Error(1)
+	return args.Get(0).([]*domain.Task), args.Int(1), args.Error(2)
 }
 
 func (m *mockTaskRepository) GetByStatus(ctx context.Context, status domain.TaskStatus) ([]*domain.Task, error) {
@@ -101,12 +101,12 @@ func (m *mockUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return args.Error(0)
 }
 
-func (m *mockUserRepository) List(ctx context.Context, filter domain.UserFilter) ([]*domain.User, error) {
-	args := m.Called(ctx, filter)
+func (m *mockUserRepository) List(ctx context.Context, offset, limit int) ([]*domain.User, int, error) {
+	args := m.Called(ctx, offset, limit)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, 0, args.Error(2)
 	}
-	return args.Get(0).([]*domain.User), args.Error(1)
+	return args.Get(0).([]*domain.User), args.Int(1), args.Error(2)
 }
 
 type mockEventRepository struct {
@@ -126,18 +126,36 @@ func (m *mockEventRepository) GetByAggregateID(ctx context.Context, aggregateID 
 	return args.Get(0).([]*domain.Event), args.Error(1)
 }
 
+func (m *mockEventRepository) GetByType(ctx context.Context, eventType string, limit int, offset int) ([]*domain.Event, error) {
+	args := m.Called(ctx, eventType, limit, offset)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*domain.Event), args.Error(1)
+}
+
+func (m *mockEventRepository) Store(ctx context.Context, event *domain.Event) error {
+	args := m.Called(ctx, event)
+	return args.Error(0)
+}
+
 type mockCacheRepository struct {
 	mock.Mock
 }
 
-func (m *mockCacheRepository) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+func (m *mockCacheRepository) Set(ctx context.Context, key string, value interface{}, ttl int) error {
 	args := m.Called(ctx, key, value, ttl)
 	return args.Error(0)
 }
 
-func (m *mockCacheRepository) Get(ctx context.Context, key string, dest interface{}) error {
-	args := m.Called(ctx, key, dest)
-	return args.Error(0)
+func (m *mockCacheRepository) SetNX(ctx context.Context, key string, value interface{}, ttl int) (bool, error) {
+	args := m.Called(ctx, key, value, ttl)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *mockCacheRepository) Get(ctx context.Context, key string) (string, error) {
+	args := m.Called(ctx, key)
+	return args.String(0), args.Error(1)
 }
 
 func (m *mockCacheRepository) Delete(ctx context.Context, key string) error {
@@ -148,6 +166,16 @@ func (m *mockCacheRepository) Delete(ctx context.Context, key string) error {
 func (m *mockCacheRepository) Clear(ctx context.Context, pattern string) error {
 	args := m.Called(ctx, pattern)
 	return args.Error(0)
+}
+
+func (m *mockCacheRepository) Exists(ctx context.Context, key string) (bool, error) {
+	args := m.Called(ctx, key)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *mockCacheRepository) Increment(ctx context.Context, key string) (int64, error) {
+	args := m.Called(ctx, key)
+	return args.Get(0).(int64), args.Error(1)
 }
 
 type mockEventBus struct {
@@ -196,7 +224,7 @@ func createTestTask() *domain.Task {
 
 // Test cases
 func TestTaskService_CreateTask_Success(t *testing.T) {
-	service, taskRepo, userRepo, eventRepo, cacheRepo, eventBus := createTestTaskService()
+	service, taskRepo, userRepo, _, cacheRepo, eventBus := createTestTaskService()
 
 	creator := createTestUser()
 	assignee := createTestUser()

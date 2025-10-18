@@ -15,6 +15,11 @@ import (
 	"go.uber.org/zap"
 )
 
+// OPAAuthorizer is the interface for OPA authorization
+type OPAAuthorizer interface {
+	IsAuthorized(ctx context.Context, claims *Claims, method, path string) bool
+}
+
 // Claims represents JWT claims
 type Claims struct {
 	UserID   string   `json:"user_id"`
@@ -40,11 +45,11 @@ type AuthService struct {
 	config     AuthConfig
 	publicKeys map[string]*rsa.PublicKey
 	logger     *zap.Logger
-	opa        *OPAService
+	opa        OPAAuthorizer
 }
 
 // NewAuthService creates a new authentication service
-func NewAuthService(config AuthConfig, logger *zap.Logger, opa *OPAService) *AuthService {
+func NewAuthService(config AuthConfig, logger *zap.Logger, opa OPAAuthorizer) *AuthService {
 	as := &AuthService{
 		config:     config,
 		publicKeys: make(map[string]*rsa.PublicKey),

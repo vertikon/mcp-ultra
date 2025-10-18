@@ -16,12 +16,12 @@ import (
 
 // TaskHandlers handles HTTP requests for tasks
 type TaskHandlers struct {
-	taskService *services.TaskService
+	taskService TaskService
 	logger      *zap.Logger
 }
 
 // NewTaskHandlers creates new task handlers
-func NewTaskHandlers(taskService *services.TaskService, logger *zap.Logger) *TaskHandlers {
+func NewTaskHandlers(taskService TaskService, logger *zap.Logger) *TaskHandlers {
 	return &TaskHandlers{
 		taskService: taskService,
 		logger:      logger,
@@ -55,7 +55,7 @@ func (h *TaskHandlers) GetTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.taskService.GetTask(r.Context(), taskID)
+	task, err := h.taskService.GetTask(r.Context(), taskID.String())
 	if err != nil {
 		h.logger.Error("Failed to get task", zap.Error(err))
 		h.writeErrorResponse(w, http.StatusNotFound, "Task not found", err)
@@ -80,7 +80,7 @@ func (h *TaskHandlers) UpdateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.taskService.UpdateTask(r.Context(), taskID, req)
+	task, err := h.taskService.UpdateTask(r.Context(), taskID.String(), req)
 	if err != nil {
 		h.logger.Error("Failed to update task", zap.Error(err))
 		h.writeErrorResponse(w, http.StatusInternalServerError, "Failed to update task", err)
@@ -118,7 +118,7 @@ func (h *TaskHandlers) DeleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.taskService.DeleteTask(r.Context(), taskID); err != nil {
+	if err := h.taskService.DeleteTask(r.Context(), taskID.String()); err != nil {
 		h.logger.Error("Failed to delete task", zap.Error(err))
 		h.writeErrorResponse(w, http.StatusInternalServerError, "Failed to delete task", err)
 		return
@@ -131,7 +131,7 @@ func (h *TaskHandlers) DeleteTask(w http.ResponseWriter, r *http.Request) {
 func (h *TaskHandlers) ListTasks(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseTaskFilter(r)
 
-	tasks, total, err := h.taskService.ListTasks(r.Context(), filter)
+	taskList, err := h.taskService.ListTasks(r.Context(), filter)
 	if err != nil {
 		h.logger.Error("Failed to list tasks", zap.Error(err))
 		h.writeErrorResponse(w, http.StatusInternalServerError, "Failed to list tasks", err)
@@ -139,8 +139,8 @@ func (h *TaskHandlers) ListTasks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := TaskListResponse{
-		Tasks: tasks,
-		Total: total,
+		Tasks: taskList.Items,
+		Total: taskList.Total,
 		Page:  filter.Offset/filter.Limit + 1,
 		Limit: filter.Limit,
 	}
