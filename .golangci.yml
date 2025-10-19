@@ -61,6 +61,9 @@ issues:
     - path: pkg/httpx/
       linters:
         - depguard
+    - path: pkg/logger/
+      linters:
+        - depguard  # Logger facade can import zap
     - path: pkg/redisx/
       linters:
         - depguard

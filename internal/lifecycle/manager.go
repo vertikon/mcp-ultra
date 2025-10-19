@@ -546,12 +546,12 @@ func (lm *LifecycleManager) emitEvent(eventType, component string, state Lifecyc
 	for _, handler := range handlers {
 		go func(h func(LifecycleEvent)) {
 			defer func() {
-			if r := recover(); r != nil {
-				lm.logger.Error("Event handler panicked",
-					zap.String("event_type", eventType),
-					zap.Any("panic", r),
-				)
-			}
+				if r := recover(); r != nil {
+					lm.logger.Error("Event handler panicked",
+						zap.String("event_type", eventType),
+						zap.Any("panic", r),
+					)
+				}
 			}()
 			h(event)
 		}(handler)
@@ -607,11 +607,11 @@ func (lm *LifecycleManager) performHealthChecks() {
 		name := component.Name()
 		if err != nil {
 			lm.updateComponentState(name, "error", err)
-		errorCount++
-		lm.logger.Warn("Component health check failed",
-			zap.String("component", name),
-			zap.Error(err),
-		)
+			errorCount++
+			lm.logger.Warn("Component health check failed",
+				zap.String("component", name),
+				zap.Error(err),
+			)
 		} else {
 			lm.updateComponentState(name, "healthy", nil)
 			healthyCount++

@@ -10,8 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	"go.uber.org/zap"
-
 	"github.com/vertikon/mcp-ultra/internal/config"
 	"github.com/vertikon/mcp-ultra/internal/handlers"
 	"github.com/vertikon/mcp-ultra/pkg/httpx"
@@ -34,15 +32,15 @@ func main() {
 	}()
 
 	zapLog.Info("Starting MCP Ultra service",
-		zap.String("version", version.Version),
-		zap.String("build_date", version.BuildDate),
-		zap.String("commit", version.GitCommit),
+		logger.String("version", version.Version),
+		logger.String("build_date", version.BuildDate),
+		logger.String("commit", version.GitCommit),
 	)
 
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
-		zapLog.Fatal("Failed to load configuration", zap.Error(err))
+		zapLog.Fatal("Failed to load configuration", logger.Error(err))
 	}
 
 	// Initialize HTTP router
@@ -79,12 +77,12 @@ func main() {
 	// Start server in goroutine
 	go func() {
 		zapLog.Info("Starting HTTP server",
-			zap.String("address", server.Addr),
-			zap.Int("port", cfg.Server.Port),
+			logger.String("address", server.Addr),
+			logger.Int("port", cfg.Server.Port),
 		)
 
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			zapLog.Fatal("Failed to start HTTP server", zap.Error(err))
+			zapLog.Fatal("Failed to start HTTP server", logger.Error(err))
 		}
 	}()
 
@@ -101,7 +99,7 @@ func main() {
 
 	// Shutdown HTTP server
 	if err := server.Shutdown(ctx); err != nil {
-		zapLog.Error("Server forced to shutdown", zap.Error(err))
+		zapLog.Error("Server forced to shutdown", logger.Error(err))
 	}
 
 	zapLog.Info("Server exited")

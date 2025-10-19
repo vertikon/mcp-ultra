@@ -1,0 +1,39 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-19 16:56:13",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/cache [github.com/vertikon/mcp-ultra/internal/cache.test]\\ninternal\\\\cache\\\\distributed_test.go:18:19: undefined: logger.NewLogger\"",
+        "pkg\\logger\\logger.go:4:2: import 'go.uber.org/zap' is not allowed from list 'main': Use logger facade (depguard)",
+        "\t\"go.uber.org/zap\"",
+        "\t^",
+        "main.go:13:2: import 'go.uber.org/zap' is not allowed from list 'main': Use logger facade (depguard)",
+        "\t\"go.uber.org/zap\"",
+        "\t^",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

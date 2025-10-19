@@ -15,7 +15,7 @@ import (
 
 func newTestLogger(t *testing.T) *logger.Logger {
 	t.Helper()
-	l, err := logger.NewLogger()
+	l, err := logger.NewDevelopment()
 	if err != nil {
 		t.Fatalf("Failed to create logger: %v", err)
 	}
