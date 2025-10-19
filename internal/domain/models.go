@@ -100,7 +100,7 @@ type TaskFilter struct {
 // NewTask creates a new task with default values
 func NewTask(title, description string, createdBy types.UUID) *Task {
 	return &Task{
-		ID:          types.New(),
+		ID:          types.NewUUID(),
 		Title:       title,
 		Description: description,
 		Status:      TaskStatusPending,
