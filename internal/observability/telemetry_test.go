@@ -80,7 +80,11 @@ func TestTelemetryService_Tracing(t *testing.T) {
 	ctx := context.Background()
 	err = service.Start(ctx)
 	require.NoError(t, err)
-	defer service.Stop(ctx)
+	defer func() {
+		if stopErr := service.Stop(ctx); stopErr != nil {
+			t.Logf("Warning: failed to stop service: %v", stopErr)
+		}
+	}()
 
 	tracer := service.GetTracer("test-component")
 
@@ -115,7 +119,11 @@ func TestTelemetryService_Metrics(t *testing.T) {
 	ctx := context.Background()
 	err = service.Start(ctx)
 	require.NoError(t, err)
-	defer service.Stop(ctx)
+	defer func() {
+		if stopErr := service.Stop(ctx); stopErr != nil {
+			t.Logf("Warning: failed to stop service: %v", stopErr)
+		}
+	}()
 
 	meter := service.GetMeter("test-metrics")
 
@@ -162,7 +170,11 @@ func TestTelemetryService_BusinessMetrics(t *testing.T) {
 	ctx := context.Background()
 	err = service.Start(ctx)
 	require.NoError(t, err)
-	defer service.Stop(ctx)
+	defer func() {
+		if stopErr := service.Stop(ctx); stopErr != nil {
+			t.Logf("Warning: failed to stop service: %v", stopErr)
+		}
+	}()
 
 	// Test increment request counter
 	err = service.IncrementRequestCounter(ctx, "GET", "/api/test", "200")
@@ -200,14 +212,20 @@ func TestTelemetryService_HTTPMiddleware(t *testing.T) {
 	ctx := context.Background()
 	err = service.Start(ctx)
 	require.NoError(t, err)
-	defer service.Stop(ctx)
+	defer func() {
+		if stopErr := service.Stop(ctx); stopErr != nil {
+			t.Logf("Warning: failed to stop service: %v", stopErr)
+		}
+	}()
 
 	// Create a test handler
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Simulate some processing time
 		time.Sleep(10 * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		if _, writeErr := w.Write([]byte("OK")); writeErr != nil {
+			t.Logf("Warning: failed to write response: %v", writeErr)
+		}
 	})
 
 	// Wrap with telemetry middleware
@@ -239,7 +257,11 @@ func TestTelemetryService_HealthCheck(t *testing.T) {
 	ctx := context.Background()
 	err = service.Start(ctx)
 	require.NoError(t, err)
-	defer service.Stop(ctx)
+	defer func() {
+		if stopErr := service.Stop(ctx); stopErr != nil {
+			t.Logf("Warning: failed to stop service: %v", stopErr)
+		}
+	}()
 
 	health := service.HealthCheck()
 	assert.NotNil(t, health)
@@ -260,7 +282,11 @@ func TestTelemetryService_WithDisabledTelemetry(t *testing.T) {
 	ctx := context.Background()
 	err = service.Start(ctx)
 	assert.NoError(t, err) // Should not error even when disabled
-	defer service.Stop(ctx)
+	defer func() {
+		if stopErr := service.Stop(ctx); stopErr != nil {
+			t.Logf("Warning: failed to stop service: %v", stopErr)
+		}
+	}()
 
 	// Service should still provide tracer/meter, but they might be no-ops
 	tracer := service.GetTracer("test")
@@ -288,7 +314,11 @@ func TestTelemetryService_ConcurrentMetrics(t *testing.T) {
 	ctx := context.Background()
 	err = service.Start(ctx)
 	require.NoError(t, err)
-	defer service.Stop(ctx)
+	defer func() {
+		if stopErr := service.Stop(ctx); stopErr != nil {
+			t.Logf("Warning: failed to stop service: %v", stopErr)
+		}
+	}()
 
 	numGoroutines := 50
 	done := make(chan bool, numGoroutines)
@@ -296,11 +326,11 @@ func TestTelemetryService_ConcurrentMetrics(t *testing.T) {
 	// Run concurrent metric operations
 	for i := 0; i < numGoroutines; i++ {
 		go func(i int) {
-			// Record various metrics
-			service.IncrementRequestCounter(ctx, "GET", "/test", "200")
-			service.RecordRequestDuration(ctx, "GET", "/test", time.Millisecond*100)
-			service.IncrementErrorCounter(ctx, "test", "concurrent")
-			service.RecordProcessingTime(ctx, "concurrent_task", time.Millisecond*50)
+			// Record various metrics (ignoring errors in concurrent test as we're testing concurrency safety)
+			_ = service.IncrementRequestCounter(ctx, "GET", "/test", "200")
+			_ = service.RecordRequestDuration(ctx, "GET", "/test", time.Millisecond*100)
+			_ = service.IncrementErrorCounter(ctx, "test", "concurrent")
+			_ = service.RecordProcessingTime(ctx, "concurrent_task", time.Millisecond*50)
 			done <- true
 		}(i)
 	}
@@ -321,7 +351,11 @@ func TestTelemetryService_SpanAttributes(t *testing.T) {
 	ctx := context.Background()
 	err = service.Start(ctx)
 	require.NoError(t, err)
-	defer service.Stop(ctx)
+	defer func() {
+		if stopErr := service.Stop(ctx); stopErr != nil {
+			t.Logf("Warning: failed to stop service: %v", stopErr)
+		}
+	}()
 
 	tracer := service.GetTracer("test")
 

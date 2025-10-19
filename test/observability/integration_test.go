@@ -169,7 +169,11 @@ func TestObservabilityIntegration(t *testing.T) {
 			time.Sleep(10 * time.Millisecond)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+			if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
+				// Handle encoding error
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
 		})
 
 		// Apply observability middleware

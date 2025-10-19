@@ -280,7 +280,7 @@ func TestDistributedCache_Namespace(t *testing.T) {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: miniredis.Addr(),
 	})
-	defer redisClient.Close()
+	defer func() { _ = redisClient.Close() }()
 
 	namespacedKey := "test:" + key
 	exists := redisClient.Exists(ctx, namespacedKey)

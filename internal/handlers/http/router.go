@@ -20,9 +20,9 @@ import (
 // TaskService interface defines methods for task operations
 type TaskService interface {
 	CreateTask(ctx context.Context, req services.CreateTaskRequest) (*domain.Task, error)
-	GetTask(ctx context.Context, taskID string) (*domain.Task, error)
-	UpdateTask(ctx context.Context, taskID string, req services.UpdateTaskRequest) (*domain.Task, error)
-	DeleteTask(ctx context.Context, taskID string) error
+	GetTask(ctx context.Context, taskID uuid.UUID) (*domain.Task, error)
+	UpdateTask(ctx context.Context, taskID uuid.UUID, req services.UpdateTaskRequest) (*domain.Task, error)
+	DeleteTask(ctx context.Context, taskID uuid.UUID) error
 	ListTasks(ctx context.Context, filters domain.TaskFilter) (*domain.TaskList, error)
 	CompleteTask(ctx context.Context, taskID uuid.UUID) (*domain.Task, error)
 	GetTasksByStatus(ctx context.Context, status domain.TaskStatus) ([]*domain.Task, error)
@@ -118,7 +118,7 @@ func FeatureFlagRoutes(flagManager *features.FlagManager, logger *zap.Logger) ch
 func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status": "healthy", "timestamp": "` + time.Now().Format(time.RFC3339) + `"}`))
+	_, _ = w.Write([]byte(`{"status": "healthy", "timestamp": "` + time.Now().Format(time.RFC3339) + `"}`))
 }
 
 // Readiness check endpoint
@@ -126,5 +126,5 @@ func readinessCheck(w http.ResponseWriter, r *http.Request) {
 	// Add checks for dependencies (database, cache, etc.)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status": "ready", "timestamp": "` + time.Now().Format(time.RFC3339) + `"}`))
+	_, _ = w.Write([]byte(`{"status": "ready", "timestamp": "` + time.Now().Format(time.RFC3339) + `"}`))
 }

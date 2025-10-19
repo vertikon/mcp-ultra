@@ -24,7 +24,7 @@ func NewNATSEventBus(natsURL string, logger *zap.Logger) (*NATSEventBus, error) 
 		nats.ReconnectWait(2*time.Second),
 		nats.MaxReconnects(-1),
 		nats.ReconnectBufSize(-1),
-		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
+		nats.DisconnectErrHandler(func(_ *nats.Conn, err error) {
 			if err != nil {
 				logger.Error("NATS disconnected", zap.Error(err))
 			} else {
@@ -47,7 +47,7 @@ func NewNATSEventBus(natsURL string, logger *zap.Logger) (*NATSEventBus, error) 
 }
 
 // Publish publishes an event to NATS
-func (bus *NATSEventBus) Publish(ctx context.Context, event *domain.Event) error {
+func (bus *NATSEventBus) Publish(_ context.Context, event *domain.Event) error {
 	subject := fmt.Sprintf("events.%s", event.Type)
 
 	data, err := json.Marshal(event)
@@ -191,7 +191,7 @@ func (h *TaskEventHandler) Handle(ctx context.Context, event *domain.Event) erro
 	}
 }
 
-func (h *TaskEventHandler) handleTaskCreated(ctx context.Context, event *domain.Event) error {
+func (h *TaskEventHandler) handleTaskCreated(_ context.Context, event *domain.Event) error {
 	h.logger.Info("Task created event handled",
 		zap.String("event_id", event.ID.String()),
 		zap.String("aggregate_id", event.AggregateID.String()))
@@ -200,7 +200,7 @@ func (h *TaskEventHandler) handleTaskCreated(ctx context.Context, event *domain.
 	return nil
 }
 
-func (h *TaskEventHandler) handleTaskUpdated(ctx context.Context, event *domain.Event) error {
+func (h *TaskEventHandler) handleTaskUpdated(_ context.Context, event *domain.Event) error {
 	h.logger.Info("Task updated event handled",
 		zap.String("event_id", event.ID.String()),
 		zap.String("aggregate_id", event.AggregateID.String()))

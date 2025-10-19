@@ -224,7 +224,7 @@ func createTestTask() *domain.Task {
 
 // Test cases
 func TestTaskService_CreateTask_Success(t *testing.T) {
-	service, taskRepo, userRepo, _, cacheRepo, eventBus := createTestTaskService()
+	service, taskRepo, userRepo, eventRepo, cacheRepo, eventBus := createTestTaskService()
 
 	creator := createTestUser()
 	assignee := createTestUser()
@@ -244,8 +244,8 @@ func TestTaskService_CreateTask_Success(t *testing.T) {
 	userRepo.On("GetByID", ctx, creator.ID).Return(creator, nil)
 	userRepo.On("GetByID", ctx, assignee.ID).Return(assignee, nil)
 	taskRepo.On("Create", ctx, mock.AnythingOfType("*domain.Task")).Return(nil)
+	eventRepo.On("Store", ctx, mock.AnythingOfType("*domain.Event")).Return(nil)
 	eventBus.On("Publish", ctx, mock.AnythingOfType("*domain.Event")).Return(nil)
-	cacheRepo.On("Clear", ctx, "tasks:*").Return(nil)
 
 	// Execute
 	result, err := service.CreateTask(ctx, req)
@@ -342,7 +342,7 @@ func TestTaskService_CreateTask_AssigneeNotFound(t *testing.T) {
 }
 
 func TestTaskService_UpdateTask_Success(t *testing.T) {
-	service, taskRepo, userRepo, _, cacheRepo, eventBus := createTestTaskService()
+	service, taskRepo, userRepo, eventRepo, _, eventBus := createTestTaskService()
 
 	existingTask := createTestTask()
 	assignee := createTestUser()
@@ -362,8 +362,8 @@ func TestTaskService_UpdateTask_Success(t *testing.T) {
 	taskRepo.On("GetByID", ctx, existingTask.ID).Return(existingTask, nil)
 	userRepo.On("GetByID", ctx, assignee.ID).Return(assignee, nil)
 	taskRepo.On("Update", ctx, mock.AnythingOfType("*domain.Task")).Return(nil)
+	eventRepo.On("Store", ctx, mock.AnythingOfType("*domain.Event")).Return(nil)
 	eventBus.On("Publish", ctx, mock.AnythingOfType("*domain.Event")).Return(nil)
-	cacheRepo.On("Clear", ctx, "tasks:*").Return(nil)
 
 	// Execute
 	result, err := service.UpdateTask(ctx, existingTask.ID, req)
@@ -379,7 +379,6 @@ func TestTaskService_UpdateTask_Success(t *testing.T) {
 	taskRepo.AssertExpectations(t)
 	userRepo.AssertExpectations(t)
 	eventBus.AssertExpectations(t)
-	cacheRepo.AssertExpectations(t)
 }
 
 func TestTaskService_UpdateTask_TaskNotFound(t *testing.T) {

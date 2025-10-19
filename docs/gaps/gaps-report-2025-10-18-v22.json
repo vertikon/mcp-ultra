@@ -1,0 +1,59 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-18 15:02:23",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Formatação (gofmt)",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Erro ao verificar formatação",
+      "Suggestion": "",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": null,
+      "NonFixableReason": ""
+    },
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\config\\secrets\\loader.go:207:38: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (sl *SecretsLoader) loadFromK8s(ctx context.Context) (*SecretsConfig, error) {",
+        "                                     ^",
+        "internal\\ratelimit\\distributed.go:526:86: unused-parameter: parameter 'key' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (drl *DistributedRateLimiter) recordMetrics(status string, algorithm Algorithm, key string, remaining int64) {",
+        "                                                                                     ^",
+        "internal\\ratelimit\\distributed.go:733:52: unused-parameter: parameter 'rule' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (al *AdaptiveLimiter) updateState(key string, rule Rule, allowed bool) {",
+        "                                                   ^",
+        "internal\\ratelimit\\distributed.go:36:2: field `mu` is unused (unused)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 2,
+  "Score": 90,
+  "AutoFixable": 0,
+  "Manual": 2
+}

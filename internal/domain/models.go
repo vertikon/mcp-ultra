@@ -3,18 +3,18 @@ package domain
 import (
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/vertikon/mcp-ultra/pkg/types"
 )
 
 // Task represents a task in the system
 type Task struct {
-	ID          uuid.UUID              `json:"id" db:"id"`
+	ID          types.UUID             `json:"id" db:"id"`
 	Title       string                 `json:"title" db:"title"`
 	Description string                 `json:"description" db:"description"`
 	Status      TaskStatus             `json:"status" db:"status"`
 	Priority    Priority               `json:"priority" db:"priority"`
-	AssigneeID  *uuid.UUID             `json:"assignee_id" db:"assignee_id"`
-	CreatedBy   uuid.UUID              `json:"created_by" db:"created_by"`
+	AssigneeID  *types.UUID            `json:"assignee_id" db:"assignee_id"`
+	CreatedBy   types.UUID             `json:"created_by" db:"created_by"`
 	CreatedAt   time.Time              `json:"created_at" db:"created_at"`
 	UpdatedAt   time.Time              `json:"updated_at" db:"updated_at"`
 	CompletedAt *time.Time             `json:"completed_at" db:"completed_at"`
@@ -45,13 +45,13 @@ const (
 
 // User represents a user in the system
 type User struct {
-	ID        uuid.UUID `json:"id" db:"id"`
-	Email     string    `json:"email" db:"email"`
-	Name      string    `json:"name" db:"name"`
-	Role      Role      `json:"role" db:"role"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
-	Active    bool      `json:"active" db:"active"`
+	ID        types.UUID `json:"id" db:"id"`
+	Email     string     `json:"email" db:"email"`
+	Name      string     `json:"name" db:"name"`
+	Role      Role       `json:"role" db:"role"`
+	CreatedAt time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
+	Active    bool       `json:"active" db:"active"`
 }
 
 // Role represents user role
@@ -64,9 +64,9 @@ const (
 
 // Event represents a domain event
 type Event struct {
-	ID          uuid.UUID              `json:"id"`
+	ID          types.UUID             `json:"id"`
 	Type        string                 `json:"type"`
-	AggregateID uuid.UUID              `json:"aggregate_id"`
+	AggregateID types.UUID             `json:"aggregate_id"`
 	Data        map[string]interface{} `json:"data"`
 	OccurredAt  time.Time              `json:"occurred_at"`
 	Version     int                    `json:"version"`
@@ -88,8 +88,8 @@ type FeatureFlag struct {
 type TaskFilter struct {
 	Status     []TaskStatus
 	Priority   []Priority
-	AssigneeID *uuid.UUID
-	CreatedBy  *uuid.UUID
+	AssigneeID *types.UUID
+	CreatedBy  *types.UUID
 	Tags       []string
 	FromDate   *time.Time
 	ToDate     *time.Time
@@ -98,9 +98,9 @@ type TaskFilter struct {
 }
 
 // NewTask creates a new task with default values
-func NewTask(title, description string, createdBy uuid.UUID) *Task {
+func NewTask(title, description string, createdBy types.UUID) *Task {
 	return &Task{
-		ID:          uuid.New(),
+		ID:          types.New(),
 		Title:       title,
 		Description: description,
 		Status:      TaskStatusPending,

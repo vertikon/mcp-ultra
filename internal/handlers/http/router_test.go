@@ -55,7 +55,7 @@ func (m *MockTaskService) CreateTask(ctx context.Context, req services.CreateTas
 	return args.Get(0).(*domain.Task), args.Error(1)
 }
 
-func (m *MockTaskService) GetTask(ctx context.Context, taskID string) (*domain.Task, error) {
+func (m *MockTaskService) GetTask(ctx context.Context, taskID uuid.UUID) (*domain.Task, error) {
 	args := m.Called(ctx, taskID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -63,12 +63,12 @@ func (m *MockTaskService) GetTask(ctx context.Context, taskID string) (*domain.T
 	return args.Get(0).(*domain.Task), args.Error(1)
 }
 
-func (m *MockTaskService) UpdateTask(ctx context.Context, taskID string, req services.UpdateTaskRequest) (*domain.Task, error) {
+func (m *MockTaskService) UpdateTask(ctx context.Context, taskID uuid.UUID, req services.UpdateTaskRequest) (*domain.Task, error) {
 	args := m.Called(ctx, taskID, req)
 	return args.Get(0).(*domain.Task), args.Error(1)
 }
 
-func (m *MockTaskService) DeleteTask(ctx context.Context, taskID string) error {
+func (m *MockTaskService) DeleteTask(ctx context.Context, taskID uuid.UUID) error {
 	args := m.Called(ctx, taskID)
 	return args.Error(0)
 }
@@ -106,9 +106,13 @@ func TestNewRouter(t *testing.T) {
 	mockHealthService := &MockHealthService{}
 	mockTaskService := &MockTaskService{}
 
+	// Expect RegisterRoutes to be called during router initialization
+	mockHealthService.On("RegisterRoutes", mock.Anything).Return()
+
 	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
 
 	assert.NotNil(t, router)
+	mockHealthService.AssertExpectations(t)
 }
 
 func TestRouter_HealthEndpoints(t *testing.T) {
@@ -127,6 +131,7 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 			name:     "health endpoint returns healthy status",
 			endpoint: "/health",
 			setupMock: func() {
+				mockHealthService.On("RegisterRoutes", mock.Anything).Return()
 				mockHealthService.On("Check", mock.Anything).Return(map[string]services.HealthStatus{
 					"database": {Status: "healthy"},
 					"redis":    {Status: "healthy"},
@@ -138,6 +143,7 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 			name:     "ready endpoint returns true",
 			endpoint: "/ready",
 			setupMock: func() {
+				mockHealthService.On("RegisterRoutes", mock.Anything).Return()
 				mockHealthService.On("IsReady", mock.Anything).Return(true)
 			},
 			expectedStatus: http.StatusOK,
@@ -147,6 +153,7 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 			name:     "ready endpoint returns false",
 			endpoint: "/ready",
 			setupMock: func() {
+				mockHealthService.On("RegisterRoutes", mock.Anything).Return()
 				mockHealthService.On("IsReady", mock.Anything).Return(false)
 			},
 			expectedStatus: http.StatusServiceUnavailable,
@@ -156,6 +163,7 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 			name:     "live endpoint returns true",
 			endpoint: "/live",
 			setupMock: func() {
+				mockHealthService.On("RegisterRoutes", mock.Anything).Return()
 				mockHealthService.On("IsLive", mock.Anything).Return(true)
 			},
 			expectedStatus: http.StatusOK,
@@ -165,6 +173,7 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 			name:     "live endpoint returns false",
 			endpoint: "/live",
 			setupMock: func() {
+				mockHealthService.On("RegisterRoutes", mock.Anything).Return()
 				mockHealthService.On("IsLive", mock.Anything).Return(false)
 			},
 			expectedStatus: http.StatusServiceUnavailable,
@@ -200,6 +209,9 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	logger := zap.NewNop()
 	mockHealthService := &MockHealthService{}
 	mockTaskService := &MockTaskService{}
+
+	// Expect RegisterRoutes to be called during router initialization
+	mockHealthService.On("RegisterRoutes", mock.Anything).Return()
 
 	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
 
@@ -367,6 +379,9 @@ func TestRouter_Middleware(t *testing.T) {
 	mockHealthService := &MockHealthService{}
 	mockTaskService := &MockTaskService{}
 
+	// Expect RegisterRoutes to be called during router initialization
+	mockHealthService.On("RegisterRoutes", mock.Anything).Return()
+
 	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
 
 	t.Run("CORS headers are set", func(t *testing.T) {
@@ -401,6 +416,9 @@ func TestRouter_ErrorHandling(t *testing.T) {
 	logger := zap.NewNop()
 	mockHealthService := &MockHealthService{}
 	mockTaskService := &MockTaskService{}
+
+	// Expect RegisterRoutes to be called during router initialization
+	mockHealthService.On("RegisterRoutes", mock.Anything).Return()
 
 	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
 

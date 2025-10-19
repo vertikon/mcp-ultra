@@ -3,34 +3,34 @@ package domain
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/vertikon/mcp-ultra/pkg/types"
 )
 
 // TaskRepository defines the interface for task data access
 type TaskRepository interface {
 	Create(ctx context.Context, task *Task) error
-	GetByID(ctx context.Context, id uuid.UUID) (*Task, error)
+	GetByID(ctx context.Context, id types.UUID) (*Task, error)
 	Update(ctx context.Context, task *Task) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id types.UUID) error
 	List(ctx context.Context, filter TaskFilter) ([]*Task, int, error)
 	GetByStatus(ctx context.Context, status TaskStatus) ([]*Task, error)
-	GetByAssignee(ctx context.Context, assigneeID uuid.UUID) ([]*Task, error)
+	GetByAssignee(ctx context.Context, assigneeID types.UUID) ([]*Task, error)
 }
 
 // UserRepository defines the interface for user data access
 type UserRepository interface {
 	Create(ctx context.Context, user *User) error
-	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
+	GetByID(ctx context.Context, id types.UUID) (*User, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	Update(ctx context.Context, user *User) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id types.UUID) error
 	List(ctx context.Context, limit, offset int) ([]*User, int, error)
 }
 
 // EventRepository defines the interface for event data access
 type EventRepository interface {
 	Store(ctx context.Context, event *Event) error
-	GetByAggregateID(ctx context.Context, aggregateID uuid.UUID) ([]*Event, error)
+	GetByAggregateID(ctx context.Context, aggregateID types.UUID) ([]*Event, error)
 	GetByType(ctx context.Context, eventType string, limit, offset int) ([]*Event, error)
 }
 

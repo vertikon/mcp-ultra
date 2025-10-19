@@ -104,7 +104,9 @@ func TestJWTMiddleware_Success(t *testing.T) {
 		assert.Equal(t, "user123", user.UserID)
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("success"))
+		if _, writeErr := w.Write([]byte("success")); writeErr != nil {
+			t.Logf("Warning: failed to write response: %v", writeErr)
+		}
 	})
 
 	// Create request with JWT token
@@ -241,7 +243,9 @@ func TestJWTMiddleware_HealthEndpoints(t *testing.T) {
 
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("healthy"))
+		if _, writeErr := w.Write([]byte("healthy")); writeErr != nil {
+			t.Logf("Warning: failed to write response: %v", writeErr)
+		}
 	})
 
 	healthEndpoints := []string{"/healthz", "/readyz", "/metrics"}
@@ -282,7 +286,9 @@ func TestJWKToRSA(t *testing.T) {
 func TestRequireScope(t *testing.T) {
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("authorized"))
+		if _, writeErr := w.Write([]byte("authorized")); writeErr != nil {
+			t.Logf("Warning: failed to write response: %v", writeErr)
+		}
 	})
 
 	// Test with user having required scope
@@ -342,7 +348,9 @@ func TestRequireScope(t *testing.T) {
 func TestRequireRole(t *testing.T) {
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("authorized"))
+		if _, writeErr := w.Write([]byte("authorized")); writeErr != nil {
+			t.Logf("Warning: failed to write response: %v", writeErr)
+		}
 	})
 
 	// Test with user having required role

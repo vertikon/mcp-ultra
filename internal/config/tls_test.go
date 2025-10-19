@@ -361,7 +361,7 @@ func createTempFile(t *testing.T, prefix, content string) string {
 
 	// Clean up after test
 	t.Cleanup(func() {
-		os.Remove(file.Name())
+		_ = os.Remove(file.Name())
 	})
 
 	return file.Name()

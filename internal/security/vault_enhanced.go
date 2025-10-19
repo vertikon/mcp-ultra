@@ -328,7 +328,11 @@ func (evs *EnhancedVaultService) generateEncryptionKey(keySize int) (string, err
 // generateRotationID generates a unique rotation identifier
 func (evs *EnhancedVaultService) generateRotationID() string {
 	bytes := make([]byte, 8)
-	rand.Read(bytes)
+	if _, err := rand.Read(bytes); err != nil {
+		// Fallback to timestamp-based ID if random generation fails
+		evs.logger.Warn("Failed to generate random rotation ID, using timestamp", zap.Error(err))
+		return base64.URLEncoding.EncodeToString([]byte(time.Now().Format(time.RFC3339Nano)))
+	}
 	return base64.URLEncoding.EncodeToString(bytes)
 }
 

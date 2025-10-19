@@ -1,0 +1,59 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-18 13:46:53",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Formatação (gofmt)",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Erro ao verificar formatação",
+      "Suggestion": "",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": null,
+      "NonFixableReason": ""
+    },
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\telemetry\\telemetry.go:84:11: unused-parameter: parameter 'cfg' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func Init(cfg config.TelemetryConfig) (*Telemetry, error) {",
+        "          ^",
+        "internal\\telemetry\\tracing_test.go:134:77: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "\t\terr := TraceFunction(context.Background(), tracer, \"test-operation\", func(ctx context.Context) error {",
+        "\t\t                                                                          ^",
+        "internal\\telemetry\\tracing_test.go:145:80: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "\t\terr := TraceFunction(context.Background(), tracer, \"failing-operation\", func(ctx context.Context) error {",
+        "\t\t                                                                             ^",
+        "internal\\telemetry\\tracing_test.go:169:95: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 2,
+  "Score": 90,
+  "AutoFixable": 0,
+  "Manual": 2
+}

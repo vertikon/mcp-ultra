@@ -81,7 +81,7 @@ type Telemetry struct {
 }
 
 // Init initializes telemetry system
-func Init(cfg config.TelemetryConfig) (*Telemetry, error) {
+func Init(_ config.TelemetryConfig) (*Telemetry, error) {
 	log, err := logger.NewLogger()
 	if err != nil {
 		return nil, fmt.Errorf("creating logger: %w", err)

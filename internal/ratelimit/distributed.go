@@ -33,7 +33,6 @@ type DistributedRateLimiter struct {
 	telemetry *observability.TelemetryService
 
 	// State
-	mu       sync.RWMutex
 	limiters map[string]Limiter
 	scripts  *LuaScripts
 
@@ -523,7 +522,7 @@ func (drl *DistributedRateLimiter) updateAdaptiveState(key string, rule Rule, al
 	}
 }
 
-func (drl *DistributedRateLimiter) recordMetrics(status string, algorithm Algorithm, key string, remaining int64) {
+func (drl *DistributedRateLimiter) recordMetrics(status string, algorithm Algorithm, _ string, remaining int64) {
 	if drl.telemetry != nil && drl.config.EnableMetrics {
 		drl.telemetry.RecordCounter("rate_limit_requests_total", 1, map[string]string{
 			"status":    status,
@@ -730,7 +729,7 @@ func (al *AdaptiveLimiter) getAdaptiveLimit(key string, rule Rule) int64 {
 	return state.CurrentLimit
 }
 
-func (al *AdaptiveLimiter) updateState(key string, rule Rule, allowed bool) {
+func (al *AdaptiveLimiter) updateState(key string, _ Rule, allowed bool) {
 	al.mu.Lock()
 	defer al.mu.Unlock()
 

@@ -228,7 +228,6 @@ func TestTaskBusinessRuleProperties(t *testing.T) {
 			}
 
 			task := createTestTask()
-			originalTitle := task.Title
 
 			// Simulate title normalization (trim spaces, etc.)
 			normalizedTitle := normalizeTitle(title)

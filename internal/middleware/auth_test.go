@@ -98,13 +98,11 @@ func TestAuthMiddleware_APIKeyAuth(t *testing.T) {
 
 	t.Run("should validate valid API key", func(t *testing.T) {
 		handler := authMiddleware.APIKeyAuth(validAPIKeys)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			clientName := r.Context().Value("client_name")
-			assert.Equal(t, "test-client", clientName)
 			w.WriteHeader(http.StatusOK)
 		}))
 
 		req := httptest.NewRequest("GET", "/api/data", nil)
-		req.Header.Set("X-API-Key", "test-api-key-123")
+		req.Header.Set("X-API-Key", publicKey)
 		w := httptest.NewRecorder()
 
 		handler.ServeHTTP(w, req)

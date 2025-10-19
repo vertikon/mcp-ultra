@@ -115,7 +115,11 @@ func (vs *VaultService) GetSecret(ctx context.Context, path string) (map[string]
 	if err != nil {
 		return nil, fmt.Errorf("executing request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			vs.logger.Warn("Failed to close response body", zap.Error(closeErr))
+		}
+	}()
 
 	// Handle response
 	if resp.StatusCode == http.StatusNotFound {
@@ -196,7 +200,11 @@ func (vs *VaultService) PutSecret(ctx context.Context, path string, data map[str
 	if err != nil {
 		return fmt.Errorf("executing request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			vs.logger.Warn("Failed to close response body", zap.Error(closeErr))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("Vault returned status %d for path %s", resp.StatusCode, path)
@@ -272,7 +280,11 @@ func (vs *VaultService) renewCurrentToken(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("executing renew request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			vs.logger.Warn("Failed to close response body", zap.Error(closeErr))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("token renewal failed with status %d", resp.StatusCode)
@@ -295,7 +307,11 @@ func (vs *VaultService) HealthCheck(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("Vault health check failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			vs.logger.Warn("Failed to close response body", zap.Error(closeErr))
+		}
+	}()
 
 	// Vault health endpoint returns 200 when initialized and unsealed
 	if resp.StatusCode != http.StatusOK {
@@ -354,7 +370,11 @@ func (vs *VaultService) revokeToken(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("executing revoke request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			vs.logger.Warn("Failed to close response body", zap.Error(closeErr))
+		}
+	}()
 
 	return nil
 }

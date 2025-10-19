@@ -16,7 +16,11 @@ func RegisterRoutes(mux *http.ServeMux) {
 func hello(w http.ResponseWriter, r *http.Request) {
 	resp := map[string]any{"message": "hello from mcp-model-ultra"}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		// Handle encoding error
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }
 
 var fm = features.NewInMemoryManager()
@@ -35,5 +39,9 @@ func evaluateFlag(w http.ResponseWriter, r *http.Request) {
 	}
 	val := fm.Evaluate(req.Flag, features.EvalContext{UserID: req.UserID, Attributes: req.Attrs})
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{"flag": req.Flag, "value": val})
+	if err := json.NewEncoder(w).Encode(map[string]any{"flag": req.Flag, "value": val}); err != nil {
+		// Handle encoding error
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }

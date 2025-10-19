@@ -1,0 +1,94 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-18 15:17:19",
+  "Critical": [
+    {
+      "Type": "Erros não tratados",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "41 erro(s) não tratado(s)",
+      "Suggestion": "Adicione verificação de erro: if err != nil { ... }",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": true,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Para cada erro não tratado, decida:\n   a) Retornar o erro (wrap com context)\n   b) Logar e continuar\n   c) Logar e retornar\n2. Adicione if err != nil { } manualmente",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\lifecycle\\deployment.go:407:20:\tda.executeCommand(ctx, fmt.Sprintf(\"kubectl delete deployment mcp-ultra-canary --namespace=%s\", da.config.Namespace), result)",
+        "internal\\lifecycle\\deployment.go:420:19:\tda.executeCommand(ctx, fmt.Sprintf(\"kubectl delete deployment mcp-ultra-canary --namespace=%s\", da.config.Namespace), result)",
+        "internal\\lifecycle\\health.go:487:11:\tw.Write([]byte(\"OK\"))",
+        "internal\\lifecycle\\health.go:490:11:\tw.Write([]byte(\"Not Ready\"))",
+        "internal\\lifecycle\\health.go:498:11:\tw.Write([]byte(\"OK\"))",
+        "internal\\lifecycle\\health.go:501:11:\tw.Write([]byte(\"Unhealthy\"))",
+        "internal\\observability\\telemetry.go:661:30:\tts.IncrementRequestCounter(ctx, r.Method, r.URL.Path, statusCode)",
+        "internal\\observability\\telemetry.go:662:28:\tts.RecordRequestDuration(ctx, r.Method, r.URL.Path, duration)",
+        "internal\\observability\\telemetry_test.go:83:20:\tdefer service.Stop(ctx)",
+        "internal\\observability\\telemetry_test.go:118:20:\tdefer service.Stop(ctx)",
+        "internal\\observability\\telemetry_test.go:165:20:\tdefer service.Stop(ctx)",
+        "internal\\observability\\telemetry_test.go:203:20:\tdefer service.Stop(ctx)",
+        "internal\\observability\\telemetry_test.go:210:10:\tw.Write([]byte(\"OK\"))",
+        "internal\\observability\\telemetry_test.go:242:20:\tdefer service.Stop(ctx)",
+        "internal\\observability\\telemetry_test.go:263:20:\tdefer service.Stop(ctx)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Formatação (gofmt)",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Erro ao verificar formatação",
+      "Suggestion": "",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": null,
+      "NonFixableReason": ""
+    },
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\http\\router.go:16:35: unused-parameter: parameter 'r' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func hello(w http.ResponseWriter, r *http.Request) {",
+        "                                  ^",
+        "internal\\nats\\publisher_error_handler.go:9:2: import 'github.com/nats-io/nats.go' is not allowed from list 'main': Use pkg/natsx facade (depguard)",
+        "\t\"github.com/nats-io/nats.go\"",
+        "\t^",
+        "internal\\repository\\postgres\\task_repository.go:299:17: Error return value of `json.Unmarshal` is not checked (errcheck)",
+        "\t\tjson.Unmarshal(tagsJSON, \u0026task.Tags)",
+        "\t\t              ^",
+        "internal\\repository\\postgres\\task_repository.go:305:17: Error return value of `json.Unmarshal` is not checked (errcheck)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 3,
+  "Score": 85,
+  "AutoFixable": 0,
+  "Manual": 3
+}

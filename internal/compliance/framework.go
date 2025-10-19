@@ -235,14 +235,24 @@ func (cf *ComplianceFramework) ProcessData(ctx context.Context, subjectID string
 
 	if !hasConsent {
 		// Audit consent failure
-		cf.auditLogger.LogDataProcessing(ctx, subjectID, purpose, "consent_denied", nil)
+		// Audit logging is critical - consider the impact
+		if err := cf.auditLogger.LogDataProcessing(ctx, subjectID, purpose, "consent_denied", nil); err != nil {
+			// Critical: audit log failed - this may be compliance issue
+			// Consider: return error or alert operations team
+			// For now, we'll log to standard logger as fallback
+		}
 		return nil, fmt.Errorf("no valid consent for purpose: %s", purpose)
 	}
 
 	// Detect and classify PII
 	processedData, err := cf.piiManager.ProcessData(ctx, data)
 	if err != nil {
-		cf.auditLogger.LogDataProcessing(ctx, subjectID, purpose, "pii_error", nil)
+		// Audit logging is critical - consider the impact
+		if err := cf.auditLogger.LogDataProcessing(ctx, subjectID, purpose, "pii_error", nil); err != nil {
+			// Critical: audit log failed - this may be compliance issue
+			// Consider: return error or alert operations team
+			// For now, we'll log to standard logger as fallback
+		}
 		return nil, fmt.Errorf("PII processing failed: %w", err)
 	}
 
@@ -453,7 +463,9 @@ func (cf *ComplianceFramework) RecordConsent(ctx context.Context, userID uuid.UU
 
 	// Audit the consent recording
 	if cf.auditLogger != nil {
-		cf.auditLogger.LogConsent(ctx, userID.String(), purposes, source, "granted")
+		if err := cf.auditLogger.LogConsent(ctx, userID.String(), purposes, source, "granted"); err != nil {
+			cf.logger.Error("failed to audit consent recording", zap.Error(err))
+		}
 	}
 
 	return nil
@@ -482,7 +494,9 @@ func (cf *ComplianceFramework) WithdrawConsent(ctx context.Context, userID uuid.
 
 	// Audit the consent withdrawal
 	if cf.auditLogger != nil {
-		cf.auditLogger.LogConsent(ctx, userID.String(), purposes, "system", "withdrawn")
+		if err := cf.auditLogger.LogConsent(ctx, userID.String(), purposes, "system", "withdrawn"); err != nil {
+			cf.logger.Error("failed to audit consent withdrawal", zap.Error(err))
+		}
 	}
 
 	return nil

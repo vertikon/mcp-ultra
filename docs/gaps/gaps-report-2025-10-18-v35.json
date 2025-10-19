@@ -1,0 +1,41 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-18 23:14:21",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\metrics\\business.go:758:40: string `resolved` has 3 occurrences, make it a constant (goconst)",
+        "\t\tif !exists || existingState.State == \"resolved\" {",
+        "\t\t                                     ^",
+        "internal\\metrics\\storage.go:24:39: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (mms *MemoryMetricStorage) Store(ctx context.Context, values []MetricValue) error {",
+        "                                      ^",
+        "internal\\metrics\\storage.go:40:39: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (mms *MemoryMetricStorage) Query(ctx context.Context, query MetricQuery) ([]MetricValue, error) {",
+        "                                      ^",
+        "internal\\metrics\\storage.go:113:40: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

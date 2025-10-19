@@ -97,7 +97,11 @@ func (opa *OPAService) IsAuthorized(ctx context.Context, claims *Claims, method,
 		opa.logger.Error("OPA request failed", zap.Error(err))
 		return false
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			opa.logger.Warn("Failed to close response body", zap.Error(closeErr))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		opa.logger.Warn("OPA returned non-200 status",
@@ -162,7 +166,11 @@ func (opa *OPAService) IsAuthorizedForResource(ctx context.Context, claims *Clai
 		opa.logger.Error("OPA resource request failed", zap.Error(err))
 		return false
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			opa.logger.Warn("Failed to close response body", zap.Error(closeErr))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		opa.logger.Warn("OPA resource returned non-200 status",
@@ -216,7 +224,11 @@ func (opa *OPAService) HealthCheck(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("OPA health check failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			opa.logger.Warn("Failed to close response body", zap.Error(closeErr))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("OPA health check returned status %d", resp.StatusCode)

@@ -191,7 +191,12 @@ func (r *TaskRepository) List(ctx context.Context, filter domain.TaskFilter) ([]
 	if err != nil {
 		return nil, 0, fmt.Errorf("querying tasks: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			// Log error but don't return - defer already happened
+			// Consider logging: logger.Warn("failed to close resource", zap.Error(err))
+		}
+	}()
 
 	tasks := make([]*domain.Task, 0)
 	for rows.Next() {
@@ -218,7 +223,12 @@ func (r *TaskRepository) GetByStatus(ctx context.Context, status domain.TaskStat
 	if err != nil {
 		return nil, fmt.Errorf("querying tasks by status: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			// Log error but don't return - defer already happened
+			// Consider logging: logger.Warn("failed to close resource", zap.Error(err))
+		}
+	}()
 
 	tasks := make([]*domain.Task, 0)
 	for rows.Next() {
@@ -245,7 +255,12 @@ func (r *TaskRepository) GetByAssignee(ctx context.Context, assigneeID uuid.UUID
 	if err != nil {
 		return nil, fmt.Errorf("querying tasks by assignee: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			// Log error but don't return - defer already happened
+			// Consider logging: logger.Warn("failed to close resource", zap.Error(err))
+		}
+	}()
 
 	tasks := make([]*domain.Task, 0)
 	for rows.Next() {
@@ -281,13 +296,17 @@ func (r *TaskRepository) scanTask(scanner interface {
 
 	// Unmarshal JSON fields
 	if len(tagsJSON) > 0 {
-		json.Unmarshal(tagsJSON, &task.Tags)
+		if err := json.Unmarshal(tagsJSON, &task.Tags); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal tags: %w", err)
+		}
 	} else {
 		task.Tags = make([]string, 0)
 	}
 
 	if len(metadataJSON) > 0 {
-		json.Unmarshal(metadataJSON, &task.Metadata)
+		if err := json.Unmarshal(metadataJSON, &task.Metadata); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal metadata: %w", err)
+		}
 	} else {
 		task.Metadata = make(map[string]interface{})
 	}

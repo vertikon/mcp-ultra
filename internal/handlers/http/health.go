@@ -152,7 +152,9 @@ func (h *HealthService) HealthzHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	if _, err := w.Write([]byte("OK")); err != nil {
+		span.RecordError(err)
+	}
 }
 
 // ReadinessHandler checks if service is ready to accept traffic
@@ -188,7 +190,9 @@ func (h *HealthService) ReadinessHandler(w http.ResponseWriter, r *http.Request)
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Ready"))
+	if _, err := w.Write([]byte("Ready")); err != nil {
+		span.RecordError(err)
+	}
 }
 
 // LivenessHandler checks if service is alive
@@ -199,7 +203,9 @@ func (h *HealthService) LivenessHandler(w http.ResponseWriter, r *http.Request) 
 	// Simple liveness check - if we can respond, we're alive
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Alive"))
+	if _, err := w.Write([]byte("Alive")); err != nil {
+		span.RecordError(err)
+	}
 }
 
 // StatusHandler provides comprehensive status information

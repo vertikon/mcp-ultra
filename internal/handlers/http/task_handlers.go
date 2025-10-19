@@ -55,7 +55,7 @@ func (h *TaskHandlers) GetTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.taskService.GetTask(r.Context(), taskID.String())
+	task, err := h.taskService.GetTask(r.Context(), taskID)
 	if err != nil {
 		h.logger.Error("Failed to get task", zap.Error(err))
 		h.writeErrorResponse(w, http.StatusNotFound, "Task not found", err)
@@ -80,7 +80,7 @@ func (h *TaskHandlers) UpdateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.taskService.UpdateTask(r.Context(), taskID.String(), req)
+	task, err := h.taskService.UpdateTask(r.Context(), taskID, req)
 	if err != nil {
 		h.logger.Error("Failed to update task", zap.Error(err))
 		h.writeErrorResponse(w, http.StatusInternalServerError, "Failed to update task", err)
@@ -118,7 +118,7 @@ func (h *TaskHandlers) DeleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.taskService.DeleteTask(r.Context(), taskID.String()); err != nil {
+	if err := h.taskService.DeleteTask(r.Context(), taskID); err != nil {
 		h.logger.Error("Failed to delete task", zap.Error(err))
 		h.writeErrorResponse(w, http.StatusInternalServerError, "Failed to delete task", err)
 		return

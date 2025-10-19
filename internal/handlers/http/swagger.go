@@ -29,19 +29,19 @@ func SwaggerUIHandler() http.Handler {
 		switch cleanPath {
 		case "/index.html", "/":
 			w.Header().Set("Content-Type", "text/html")
-			w.Write([]byte(swaggerUIHTML))
+			_, _ = w.Write([]byte(swaggerUIHTML))
 		case "/swagger-ui-bundle.js":
 			w.Header().Set("Content-Type", "application/javascript")
-			w.Write([]byte("// Swagger UI bundle would be served here\n// In production, serve actual Swagger UI assets"))
+			_, _ = w.Write([]byte("// Swagger UI bundle would be served here\n// In production, serve actual Swagger UI assets"))
 		case "/swagger-ui.css":
 			w.Header().Set("Content-Type", "text/css")
-			w.Write([]byte("/* Swagger UI styles would be served here */"))
+			_, _ = w.Write([]byte("/* Swagger UI styles would be served here */"))
 		case "/openapi.yaml", "/openapi.yml":
 			http.ServeFile(w, r, "./api/openapi.yaml")
 		case "/openapi.json":
 			w.Header().Set("Content-Type", "application/json")
 			// In production, you'd convert YAML to JSON or serve a JSON version
-			w.Write([]byte(`{"info": {"title": "See /docs/openapi.yaml for full spec"}}`))
+			_, _ = w.Write([]byte(`{"info": {"title": "See /docs/openapi.yaml for full spec"}}`))
 		default:
 			http.NotFound(w, r)
 		}
@@ -61,7 +61,7 @@ func RegisterSwaggerRoutes(router chi.Router) {
 	router.Get("/api/openapi.json", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		// In production, serve actual JSON conversion
-		w.Write([]byte(`{"info": {"title": "See /api/openapi.yaml for full spec"}}`))
+		_, _ = w.Write([]byte(`{"info": {"title": "See /api/openapi.yaml for full spec"}}`))
 	})
 }
 

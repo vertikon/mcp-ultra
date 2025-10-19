@@ -1,0 +1,59 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-18 15:12:33",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Formatação (gofmt)",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Erro ao verificar formatação",
+      "Suggestion": "",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": null,
+      "NonFixableReason": ""
+    },
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\domain\\models.go:6:2: import 'github.com/google/uuid' is not allowed from list 'main': Use pkg/types (uuid re-exports) (depguard)",
+        "\t\"github.com/google/uuid\"",
+        "\t^",
+        "internal\\domain\\repository.go:6:2: import 'github.com/google/uuid' is not allowed from list 'main': Use pkg/types (uuid re-exports) (depguard)",
+        "\t\"github.com/google/uuid\"",
+        "\t^",
+        "internal\\domain\\models_test.go:7:2: import 'github.com/google/uuid' is not allowed from list 'main': Use pkg/types (uuid re-exports) (depguard)",
+        "\t\"github.com/google/uuid\"",
+        "\t^",
+        "internal\\observability\\middleware.go:189: 189-225 lines are duplicate of `internal\\observability\\middleware.go:228-264` (dupl)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 2,
+  "Score": 90,
+  "AutoFixable": 0,
+  "Manual": 2
+}

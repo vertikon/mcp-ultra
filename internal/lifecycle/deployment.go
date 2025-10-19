@@ -404,7 +404,9 @@ func (da *DeploymentAutomation) executeCanaryDeployment(ctx context.Context, res
 	if err := da.validateCanaryMetrics(ctx, result); err != nil {
 		// Rollback canary
 		da.addLog(result, "Canary validation failed, rolling back")
-		da.executeCommand(ctx, fmt.Sprintf("kubectl delete deployment mcp-ultra-canary --namespace=%s", da.config.Namespace), result)
+		if rollbackErr := da.executeCommand(ctx, fmt.Sprintf("kubectl delete deployment mcp-ultra-canary --namespace=%s", da.config.Namespace), result); rollbackErr != nil {
+			da.addLog(result, fmt.Sprintf("Warning: failed to delete canary deployment: %v", rollbackErr))
+		}
 		return fmt.Errorf("canary validation failed: %w", err)
 	}
 
@@ -417,7 +419,7 @@ func (da *DeploymentAutomation) executeCanaryDeployment(ctx context.Context, res
 	}
 
 	// Cleanup canary deployment
-	da.executeCommand(ctx, fmt.Sprintf("kubectl delete deployment mcp-ultra-canary --namespace=%s", da.config.Namespace), result)
+	_ = da.executeCommand(ctx, fmt.Sprintf("kubectl delete deployment mcp-ultra-canary --namespace=%s", da.config.Namespace), result)
 
 	da.addLog(result, "Canary deployment completed successfully")
 	return nil

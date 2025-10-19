@@ -204,7 +204,7 @@ func (sl *SecretsLoader) loadFromVault(ctx context.Context) (*SecretsConfig, err
 }
 
 // loadFromK8s carrega secrets do Kubernetes
-func (sl *SecretsLoader) loadFromK8s(ctx context.Context) (*SecretsConfig, error) {
+func (sl *SecretsLoader) loadFromK8s(_ context.Context) (*SecretsConfig, error) {
 	// TODO: Implementar carregamento do K8s secrets
 	return sl.config, fmt.Errorf("K8s secrets não implementado ainda")
 }

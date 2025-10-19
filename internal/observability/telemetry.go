@@ -658,8 +658,12 @@ func (ts *TelemetryService) HTTPMiddleware() func(next http.Handler) http.Handle
 			duration := time.Since(start)
 			statusCode := fmt.Sprintf("%d", wrapped.statusCode)
 
-			ts.IncrementRequestCounter(ctx, r.Method, r.URL.Path, statusCode)
-			ts.RecordRequestDuration(ctx, r.Method, r.URL.Path, duration)
+			if err := ts.IncrementRequestCounter(ctx, r.Method, r.URL.Path, statusCode); err != nil {
+				ts.logger.Warn("Failed to increment request counter", zap.Error(err))
+			}
+			if err := ts.RecordRequestDuration(ctx, r.Method, r.URL.Path, duration); err != nil {
+				ts.logger.Warn("Failed to record request duration", zap.Error(err))
+			}
 
 			// Add status to span
 			span.SetAttributes(attribute.Int("http.status_code", wrapped.statusCode))

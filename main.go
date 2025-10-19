@@ -24,7 +24,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
-	defer logger.Sync()
+	defer func() {
+		if syncErr := logger.Sync(); syncErr != nil {
+			// Ignore sync errors on shutdown (common on Windows)
+			log.Printf("Warning: failed to sync logger: %v", syncErr)
+		}
+	}()
 
 	logger.Info("Starting MCP Ultra service",
 		"version", version.Version,

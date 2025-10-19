@@ -171,7 +171,11 @@ func (as *AuthService) loadJWKS() error {
 	if err != nil {
 		return fmt.Errorf("fetching JWKS: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			as.logger.Warn("Failed to close response body", zap.Error(closeErr))
+		}
+	}()
 
 	var jwks struct {
 		Keys []struct {
@@ -256,20 +260,24 @@ func GetUserFromContext(ctx context.Context) (*Claims, error) {
 func (as *AuthService) writeUnauthorized(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)
-	json.NewEncoder(w).Encode(map[string]string{
+	if err := json.NewEncoder(w).Encode(map[string]string{
 		"error":   "unauthorized",
 		"message": message,
-	})
+	}); err != nil {
+		as.logger.Warn("Failed to encode unauthorized response", zap.Error(err))
+	}
 }
 
 // writeForbidden writes 403 Forbidden response
 func (as *AuthService) writeForbidden(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusForbidden)
-	json.NewEncoder(w).Encode(map[string]string{
+	if err := json.NewEncoder(w).Encode(map[string]string{
 		"error":   "forbidden",
 		"message": message,
-	})
+	}); err != nil {
+		as.logger.Warn("Failed to encode forbidden response", zap.Error(err))
+	}
 }
 
 // RequireScope middleware ensures user has required scope

@@ -58,3 +58,6 @@ issues:
       linters:
         - gocyclo
         - dupl
+    - path: pkg/types/
+      linters:
+        - depguard

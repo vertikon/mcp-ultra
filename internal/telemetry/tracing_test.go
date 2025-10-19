@@ -131,7 +131,7 @@ func TestTraceFunction(t *testing.T) {
 
 	t.Run("should execute function successfully", func(t *testing.T) {
 		executed := false
-		err := TraceFunction(context.Background(), tracer, "test-operation", func(ctx context.Context) error {
+		err := TraceFunction(context.Background(), tracer, "test-operation", func(_ context.Context) error {
 			executed = true
 			return nil
 		})
@@ -142,7 +142,7 @@ func TestTraceFunction(t *testing.T) {
 
 	t.Run("should handle function error", func(t *testing.T) {
 		expectedError := assert.AnError
-		err := TraceFunction(context.Background(), tracer, "failing-operation", func(ctx context.Context) error {
+		err := TraceFunction(context.Background(), tracer, "failing-operation", func(_ context.Context) error {
 			return expectedError
 		})
 
@@ -166,7 +166,7 @@ func TestTraceFunctionWithResult(t *testing.T) {
 
 	t.Run("should return result successfully", func(t *testing.T) {
 		expectedResult := "test-result"
-		result, err := TraceFunctionWithResult(context.Background(), tracer, "test-operation", func(ctx context.Context) (string, error) {
+		result, err := TraceFunctionWithResult(context.Background(), tracer, "test-operation", func(_ context.Context) (string, error) {
 			return expectedResult, nil
 		})
 
@@ -176,7 +176,7 @@ func TestTraceFunctionWithResult(t *testing.T) {
 
 	t.Run("should handle function error and return zero value", func(t *testing.T) {
 		expectedError := assert.AnError
-		result, err := TraceFunctionWithResult(context.Background(), tracer, "failing-operation", func(ctx context.Context) (string, error) {
+		result, err := TraceFunctionWithResult(context.Background(), tracer, "failing-operation", func(_ context.Context) (string, error) {
 			return "should-not-return", expectedError
 		})
 
@@ -199,7 +199,7 @@ func TestSpanUtilities(t *testing.T) {
 
 	tracer := provider.GetTracer("test")
 
-	t.Run("should add span attributes", func(t *testing.T) {
+	t.Run("should add span attributes", func(_ *testing.T) {
 		ctx, span := tracer.Start(context.Background(), "test-span")
 		defer span.End()
 
@@ -215,7 +215,7 @@ func TestSpanUtilities(t *testing.T) {
 		)
 	})
 
-	t.Run("should add span events", func(t *testing.T) {
+	t.Run("should add span events", func(_ *testing.T) {
 		ctx, span := tracer.Start(context.Background(), "test-span")
 		defer span.End()
 
@@ -228,7 +228,7 @@ func TestSpanUtilities(t *testing.T) {
 		AddSpanEvent(context.Background(), "test-event")
 	})
 
-	t.Run("should set span error", func(t *testing.T) {
+	t.Run("should set span error", func(_ *testing.T) {
 		ctx, span := tracer.Start(context.Background(), "test-span")
 		defer span.End()
 

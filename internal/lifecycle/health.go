@@ -473,17 +473,25 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(report)
+		if err := json.NewEncoder(w).Encode(report); err != nil {
+			// Handle encoding error
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
 	})
 
 	// Add readiness endpoint
 	mux.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
 		if hm.IsHealthy() || hm.IsDegraded() {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("OK"))
+			if _, err := w.Write([]byte("OK")); err != nil {
+				hm.logger.Warn("Failed to write readiness response", "error", err)
+			}
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte("Not Ready"))
+			if _, err := w.Write([]byte("Not Ready")); err != nil {
+				hm.logger.Warn("Failed to write readiness response", "error", err)
+			}
 		}
 	})
 
@@ -491,10 +499,14 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 	mux.HandleFunc("/live", func(w http.ResponseWriter, r *http.Request) {
 		if !hm.IsUnhealthy() {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("OK"))
+			if _, err := w.Write([]byte("OK")); err != nil {
+				hm.logger.Warn("Failed to write liveness response", "error", err)
+			}
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte("Unhealthy"))
+			if _, err := w.Write([]byte("Unhealthy")); err != nil {
+				hm.logger.Warn("Failed to write liveness response", "error", err)
+			}
 		}
 	})
 

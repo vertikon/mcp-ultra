@@ -522,7 +522,11 @@ func (am *AlertManager) sendHTTPPayload(endpoint string, payload interface{}, he
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			am.logger.Warn("Failed to close response body", zap.Error(closeErr))
+		}
+	}()
 
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("HTTP error: %s", resp.Status)
