@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-please_change_this_password}
     ports:
-      - "5432:5432"
+      - "15432:5432"  # Porta externa alterada para evitar conflitos
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./migrations:/docker-entrypoint-initdb.d
@@ -22,7 +22,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "16379:6379"  # Porta externa alterada para evitar conflitos
     volumes:
       - redis_data:/data
     healthcheck:
@@ -37,8 +37,8 @@ services:
   nats:
     image: nats:2.10-alpine
     ports:
-      - "4222:4222"
-      - "8222:8222"
+      - "14222:4222"  # Porta externa alterada para evitar conflitos
+      - "18222:8222"  # Porta externa alterada para evitar conflitos
     command: ["-js", "-m", "8222", "-sd", "/data"]
     volumes:
       - nats_data:/data
@@ -84,8 +84,8 @@ services:
       OTEL_ENABLED: ${OTEL_ENABLED:-true}
       JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:14268/api/traces}
     ports:
-      - "9655:9655"
-      - "9656:9656"
+      - "19655:9655"  # Porta externa alterada para evitar conflitos
+      - "19656:9656"  # Porta externa alterada para evitar conflitos
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9655/healthz"]
       interval: 30s
@@ -116,7 +116,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     ports:
-      - "9090:9090"
+      - "19090:9090"  # Porta externa alterada para evitar conflitos
     volumes:
       - ./deploy/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
@@ -134,7 +134,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - "13000:3000"  # Porta externa alterada para evitar conflitos
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-please_change_this_password}

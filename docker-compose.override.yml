@@ -1,0 +1,52 @@
+# Docker Compose Override - Portas Alternativas
+# Este arquivo resolve conflitos de porta ao usar portas externas diferentes
+# As portas internas (dentro da rede Docker) permanecem as mesmas
+
+services:
+  # PostgreSQL - Porta externa alterada para 15432
+  postgres:
+    ports:
+      - "15432:5432"  # Host:Container (15432 externo, 5432 interno)
+
+  # Redis - Porta externa alterada para 16379
+  redis:
+    ports:
+      - "16379:6379"  # Host:Container (16379 externo, 6379 interno)
+
+  # NATS - Portas externas alteradas
+  nats:
+    ports:
+      - "14222:4222"  # Host:Container (14222 externo, 4222 interno)
+      - "18222:8222"  # Host:Container (18222 externo, 8222 interno)
+
+  # MCP Ultra - Portas permanecem iguais (assumindo que estão livres)
+  # Se houver conflito, descomente e ajuste:
+  # mcp-ultra:
+  #   ports:
+  #     - "19655:9655"
+  #     - "19656:9656"
+
+  # Prometheus - Porta permanece igual (assumindo que está livre)
+  # Se houver conflito, descomente e ajuste:
+  # prometheus:
+  #   ports:
+  #     - "19090:9090"
+
+  # Grafana - Porta permanece igual (assumindo que está livre)
+  # Se houver conflito, descomente e ajuste:
+  # grafana:
+  #   ports:
+  #     - "13000:3000"
+
+  # Jaeger - Porta principal permanece igual
+  # Se houver conflito, descomente e ajuste:
+  # jaeger:
+  #   ports:
+  #     - "15775:5775/udp"
+  #     - "16831:6831/udp"
+  #     - "16832:6832/udp"
+  #     - "15778:5778"
+  #     - "116686:16686"
+  #     - "114268:14268"
+  #     - "114250:14250"
+  #     - "19411:9411"
