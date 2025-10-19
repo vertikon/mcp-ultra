@@ -755,7 +755,7 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 	bmc.mu.Unlock()
 
 	if conditionMet {
-		if !exists || existingState.State == "resolved" {
+		if !exists || existingState.State == StateResolved {
 			// New alert or previously resolved
 			newState := AlertState{
 				MetricName:  rule.MetricName,
@@ -788,9 +788,9 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 				"severity", rule.Severity,
 			)
 		}
-	} else if exists && existingState.State != "resolved" {
+	} else if exists && existingState.State != StateResolved {
 		// Resolve alert
-		existingState.State = "resolved"
+		existingState.State = StateResolved
 		existingState.Value = currentValue
 
 		bmc.mu.Lock()

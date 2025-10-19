@@ -4,19 +4,25 @@ run:
 
 linters:
   enable:
+    - goconst
+    - revive
     - govet
-    - gofmt
-    - goimports
-    - gocyclo
-    - errcheck
     - ineffassign
     - staticcheck
-    - revive
-    - goconst
-    - depguard
     - dupl
+    - depguard
+    - unused
+    - errcheck
 
 linters-settings:
+  goconst:
+    min-occurrences: 3
+    min-length: 3
+  revive:
+    rules:
+      - name: unused-parameter
+        arguments:
+          allowNames: ["ctx","_"]
   depguard:
     rules:
       main:
@@ -43,20 +49,11 @@ linters-settings:
             desc: "Use pkg/types (uuid re-exports)"
           - pkg: internal
             desc: "No cross-internal imports; use facades"
-  gocyclo:
-    min-complexity: 18
-  revive:
-    rules:
-      - name: exported
-      - name: unused-parameter
-      - name: var-naming
-      - name: increment-decrement
-
 issues:
+  exclude-use-default: false
   exclude-rules:
     - path: _test\.go
       linters:
-        - gocyclo
         - dupl
     - path: pkg/types/
       linters:
