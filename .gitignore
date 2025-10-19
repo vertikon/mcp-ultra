@@ -4,18 +4,22 @@
 *.dll
 *.so
 *.dylib
+bin/
+dist/
+build/
 
 # Test binary, built with `go test -c`
 *.test
 
-# Output of the go coverage tool, specifically when used with LiteIDE
+# Output of the go coverage tool
 *.out
-
-# Dependency directories (remove the comment below to include it)
-# vendor/
+coverage.out
+coverage.html
+*.cover
 
 # Go workspace file
 go.work
+go.work.sum
 
 # IDE/Editor files
 .vscode/
@@ -23,79 +27,46 @@ go.work
 *.swp
 *.swo
 *~
-
-# OS generated files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
 
-# Environment files
+# Environment files - NEVER commit these!
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
+.env.development
+.env.production
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
 
 # Configuration files with secrets
 config/local.yaml
 config/secrets.yaml
-*.key
-*.pem
-*.crt
-
-# Security Scanner Exclusions
-# Exclude files that contain template/example secrets (not real secrets)
-scripts/generate-secrets.go
-deploy/k8s/secrets.template.yaml
-secrets-inventory.txt
+config/*.secret.yaml
+secrets/
 
 # Log files
 *.log
 logs/
-
-# Build artifacts
-dist/
-build/
-target/
-
-# Docker files
-.dockerignore
-
-# Kubernetes secrets
-k8s-secrets/
-*.secret.yaml
-
-# Terraform
-*.tfstate
-*.tfstate.*
-.terraform/
-.terraform.lock.hcl
+*.log.*
 
 # Temporary files
 tmp/
 temp/
 *.tmp
-
-# Coverage reports
-coverage.out
-coverage.html
-*.cover
-
-# Profiling data
-*.prof
-*.cpu
-*.mem
+*.temp
+*.cache
 
 # Security scan results
 *.sarif
 security-reports/
-gosec-*.json
+gosec*.json
+gosec*.sarif
 trivy-results.*
 snyk-results.*
+gitleaks-report.*
 
 # Database files
 *.db
@@ -104,6 +75,8 @@ snyk-results.*
 
 # Node modules (if using any JS/Node tools)
 node_modules/
+package-lock.json
+yarn.lock
 
 # Python files (if using any Python tools)
 __pycache__/
@@ -111,36 +84,73 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
-*.so
+venv/
+.venv/
 
-# Helm charts
+# Docker
+.dockerignore
+
+# Kubernetes secrets
+k8s-secrets/
+*.secret.yaml
+deploy/k8s/secrets/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.auto.tfvars
+
+# Helm
 charts/*/charts/
 charts/*/requirements.lock
-
-# Local development
-.local/
-local-*
-
-# Generated protobuf files
-*.pb.go
-*_grpc.pb.go
-
-# Generated client libraries
-client/
 
 # Backup files
 *.bak
 *.backup
+*.old
+*_backup
 
 # Archive files
 *.zip
 *.tar.gz
 *.rar
+*.7z
 
 # Generated documentation
 docs/api/
-*.html
+site/
+
+# Profiling data
+*.prof
+*.cpu
+*.mem
+*.pprof
 
 # Mock files (keep source mocks, ignore generated)
 **/mocks/**/*.go
 !**/mocks/**/*_mock.go
+
+# Generated protobuf files
+*.pb.go
+*_grpc.pb.go
+
+# Seeds and test data
+seeds/
+testdata/fixtures/
+*.seed.sql
+
+# Local development
+.local/
+local-*
+scratch/
+
+# Vendor (if not using Go modules)
+vendor/
+
+# CI/CD artifacts
+.github/.artifacts/
+*.artifact
