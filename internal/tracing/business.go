@@ -881,17 +881,17 @@ func (btt *BusinessTransactionTracer) checkAlerts(transaction *BusinessTransacti
 	// Check duration alerts
 	if transaction.Duration > btt.config.AlertThresholds.VeryHighLatency {
 		btt.logger.Error("Very high transaction latency detected",
-			"transaction_id", transaction.ID,
-			"type", transaction.Type,
+			zap.String("transaction_id", transaction.ID),
+			zap.String("type", string(transaction.Type)),
 			zap.Duration("duration", transaction.Duration),
-			zap.String("threshold", btt.config.AlertThresholds.VeryHighLatency),
+			zap.Duration("threshold", btt.config.AlertThresholds.VeryHighLatency),
 		)
 	} else if transaction.Duration > btt.config.AlertThresholds.HighLatency {
 		btt.logger.Warn("High transaction latency detected",
-			"transaction_id", transaction.ID,
-			"type", transaction.Type,
+			zap.String("transaction_id", transaction.ID),
+			zap.String("type", string(transaction.Type)),
 			zap.Duration("duration", transaction.Duration),
-			zap.String("threshold", btt.config.AlertThresholds.HighLatency),
+			zap.Duration("threshold", btt.config.AlertThresholds.HighLatency),
 		)
 	}
 

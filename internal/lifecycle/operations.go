@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
@@ -167,7 +169,7 @@ func (om *OperationsManager) RegisterExecutor(opType OperationType, executor Ope
 	defer om.mu.Unlock()
 
 	om.executors[opType] = executor
-	om.logger.Info("Operation executor registered", "type", opType)
+	om.logger.Info("Operation executor registered", zap.String("type", string(opType)))
 }
 
 // Start starts the operations manager
