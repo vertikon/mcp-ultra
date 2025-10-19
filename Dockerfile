@@ -20,7 +20,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -trimpath \
     -ldflags="-w -s -X 'github.com/vertikon/mcp-ultra/pkg/version.Version=v1.0.0' -X 'github.com/vertikon/mcp-ultra/pkg/version.GitCommit=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')' -X 'github.com/vertikon/mcp-ultra/pkg/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)'" \
-    -o mcp-ultra cmd/mcp-model-ultra/main.go
+    -o mcp-ultra main.go
 
 # Runtime stage with minimal Alpine
 FROM alpine:latest
