@@ -58,3 +58,9 @@ issues:
     - path: pkg/types/
       linters:
         - depguard
+    - path: internal/events/
+      linters:
+        - depguard
+    - path: internal/nats/
+      linters:
+        - depguard

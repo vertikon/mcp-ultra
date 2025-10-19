@@ -6,10 +6,16 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.uber.org/zap"
-
 	"github.com/vertikon/mcp-ultra/internal/domain"
 )
+
+// mockLogger implements the local Log interface for testing
+type mockLogger struct{}
+
+func (m *mockLogger) Debug(msg string, keysAndValues ...interface{}) {}
+func (m *mockLogger) Info(msg string, keysAndValues ...interface{})  {}
+func (m *mockLogger) Warn(msg string, keysAndValues ...interface{})  {}
+func (m *mockLogger) Error(msg string, keysAndValues ...interface{}) {}
 
 // Mock repositories
 type MockFeatureFlagRepository struct {
@@ -78,13 +84,13 @@ func (m *MockCacheRepository) SetNX(ctx context.Context, key string, value inter
 func TestFlagManager_IsEnabled(t *testing.T) {
 	flagRepo := &MockFeatureFlagRepository{}
 	cacheRepo := &MockCacheRepository{}
-	logger := zap.NewNop()
+	log := &mockLogger{}
 
 	manager := &FlagManager{
 		flags:  make(map[string]*domain.FeatureFlag),
 		repo:   flagRepo,
 		cache:  cacheRepo,
-		logger: logger,
+		logger: log,
 		stopCh: make(chan struct{}),
 	}
 
@@ -123,13 +129,13 @@ func TestFlagManager_IsEnabled(t *testing.T) {
 func TestFlagManager_IsEnabledWithDefault(t *testing.T) {
 	flagRepo := &MockFeatureFlagRepository{}
 	cacheRepo := &MockCacheRepository{}
-	logger := zap.NewNop()
+	log := &mockLogger{}
 
 	manager := &FlagManager{
 		flags:  make(map[string]*domain.FeatureFlag),
 		repo:   flagRepo,
 		cache:  cacheRepo,
-		logger: logger,
+		logger: log,
 		stopCh: make(chan struct{}),
 	}
 
@@ -153,13 +159,13 @@ func TestFlagManager_IsEnabledWithDefault(t *testing.T) {
 func TestFlagManager_EvaluatePercentage(t *testing.T) {
 	flagRepo := &MockFeatureFlagRepository{}
 	cacheRepo := &MockCacheRepository{}
-	logger := zap.NewNop()
+	log := &mockLogger{}
 
 	manager := &FlagManager{
 		flags:  make(map[string]*domain.FeatureFlag),
 		repo:   flagRepo,
 		cache:  cacheRepo,
-		logger: logger,
+		logger: log,
 		stopCh: make(chan struct{}),
 	}
 
@@ -185,13 +191,13 @@ func TestFlagManager_EvaluatePercentage(t *testing.T) {
 func TestFlagManager_EvaluateUserList(t *testing.T) {
 	flagRepo := &MockFeatureFlagRepository{}
 	cacheRepo := &MockCacheRepository{}
-	logger := zap.NewNop()
+	log := &mockLogger{}
 
 	manager := &FlagManager{
 		flags:  make(map[string]*domain.FeatureFlag),
 		repo:   flagRepo,
 		cache:  cacheRepo,
-		logger: logger,
+		logger: log,
 		stopCh: make(chan struct{}),
 	}
 
@@ -216,13 +222,13 @@ func TestFlagManager_EvaluateUserList(t *testing.T) {
 func TestFlagManager_EvaluateAttribute(t *testing.T) {
 	flagRepo := &MockFeatureFlagRepository{}
 	cacheRepo := &MockCacheRepository{}
-	logger := zap.NewNop()
+	log := &mockLogger{}
 
 	manager := &FlagManager{
 		flags:  make(map[string]*domain.FeatureFlag),
 		repo:   flagRepo,
 		cache:  cacheRepo,
-		logger: logger,
+		logger: log,
 		stopCh: make(chan struct{}),
 	}
 

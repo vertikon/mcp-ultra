@@ -267,7 +267,7 @@ func (da *DeploymentAutomation) executeDeploymentPipeline(ctx context.Context, r
 	return nil
 }
 
-func (da *DeploymentAutomation) validateDeployment(ctx context.Context, result *DeploymentResult) error {
+func (da *DeploymentAutomation) validateDeployment(_ context.Context, result *DeploymentResult) error {
 	da.addLog(result, "Validating deployment configuration")
 
 	// Validate configuration

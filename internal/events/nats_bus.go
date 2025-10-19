@@ -209,7 +209,7 @@ func (h *TaskEventHandler) handleTaskUpdated(_ context.Context, event *domain.Ev
 	return nil
 }
 
-func (h *TaskEventHandler) handleTaskCompleted(ctx context.Context, event *domain.Event) error {
+func (h *TaskEventHandler) handleTaskCompleted(_ context.Context, event *domain.Event) error {
 	h.logger.Info("Task completed event handled",
 		zap.String("event_id", event.ID.String()),
 		zap.String("aggregate_id", event.AggregateID.String()))
@@ -218,7 +218,7 @@ func (h *TaskEventHandler) handleTaskCompleted(ctx context.Context, event *domai
 	return nil
 }
 
-func (h *TaskEventHandler) handleTaskDeleted(ctx context.Context, event *domain.Event) error {
+func (h *TaskEventHandler) handleTaskDeleted(_ context.Context, event *domain.Event) error {
 	h.logger.Info("Task deleted event handled",
 		zap.String("event_id", event.ID.String()),
 		zap.String("aggregate_id", event.AggregateID.String()))

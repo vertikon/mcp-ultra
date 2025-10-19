@@ -34,7 +34,7 @@ func (s LifecycleState) String() string {
 	case StateReady:
 		return "ready"
 	case StateHealthy:
-		return "healthy"
+		return string(HealthStatusHealthy)
 	case StateDegraded:
 		return "degraded"
 	case StateStopping:

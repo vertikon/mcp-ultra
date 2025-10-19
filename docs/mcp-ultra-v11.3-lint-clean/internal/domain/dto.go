@@ -1,11 +1,7 @@
 // Package domain contém DTOs mínimos exigidos por handlers e testes.
 package domain
 
-// Troque para seu alias de UUID, se usar pkg/types:
-// import "github.com/vertikon/mcp-ultra-fix/pkg/types"
-// type UUID = types.UUID
-
-import "github.com/google/uuid"
+import "github.com/vertikon/mcp-ultra/pkg/types"
 
 type CreateTaskRequest struct {
 	Title       string
@@ -24,7 +20,7 @@ type TaskFilters struct {
 }
 
 type Task struct {
-	ID    uuid.UUID
+	ID    types.UUID
 	Title string
 }
 

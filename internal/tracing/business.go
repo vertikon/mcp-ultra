@@ -7,14 +7,12 @@ import (
 	"sync"
 	"time"
 
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
+	obs "github.com/vertikon/mcp-ultra/pkg/observability"
 )
 
 // BusinessTransactionTracer provides advanced tracing for critical business transactions
@@ -269,7 +267,7 @@ func DefaultTracingConfig() TracingConfig {
 
 // NewBusinessTransactionTracer creates a new business transaction tracer
 func NewBusinessTransactionTracer(config TracingConfig, logger logger.Logger, telemetry *observability.TelemetryService) (*BusinessTransactionTracer, error) {
-	tracer := otel.Tracer(config.ServiceName)
+	tracer := obs.Tracer(config.ServiceName)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -416,11 +414,11 @@ func (btt *BusinessTransactionTracer) EndTransaction(transaction *BusinessTransa
 	// Add final attributes
 	if transaction.Span != nil {
 		transaction.Span.SetAttributes(
-			attribute.Int64("transaction.duration_ms", transaction.Duration.Milliseconds()),
-			attribute.String("transaction.status", string(transaction.Status)),
-			attribute.Int("transaction.steps_count", len(transaction.Steps)),
-			attribute.Int("transaction.events_count", len(transaction.Events)),
-			attribute.Int("transaction.errors_count", len(transaction.Errors)),
+			obs.AttrInt64("transaction.duration_ms", transaction.Duration.Milliseconds()),
+			obs.AttrString("transaction.status", string(transaction.Status)),
+			obs.AttrInt("transaction.steps_count", len(transaction.Steps)),
+			obs.AttrInt("transaction.events_count", len(transaction.Events)),
+			obs.AttrInt("transaction.errors_count", len(transaction.Errors)),
 		)
 
 		// End span
@@ -732,7 +730,7 @@ func (btt *BusinessTransactionTracer) initializeDefaultTemplates() {
 	}
 }
 
-func (btt *BusinessTransactionTracer) shouldSample(template *TransactionTemplate, attributes map[string]interface{}) bool {
+func (btt *BusinessTransactionTracer) shouldSample(template *TransactionTemplate, _ map[string]interface{}) bool {
 	if template != nil && template.Critical {
 		return true // Always sample critical transactions
 	}
@@ -799,15 +797,15 @@ func (btt *BusinessTransactionTracer) extractCorrelationFields(transaction *Busi
 }
 
 func (btt *BusinessTransactionTracer) addToBaggage(ctx context.Context, transaction *BusinessTransaction) context.Context {
-	bag, _ := baggage.Parse(fmt.Sprintf("transaction.id=%s,transaction.type=%s,transaction.name=%s",
+	bag, _ := obs.BaggageParse(fmt.Sprintf("transaction.id=%s,transaction.type=%s,transaction.name=%s",
 		transaction.ID, string(transaction.Type), transaction.Name))
 
 	if transaction.UserID != "" {
-		member, _ := baggage.NewMember("user.id", transaction.UserID)
+		member, _ := obs.BaggageNewMember("user.id", transaction.UserID)
 		bag, _ = bag.SetMember(member)
 	}
 
-	return baggage.ContextWithBaggage(ctx, bag)
+	return obs.BaggageContextWithBaggage(ctx, bag)
 }
 
 func (btt *BusinessTransactionTracer) addError(transaction *BusinessTransaction, errorType, message string, err error, recoverable bool) {
@@ -837,9 +835,9 @@ func (btt *BusinessTransactionTracer) addError(transaction *BusinessTransaction,
 	if transaction.Span != nil {
 		transaction.Span.AddEvent("error",
 			trace.WithAttributes(
-				attribute.String("error.type", errorType),
-				attribute.String("error.message", message),
-				attribute.Bool("error.recoverable", recoverable),
+				obs.AttrString("error.type", errorType),
+				obs.AttrString("error.message", message),
+				obs.AttrBool("error.recoverable", recoverable),
 			),
 		)
 	}
@@ -924,25 +922,25 @@ func (btt *BusinessTransactionTracer) updateCorrelations(transaction *BusinessTr
 	btt.correlations[transaction.CorrelationID] = correlations
 }
 
-func (btt *BusinessTransactionTracer) convertAttributes(attributes map[string]interface{}) []attribute.KeyValue {
-	attrs := make([]attribute.KeyValue, 0, len(attributes))
+func (btt *BusinessTransactionTracer) convertAttributes(attributes map[string]interface{}) []obs.KeyValue {
+	attrs := make([]obs.KeyValue, 0, len(attributes))
 
 	for k, v := range attributes {
 		switch val := v.(type) {
 		case string:
-			attrs = append(attrs, attribute.String(k, val))
+			attrs = append(attrs, obs.AttrString(k, val))
 		case int:
-			attrs = append(attrs, attribute.Int(k, val))
+			attrs = append(attrs, obs.AttrInt(k, val))
 		case int64:
-			attrs = append(attrs, attribute.Int64(k, val))
+			attrs = append(attrs, obs.AttrInt64(k, val))
 		case float64:
-			attrs = append(attrs, attribute.Float64(k, val))
+			attrs = append(attrs, obs.AttrFloat64(k, val))
 		case bool:
-			attrs = append(attrs, attribute.Bool(k, val))
+			attrs = append(attrs, obs.AttrBool(k, val))
 		default:
 			// Convert to string for complex types
 			if jsonBytes, err := json.Marshal(v); err == nil {
-				attrs = append(attrs, attribute.String(k, string(jsonBytes)))
+				attrs = append(attrs, obs.AttrString(k, string(jsonBytes)))
 			}
 		}
 	}
