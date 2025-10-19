@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/vertikon/mcp-ultra-fix/pkg/types"
+	"github.com/vertikon/mcp-ultra/pkg/types"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -367,7 +367,7 @@ func TestComplianceFramework_ConcurrentOperations(t *testing.T) {
 
 	// Run concurrent consent operations
 	for i := 0; i < numOperations; i++ {
-		go func(i int) {
+		go func(_ int) {
 			userID := types.NewUUID()
 			purposes := []string{"processing", "analytics"}
 

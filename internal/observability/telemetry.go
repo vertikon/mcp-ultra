@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/exporters/jaeger" //nolint:staticcheck // TODO: migrate to OTLP exporter
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
@@ -408,7 +408,7 @@ func (ts *TelemetryService) initSystemMetrics() error {
 
 // Start is a no-op method for compatibility with Service.Start()
 // Initialization happens in NewTelemetryService
-func (ts *TelemetryService) Start(ctx context.Context) error {
+func (ts *TelemetryService) Start(_ context.Context) error {
 	if ts.config.Debug {
 		ts.logger.Debug("TelemetryService.Start called (initialization already complete)")
 	}
@@ -720,7 +720,7 @@ func (ts *TelemetryService) HealthCheck() map[string]interface{} {
 }
 
 // collectSystemMetrics collects system-level metrics
-func (ts *TelemetryService) collectSystemMetrics(ctx context.Context, observer metric.Observer) error {
+func (ts *TelemetryService) collectSystemMetrics(_ context.Context, observer metric.Observer) error {
 	// Collect system metrics (simplified implementation)
 	// In production, use proper system metric collection libraries
 

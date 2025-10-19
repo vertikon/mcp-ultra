@@ -1,13 +1,15 @@
 package lifecycle
 
 import (
+	"go.uber.org/zap"
+
 	"context"
 	"fmt"
 	"os/exec"
 	"strings"
 	"time"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // DeploymentStrategy represents deployment strategies
@@ -267,7 +269,7 @@ func (da *DeploymentAutomation) executeDeploymentPipeline(ctx context.Context, r
 	return nil
 }
 
-func (da *DeploymentAutomation) validateDeployment(ctx context.Context, result *DeploymentResult) error {
+func (da *DeploymentAutomation) validateDeployment(_ context.Context, result *DeploymentResult) error {
 	da.addLog(result, "Validating deployment configuration")
 
 	// Validate configuration
@@ -562,11 +564,11 @@ func (da *DeploymentAutomation) executeScript(ctx context.Context, script string
 		return err
 	}
 
-	da.addLog(result, fmt.Sprintf("Script executed successfully"))
+	da.addLog(result, "Script executed successfully")
 	return nil
 }
 
-func (da *DeploymentAutomation) executeHTTPHook(ctx context.Context, hook DeploymentHook, result *DeploymentResult) error {
+func (da *DeploymentAutomation) executeHTTPHook(_ context.Context, hook DeploymentHook, result *DeploymentResult) error {
 	// Implementation for HTTP hook execution
 	da.addLog(result, fmt.Sprintf("Executing HTTP hook: %s", hook.URL))
 	// This would implement HTTP request logic
@@ -578,7 +580,7 @@ func (da *DeploymentAutomation) validateKubernetesManifests() error {
 	return nil
 }
 
-func (da *DeploymentAutomation) validateDockerImage(version string) error {
+func (da *DeploymentAutomation) validateDockerImage(_ string) error {
 	// Implementation for image validation
 	return nil
 }
@@ -588,12 +590,12 @@ func (da *DeploymentAutomation) validateClusterResources() error {
 	return nil
 }
 
-func (da *DeploymentAutomation) validateCanaryMetrics(ctx context.Context, result *DeploymentResult) error {
+func (da *DeploymentAutomation) validateCanaryMetrics(_ context.Context, _ *DeploymentResult) error {
 	// Implementation for canary metrics validation
 	return nil
 }
 
-func (da *DeploymentAutomation) performHealthChecks(ctx context.Context, result *DeploymentResult) error {
+func (da *DeploymentAutomation) performHealthChecks(_ context.Context, _ *DeploymentResult) error {
 	// Implementation for health checks
 	return nil
 }
@@ -615,12 +617,12 @@ func (da *DeploymentAutomation) getPreviousVersion() string {
 
 func (da *DeploymentAutomation) addLog(result *DeploymentResult, message string) {
 	result.Logs = append(result.Logs, fmt.Sprintf("%s: %s", time.Now().Format(time.RFC3339), message))
-	da.logger.Info(message, "deployment", result.NewVersion, "phase", result.Phase)
+	da.logger.Info(message, zap.String("deployment", result.NewVersion), zap.String("phase", string(result.Phase)))
 }
 
 func (da *DeploymentAutomation) addError(result *DeploymentResult, message string) {
 	result.Errors = append(result.Errors, fmt.Sprintf("%s: %s", time.Now().Format(time.RFC3339), message))
-	da.logger.Error(message, "deployment", result.NewVersion, "phase", result.Phase)
+	da.logger.Error(message, zap.String("deployment", result.NewVersion), zap.String("phase", string(result.Phase)))
 }
 
 func (da *DeploymentAutomation) addDeploymentToHistory(result DeploymentResult) {

@@ -1,22 +1,21 @@
 package types
 
-import (
-	"github.com/google/uuid"
-)
+import "github.com/google/uuid"
 
-// UUID type re-exported from google/uuid for centralized dependency management
+// UUID is a facade for google/uuid
 type UUID = uuid.UUID
 
-// UUID generator functions
-var (
-	// New generates a new random UUID v4
-	New = uuid.New
-	// NewString generates a new random UUID v4 as a string
-	NewString = uuid.NewString
-	// Parse parses a UUID string
-	Parse = uuid.Parse
-	// MustParse parses a UUID string and panics on error
-	MustParse = uuid.MustParse
-	// Nil is the nil UUID (00000000-0000-0000-0000-000000000000)
-	Nil = uuid.Nil
-)
+// NewUUID generates a new random UUID
+func NewUUID() UUID {
+	return uuid.New()
+}
+
+// ParseUUID parses a UUID from string
+func ParseUUID(s string) (UUID, error) {
+	return uuid.Parse(s)
+}
+
+// MustParseUUID parses a UUID from string or panics
+func MustParseUUID(s string) UUID {
+	return uuid.MustParse(s)
+}

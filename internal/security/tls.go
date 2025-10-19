@@ -4,8 +4,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 
 	"go.uber.org/zap"
 )
@@ -49,7 +49,7 @@ func (tm *TLSManager) GetServerTLSConfig() (*tls.Config, error) {
 
 	// Configure client authentication if enabled
 	if tm.config.ClientAuth && tm.config.CAFile != "" {
-		caCert, err := ioutil.ReadFile(tm.config.CAFile)
+		caCert, err := os.ReadFile(tm.config.CAFile)
 		if err != nil {
 			return nil, fmt.Errorf("reading CA certificate: %w", err)
 		}
@@ -90,7 +90,7 @@ func (tm *TLSManager) GetClientTLSConfig() (*tls.Config, error) {
 
 	// Configure CA for server verification
 	if tm.config.CAFile != "" {
-		caCert, err := ioutil.ReadFile(tm.config.CAFile)
+		caCert, err := os.ReadFile(tm.config.CAFile)
 		if err != nil {
 			return nil, fmt.Errorf("reading CA certificate: %w", err)
 		}

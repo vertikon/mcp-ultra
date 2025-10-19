@@ -107,7 +107,7 @@ func (ts *TelemetryService) HTTPTelemetryMiddleware(next http.Handler) http.Hand
 		ts.config.ServiceName,
 		otelhttp.WithTracerProvider(ts.tracerProvider),
 		otelhttp.WithMeterProvider(ts.meterProvider),
-		otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
+		otelhttp.WithSpanNameFormatter(func(_ string, r *http.Request) string {
 			return fmt.Sprintf("%s %s", r.Method, r.URL.Path)
 		}),
 	)
@@ -185,25 +185,41 @@ func (dtw *DatabaseTelemetryWrapper) WrapDatabaseOperation(
 	return err
 }
 
-// CacheOperation wrapper for cache operations
-func (ts *TelemetryService) CacheOperation(
+// operationConfig holds configuration for traced operations
+type operationConfig struct {
+	spanPrefix  string
+	spanKind    trace.SpanKind
+	systemAttr  string
+	systemValue string
+	operation   string
+	keyAttr     string
+	keyValue    string
+	errorType   string
+	errorSource string
+}
+
+// tracedOperation is a generic wrapper for operations with telemetry
+func (ts *TelemetryService) tracedOperation(
 	ctx context.Context,
-	operation string,
-	key string,
+	config operationConfig,
 	fn func(context.Context) error,
 ) error {
 	if !ts.config.Enabled {
 		return fn(ctx)
 	}
 
-	spanName := fmt.Sprintf("cache.%s", operation)
+	spanName := fmt.Sprintf("%s.%s", config.spanPrefix, config.operation)
+	attrs := []attribute.KeyValue{
+		attribute.String(config.systemAttr+".system", config.systemValue),
+		attribute.String(config.systemAttr+".operation", config.operation),
+	}
+	if config.keyAttr != "" && config.keyValue != "" {
+		attrs = append(attrs, attribute.String(config.systemAttr+"."+config.keyAttr, config.keyValue))
+	}
+
 	ctx, span := ts.StartSpan(ctx, spanName,
-		trace.WithSpanKind(trace.SpanKindClient),
-		trace.WithAttributes(
-			attribute.String("cache.system", "redis"),
-			attribute.String("cache.operation", operation),
-			attribute.String("cache.key", key),
-		),
+		trace.WithSpanKind(config.spanKind),
+		trace.WithAttributes(attrs...),
 	)
 	defer span.End()
 
@@ -211,17 +227,37 @@ func (ts *TelemetryService) CacheOperation(
 	err := fn(ctx)
 	duration := time.Since(start)
 
-	span.SetAttributes(attribute.Float64("cache.duration_ms", float64(duration.Nanoseconds())/1000000))
+	span.SetAttributes(attribute.Float64(config.systemAttr+".duration_ms", float64(duration.Nanoseconds())/1000000))
 
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		ts.RecordError("cache_error", "cache")
+		ts.RecordError(config.errorType, config.errorSource)
 	} else {
 		span.SetStatus(codes.Ok, "")
 	}
 
 	return err
+}
+
+// CacheOperation wrapper for cache operations
+func (ts *TelemetryService) CacheOperation(
+	ctx context.Context,
+	operation string,
+	key string,
+	fn func(context.Context) error,
+) error {
+	return ts.tracedOperation(ctx, operationConfig{
+		spanPrefix:  "cache",
+		spanKind:    trace.SpanKindClient,
+		systemAttr:  "cache",
+		systemValue: "redis",
+		operation:   operation,
+		keyAttr:     "key",
+		keyValue:    key,
+		errorType:   "cache_error",
+		errorSource: "cache",
+	}, fn)
 }
 
 // MessageQueueOperation wrapper for message queue operations
@@ -231,36 +267,17 @@ func (ts *TelemetryService) MessageQueueOperation(
 	subject string,
 	fn func(context.Context) error,
 ) error {
-	if !ts.config.Enabled {
-		return fn(ctx)
-	}
-
-	spanName := fmt.Sprintf("messaging.%s", operation)
-	ctx, span := ts.StartSpan(ctx, spanName,
-		trace.WithSpanKind(trace.SpanKindProducer),
-		trace.WithAttributes(
-			attribute.String("messaging.system", "nats"),
-			attribute.String("messaging.operation", operation),
-			attribute.String("messaging.destination", subject),
-		),
-	)
-	defer span.End()
-
-	start := time.Now()
-	err := fn(ctx)
-	duration := time.Since(start)
-
-	span.SetAttributes(attribute.Float64("messaging.duration_ms", float64(duration.Nanoseconds())/1000000))
-
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		ts.RecordError("messaging_error", "messaging")
-	} else {
-		span.SetStatus(codes.Ok, "")
-	}
-
-	return err
+	return ts.tracedOperation(ctx, operationConfig{
+		spanPrefix:  "messaging",
+		spanKind:    trace.SpanKindProducer,
+		systemAttr:  "messaging",
+		systemValue: "nats",
+		operation:   operation,
+		keyAttr:     "destination",
+		keyValue:    subject,
+		errorType:   "messaging_error",
+		errorSource: "messaging",
+	}, fn)
 }
 
 // BusinessOperation wrapper for general business operations

@@ -16,6 +16,19 @@ import (
 	"go.uber.org/zap"
 )
 
+// Context key type for type-safe context values
+type ctxKey string
+
+const (
+	ctxUserID     ctxKey = "user_id"
+	ctxUsername   ctxKey = "username"
+	ctxUserRoles  ctxKey = "user_roles"
+	ctxSessionID  ctxKey = "session_id"
+	ctxAuthClaims ctxKey = "auth_claims"
+	ctxClientName ctxKey = "client_name"
+	ctxAPIKey     ctxKey = "api_key"
+)
+
 type AuthConfig struct {
 	JWTSecret     string        `yaml:"jwt_secret" envconfig:"JWT_SECRET" required:"true"`
 	JWTExpiry     time.Duration `yaml:"jwt_expiry" envconfig:"JWT_TOKEN_EXPIRY" default:"24h"`
@@ -94,11 +107,11 @@ func (a *AuthMiddleware) JWTAuth(next http.Handler) http.Handler {
 		)
 
 		// Add user context
-		ctx = context.WithValue(ctx, "user_id", claims.UserID)
-		ctx = context.WithValue(ctx, "username", claims.Username)
-		ctx = context.WithValue(ctx, "user_roles", claims.Roles)
-		ctx = context.WithValue(ctx, "session_id", claims.SessionID)
-		ctx = context.WithValue(ctx, "auth_claims", claims)
+		ctx = context.WithValue(ctx, ctxUserID, claims.UserID)
+		ctx = context.WithValue(ctx, ctxUsername, claims.Username)
+		ctx = context.WithValue(ctx, ctxUserRoles, claims.Roles)
+		ctx = context.WithValue(ctx, ctxSessionID, claims.SessionID)
+		ctx = context.WithValue(ctx, ctxAuthClaims, claims)
 
 		a.logger.Debug("JWT authentication successful",
 			zap.String("user_id", claims.UserID),
@@ -141,8 +154,8 @@ func (a *AuthMiddleware) APIKeyAuth(validAPIKeys map[string]string) func(http.Ha
 			}
 
 			// Add client context
-			ctx = context.WithValue(ctx, "client_name", clientName)
-			ctx = context.WithValue(ctx, "api_key", apiKey[:8]+"...")
+			ctx = context.WithValue(ctx, ctxClientName, clientName)
+			ctx = context.WithValue(ctx, ctxAPIKey, apiKey[:8]+"...")
 
 			span.SetAttributes(
 				attribute.String("client.name", clientName),

@@ -1,20 +1,20 @@
 package tracing
 
 import (
+	"go.uber.org/zap"
+
 	"context"
 	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
 
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
+	obs "github.com/vertikon/mcp-ultra/pkg/observability"
 )
 
 // BusinessTransactionTracer provides advanced tracing for critical business transactions
@@ -269,7 +269,7 @@ func DefaultTracingConfig() TracingConfig {
 
 // NewBusinessTransactionTracer creates a new business transaction tracer
 func NewBusinessTransactionTracer(config TracingConfig, logger logger.Logger, telemetry *observability.TelemetryService) (*BusinessTransactionTracer, error) {
-	tracer := otel.Tracer(config.ServiceName)
+	tracer := obs.Tracer(config.ServiceName)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -294,10 +294,10 @@ func NewBusinessTransactionTracer(config TracingConfig, logger logger.Logger, te
 	}
 
 	logger.Info("Business transaction tracer initialized",
-		"service_name", config.ServiceName,
-		"sampling_rate", config.SamplingRate,
-		"auto_instrumentation", config.AutoInstrumentation,
-		"correlation_enabled", config.CorrelationEnabled,
+		zap.String("service_name", config.ServiceName),
+		zap.Float64("sampling_rate", config.SamplingRate),
+		zap.Bool("auto_instrumentation", config.AutoInstrumentation),
+		zap.Bool("correlation_enabled", config.CorrelationEnabled),
 	)
 
 	return btt, nil
@@ -376,11 +376,11 @@ func (btt *BusinessTransactionTracer) StartTransaction(ctx context.Context, tran
 	btt.recordTransactionStart(transaction)
 
 	btt.logger.Debug("Transaction started",
-		"transaction_id", transaction.ID,
-		"type", transactionType,
-		"name", name,
-		"trace_id", transaction.TraceID,
-		"critical", transaction.Critical,
+		zap.String("transaction_id", transaction.ID),
+		zap.String("type", string(transactionType)),
+		zap.String("name", name),
+		zap.String("trace_id", transaction.TraceID),
+		zap.Bool("critical", transaction.Critical),
 	)
 
 	return transaction, spanCtx
@@ -416,11 +416,11 @@ func (btt *BusinessTransactionTracer) EndTransaction(transaction *BusinessTransa
 	// Add final attributes
 	if transaction.Span != nil {
 		transaction.Span.SetAttributes(
-			attribute.Int64("transaction.duration_ms", transaction.Duration.Milliseconds()),
-			attribute.String("transaction.status", string(transaction.Status)),
-			attribute.Int("transaction.steps_count", len(transaction.Steps)),
-			attribute.Int("transaction.events_count", len(transaction.Events)),
-			attribute.Int("transaction.errors_count", len(transaction.Errors)),
+			obs.AttrInt64("transaction.duration_ms", transaction.Duration.Milliseconds()),
+			obs.AttrString("transaction.status", string(transaction.Status)),
+			obs.AttrInt("transaction.steps_count", len(transaction.Steps)),
+			obs.AttrInt("transaction.events_count", len(transaction.Events)),
+			obs.AttrInt("transaction.errors_count", len(transaction.Errors)),
 		)
 
 		// End span
@@ -439,11 +439,11 @@ func (btt *BusinessTransactionTracer) EndTransaction(transaction *BusinessTransa
 	btt.updateCorrelations(transaction)
 
 	btt.logger.Debug("Transaction ended",
-		"transaction_id", transaction.ID,
-		"status", transaction.Status,
-		"duration", transaction.Duration,
-		"steps", len(transaction.Steps),
-		"errors", len(transaction.Errors),
+		zap.String("transaction_id", transaction.ID),
+		zap.String("status", string(transaction.Status)),
+		zap.Duration("duration", transaction.Duration),
+		zap.Int("steps", len(transaction.Steps)),
+		zap.Int("errors", len(transaction.Errors)),
 	)
 
 	// Schedule for cleanup
@@ -557,10 +557,10 @@ func (btt *BusinessTransactionTracer) AddEvent(transaction *BusinessTransaction,
 	// Log high-level events
 	if level == EventLevelError || level == EventLevelCritical {
 		btt.logger.Error("Transaction event",
-			"transaction_id", transaction.ID,
-			"event_type", eventType,
-			"event_name", eventName,
-			"level", level,
+			zap.String("transaction_id", transaction.ID),
+			zap.String("event_type", string(eventType)),
+			zap.String("event_name", eventName),
+			zap.String("level", string(level)),
 		)
 	}
 }
@@ -655,9 +655,9 @@ func (btt *BusinessTransactionTracer) RegisterTemplate(template *TransactionTemp
 	btt.templates[template.Name] = template
 
 	btt.logger.Info("Transaction template registered",
-		"template_name", template.Name,
-		"type", template.Type,
-		"critical", template.Critical,
+		zap.String("template_name", template.Name),
+		zap.String("type", string(template.Type)),
+		zap.Bool("critical", template.Critical),
 	)
 }
 
@@ -732,7 +732,7 @@ func (btt *BusinessTransactionTracer) initializeDefaultTemplates() {
 	}
 }
 
-func (btt *BusinessTransactionTracer) shouldSample(template *TransactionTemplate, attributes map[string]interface{}) bool {
+func (btt *BusinessTransactionTracer) shouldSample(template *TransactionTemplate, _ map[string]interface{}) bool {
 	if template != nil && template.Critical {
 		return true // Always sample critical transactions
 	}
@@ -799,15 +799,15 @@ func (btt *BusinessTransactionTracer) extractCorrelationFields(transaction *Busi
 }
 
 func (btt *BusinessTransactionTracer) addToBaggage(ctx context.Context, transaction *BusinessTransaction) context.Context {
-	bag, _ := baggage.Parse(fmt.Sprintf("transaction.id=%s,transaction.type=%s,transaction.name=%s",
+	bag, _ := obs.BaggageParse(fmt.Sprintf("transaction.id=%s,transaction.type=%s,transaction.name=%s",
 		transaction.ID, string(transaction.Type), transaction.Name))
 
 	if transaction.UserID != "" {
-		member, _ := baggage.NewMember("user.id", transaction.UserID)
+		member, _ := obs.BaggageNewMember("user.id", transaction.UserID)
 		bag, _ = bag.SetMember(member)
 	}
 
-	return baggage.ContextWithBaggage(ctx, bag)
+	return obs.BaggageContextWithBaggage(ctx, bag)
 }
 
 func (btt *BusinessTransactionTracer) addError(transaction *BusinessTransaction, errorType, message string, err error, recoverable bool) {
@@ -837,9 +837,9 @@ func (btt *BusinessTransactionTracer) addError(transaction *BusinessTransaction,
 	if transaction.Span != nil {
 		transaction.Span.AddEvent("error",
 			trace.WithAttributes(
-				attribute.String("error.type", errorType),
-				attribute.String("error.message", message),
-				attribute.Bool("error.recoverable", recoverable),
+				obs.AttrString("error.type", errorType),
+				obs.AttrString("error.message", message),
+				obs.AttrBool("error.recoverable", recoverable),
 			),
 		)
 	}
@@ -881,26 +881,26 @@ func (btt *BusinessTransactionTracer) checkAlerts(transaction *BusinessTransacti
 	// Check duration alerts
 	if transaction.Duration > btt.config.AlertThresholds.VeryHighLatency {
 		btt.logger.Error("Very high transaction latency detected",
-			"transaction_id", transaction.ID,
-			"type", transaction.Type,
-			"duration", transaction.Duration,
-			"threshold", btt.config.AlertThresholds.VeryHighLatency,
+			zap.String("transaction_id", transaction.ID),
+			zap.String("type", string(transaction.Type)),
+			zap.Duration("duration", transaction.Duration),
+			zap.Duration("threshold", btt.config.AlertThresholds.VeryHighLatency),
 		)
 	} else if transaction.Duration > btt.config.AlertThresholds.HighLatency {
 		btt.logger.Warn("High transaction latency detected",
-			"transaction_id", transaction.ID,
-			"type", transaction.Type,
-			"duration", transaction.Duration,
-			"threshold", btt.config.AlertThresholds.HighLatency,
+			zap.String("transaction_id", transaction.ID),
+			zap.String("type", string(transaction.Type)),
+			zap.Duration("duration", transaction.Duration),
+			zap.Duration("threshold", btt.config.AlertThresholds.HighLatency),
 		)
 	}
 
 	// Check error alerts
 	if len(transaction.Errors) > 0 {
 		btt.logger.Error("Transaction completed with errors",
-			"transaction_id", transaction.ID,
-			"type", transaction.Type,
-			"error_count", len(transaction.Errors),
+			zap.String("transaction_id", transaction.ID),
+			zap.String("type", string(transaction.Type)),
+			zap.Int("error_count", len(transaction.Errors)),
 		)
 	}
 }
@@ -924,25 +924,25 @@ func (btt *BusinessTransactionTracer) updateCorrelations(transaction *BusinessTr
 	btt.correlations[transaction.CorrelationID] = correlations
 }
 
-func (btt *BusinessTransactionTracer) convertAttributes(attributes map[string]interface{}) []attribute.KeyValue {
-	attrs := make([]attribute.KeyValue, 0, len(attributes))
+func (btt *BusinessTransactionTracer) convertAttributes(attributes map[string]interface{}) []obs.KeyValue {
+	attrs := make([]obs.KeyValue, 0, len(attributes))
 
 	for k, v := range attributes {
 		switch val := v.(type) {
 		case string:
-			attrs = append(attrs, attribute.String(k, val))
+			attrs = append(attrs, obs.AttrString(k, val))
 		case int:
-			attrs = append(attrs, attribute.Int(k, val))
+			attrs = append(attrs, obs.AttrInt(k, val))
 		case int64:
-			attrs = append(attrs, attribute.Int64(k, val))
+			attrs = append(attrs, obs.AttrInt64(k, val))
 		case float64:
-			attrs = append(attrs, attribute.Float64(k, val))
+			attrs = append(attrs, obs.AttrFloat64(k, val))
 		case bool:
-			attrs = append(attrs, attribute.Bool(k, val))
+			attrs = append(attrs, obs.AttrBool(k, val))
 		default:
 			// Convert to string for complex types
 			if jsonBytes, err := json.Marshal(v); err == nil {
-				attrs = append(attrs, attribute.String(k, string(jsonBytes)))
+				attrs = append(attrs, obs.AttrString(k, string(jsonBytes)))
 			}
 		}
 	}

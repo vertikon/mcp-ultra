@@ -6,7 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
+	"go.uber.org/zap"
+
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // OperationType represents different types of operations
@@ -167,7 +169,7 @@ func (om *OperationsManager) RegisterExecutor(opType OperationType, executor Ope
 	defer om.mu.Unlock()
 
 	om.executors[opType] = executor
-	om.logger.Info("Operation executor registered", "type", opType)
+	om.logger.Info("Operation executor registered", zap.String("type", string(opType)))
 }
 
 // Start starts the operations manager
@@ -187,8 +189,8 @@ func (om *OperationsManager) Start() error {
 	}
 
 	om.logger.Info("Operations manager started",
-		"workers", om.workers,
-		"max_concurrent", om.config.MaxConcurrentOps,
+		zap.Int("workers", om.workers),
+		zap.Int("max_concurrent", om.config.MaxConcurrentOps),
 	)
 
 	return nil
@@ -271,9 +273,9 @@ func (om *OperationsManager) CreateOperation(
 	om.operations[id] = operation
 
 	om.logger.Info("Operation created",
-		"id", id,
-		"type", opType,
-		"name", name,
+		zap.String("id", id),
+		zap.String("type", string(opType)),
+		zap.String("name", name),
 	)
 
 	return operation, nil
@@ -296,7 +298,7 @@ func (om *OperationsManager) ExecuteOperation(id string) error {
 	// Check if we can accept more operations
 	select {
 	case om.workerPool <- operation:
-		om.logger.Info("Operation queued for execution", "id", id)
+		om.logger.Info("Operation queued for execution", zap.String("id", id))
 		return nil
 	default:
 		return fmt.Errorf("maximum concurrent operations reached")
@@ -331,7 +333,7 @@ func (om *OperationsManager) CancelOperation(id string) error {
 		}
 
 		om.addLog(operation, "Operation canceled by user")
-		om.logger.Info("Operation canceled", "id", id)
+		om.logger.Info("Operation canceled", zap.String("id", id))
 	}
 
 	return nil
@@ -515,9 +517,9 @@ func (om *OperationsManager) failOperation(operation *Operation, err error) {
 
 	om.addError(operation, fmt.Sprintf("Operation failed: %v", err))
 	om.logger.Error("Operation failed",
-		"id", operation.ID,
-		"type", operation.Type,
-		"error", err,
+		zap.String("id", operation.ID),
+		zap.String("type", string(operation.Type)),
+		zap.Error(err),
 	)
 
 	om.moveToHistory(operation)
@@ -564,8 +566,8 @@ func (om *OperationsManager) addLog(operation *Operation, message string) {
 	operation.Logs = append(operation.Logs, logEntry)
 
 	om.logger.Info(message,
-		"operation_id", operation.ID,
-		"operation_type", operation.Type,
+		zap.String("operation_id", operation.ID),
+		zap.String("operation_type", string(operation.Type)),
 	)
 }
 
@@ -574,8 +576,8 @@ func (om *OperationsManager) addError(operation *Operation, message string) {
 	operation.Errors = append(operation.Errors, errorEntry)
 
 	om.logger.Error(message,
-		"operation_id", operation.ID,
-		"operation_type", operation.Type,
+		zap.String("operation_id", operation.ID),
+		zap.String("operation_type", string(operation.Type)),
 	)
 }
 
@@ -591,7 +593,7 @@ func NewMaintenanceExecutor(logger logger.Logger) *MaintenanceExecutor {
 }
 
 func (me *MaintenanceExecutor) Execute(ctx context.Context, operation *Operation) error {
-	me.logger.Info("Executing maintenance operation", "id", operation.ID)
+	me.logger.Info("Executing maintenance operation", zap.String("id", operation.ID))
 
 	// Simulate maintenance tasks
 	for i, step := range operation.Steps {
@@ -616,8 +618,8 @@ func (me *MaintenanceExecutor) Execute(ctx context.Context, operation *Operation
 	return nil
 }
 
-func (me *MaintenanceExecutor) Rollback(ctx context.Context, operation *Operation) error {
-	me.logger.Info("Rolling back maintenance operation", "id", operation.ID)
+func (me *MaintenanceExecutor) Rollback(_ context.Context, operation *Operation) error {
+	me.logger.Info("Rolling back maintenance operation", zap.String("id", operation.ID))
 	return nil
 }
 

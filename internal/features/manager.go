@@ -7,10 +7,17 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/zap"
-
 	"github.com/vertikon/mcp-ultra/internal/domain"
 )
+
+// Log é a interface mínima que o FlagManager precisa.
+// Evita acoplamento ao logger real/facade aqui.
+type Log interface {
+	Debug(msg string, kv ...any)
+	Info(msg string, kv ...any)
+	Warn(msg string, kv ...any)
+	Error(msg string, kv ...any)
+}
 
 // FlagManager manages feature flags with persistence
 type FlagManager struct {
@@ -18,18 +25,18 @@ type FlagManager struct {
 	mu        sync.RWMutex
 	repo      domain.FeatureFlagRepository
 	cache     domain.CacheRepository
-	logger    *zap.Logger
+	logger    Log
 	refresher *time.Ticker
 	stopCh    chan struct{}
 }
 
 // NewFlagManager creates a new feature flag manager
-func NewFlagManager(repo domain.FeatureFlagRepository, cache domain.CacheRepository, logger *zap.Logger) *FlagManager {
+func NewFlagManager(repo domain.FeatureFlagRepository, cache domain.CacheRepository, log Log) *FlagManager {
 	manager := &FlagManager{
 		flags:  make(map[string]*domain.FeatureFlag),
 		repo:   repo,
 		cache:  cache,
-		logger: logger,
+		logger: log,
 		stopCh: make(chan struct{}),
 	}
 
@@ -43,7 +50,7 @@ func NewFlagManager(repo domain.FeatureFlagRepository, cache domain.CacheReposit
 func (m *FlagManager) IsEnabled(ctx context.Context, key string) bool {
 	flag, err := m.GetFlag(ctx, key)
 	if err != nil {
-		m.logger.Debug("Feature flag not found", zap.String("key", key))
+		m.logger.Debug("Feature flag not found", "key", key)
 		return false
 	}
 
@@ -91,7 +98,7 @@ func (m *FlagManager) GetFlag(ctx context.Context, key string) (*domain.FeatureF
 
 	// Cache in Redis for 5 minutes
 	if err := m.cache.Set(ctx, cacheKey, flag, 300); err != nil {
-		m.logger.Error("Failed to cache feature flag", zap.Error(err))
+		m.logger.Error("Failed to cache feature flag", "error", err)
 	}
 
 	// Update memory cache
@@ -133,12 +140,12 @@ func (m *FlagManager) SetFlag(ctx context.Context, flag *domain.FeatureFlag) err
 
 	cacheKey := fmt.Sprintf("flag:%s", flag.Key)
 	if err := m.cache.Set(ctx, cacheKey, flag, 300); err != nil {
-		m.logger.Error("Failed to cache feature flag", zap.Error(err))
+		m.logger.Error("Failed to cache feature flag", "error", err)
 	}
 
 	m.logger.Info("Feature flag updated",
-		zap.String("key", flag.Key),
-		zap.Bool("enabled", flag.Enabled))
+		"key", flag.Key,
+		"enabled", flag.Enabled)
 
 	return nil
 }
@@ -161,10 +168,10 @@ func (m *FlagManager) DeleteFlag(ctx context.Context, key string) error {
 
 	cacheKey := fmt.Sprintf("flag:%s", key)
 	if err := m.cache.Delete(ctx, cacheKey); err != nil {
-		m.logger.Error("Failed to delete cached feature flag", zap.Error(err))
+		m.logger.Error("Failed to delete cached feature flag", "error", err)
 	}
 
-	m.logger.Info("Feature flag deleted", zap.String("key", key))
+	m.logger.Info("Feature flag deleted", "key", key)
 
 	return nil
 }
@@ -189,11 +196,11 @@ func (m *FlagManager) RefreshFlags(ctx context.Context) error {
 		// Update Redis cache
 		cacheKey := fmt.Sprintf("flag:%s", flag.Key)
 		if err := m.cache.Set(ctx, cacheKey, flag, 300); err != nil {
-			m.logger.Error("Failed to cache feature flag during refresh", zap.Error(err))
+			m.logger.Error("Failed to cache feature flag during refresh", "error", err)
 		}
 	}
 
-	m.logger.Info("Feature flags refreshed", zap.Int("count", len(flags)))
+	m.logger.Info("Feature flags refreshed", "count", len(flags))
 
 	return nil
 }
@@ -208,7 +215,7 @@ func (m *FlagManager) startRefresh(interval time.Duration) {
 		case <-m.refresher.C:
 			ctx := context.Background()
 			if err := m.RefreshFlags(ctx); err != nil {
-				m.logger.Error("Failed to refresh feature flags", zap.Error(err))
+				m.logger.Error("Failed to refresh feature flags", "error", err)
 			}
 		case <-m.stopCh:
 			return
@@ -246,8 +253,8 @@ func (m *FlagManager) EvaluateFlag(ctx context.Context, key string, userID strin
 		return m.evaluateAttribute(flag, attributes)
 	default:
 		m.logger.Warn("Unknown flag strategy",
-			zap.String("key", key),
-			zap.String("strategy", flag.Strategy))
+			"key", key,
+			"strategy", flag.Strategy)
 		return false
 	}
 }

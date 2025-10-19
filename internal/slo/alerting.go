@@ -477,7 +477,7 @@ func (am *AlertManager) sendToWebhook(alert AlertEvent, config ChannelConfig) er
 }
 
 // sendToEmail sends alert via email (placeholder implementation)
-func (am *AlertManager) sendToEmail(alert AlertEvent, config ChannelConfig) error {
+func (am *AlertManager) sendToEmail(alert AlertEvent, _ ChannelConfig) error {
 	am.logger.Info("Email alert sent (placeholder)",
 		zap.String("slo", alert.SLOName),
 		zap.String("severity", alert.Severity))
@@ -485,7 +485,7 @@ func (am *AlertManager) sendToEmail(alert AlertEvent, config ChannelConfig) erro
 }
 
 // sendToPagerDuty sends alert to PagerDuty (placeholder implementation)
-func (am *AlertManager) sendToPagerDuty(alert AlertEvent, config ChannelConfig) error {
+func (am *AlertManager) sendToPagerDuty(alert AlertEvent, _ ChannelConfig) error {
 	am.logger.Info("PagerDuty alert sent (placeholder)",
 		zap.String("slo", alert.SLOName),
 		zap.String("severity", alert.Severity))
@@ -493,7 +493,7 @@ func (am *AlertManager) sendToPagerDuty(alert AlertEvent, config ChannelConfig) 
 }
 
 // sendToMSTeams sends alert to Microsoft Teams (placeholder implementation)
-func (am *AlertManager) sendToMSTeams(alert AlertEvent, config ChannelConfig) error {
+func (am *AlertManager) sendToMSTeams(alert AlertEvent, _ ChannelConfig) error {
 	am.logger.Info("MS Teams alert sent (placeholder)",
 		zap.String("slo", alert.SLOName),
 		zap.String("severity", alert.Severity))
@@ -652,11 +652,11 @@ func (am *AlertManager) renderTemplate(template string, alert AlertEvent) string
 
 func (am *AlertManager) getSeverityColor(severity string) string {
 	switch strings.ToLower(severity) {
-	case "critical":
+	case string(SeverityCritical):
 		return "danger"
-	case "warning":
+	case string(SeverityWarning):
 		return "warning"
-	case "info":
+	case string(SeverityInfo):
 		return "good"
 	default:
 		return "#808080"
@@ -665,11 +665,11 @@ func (am *AlertManager) getSeverityColor(severity string) string {
 
 func (am *AlertManager) getSeverityColorInt(severity string) int {
 	switch strings.ToLower(severity) {
-	case "critical":
+	case string(SeverityCritical):
 		return 0xFF0000 // Red
-	case "warning":
+	case string(SeverityWarning):
 		return 0xFFA500 // Orange
-	case "info":
+	case string(SeverityInfo):
 		return 0x00FF00 // Green
 	default:
 		return 0x808080 // Gray

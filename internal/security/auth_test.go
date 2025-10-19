@@ -16,6 +16,11 @@ import (
 	"go.uber.org/zap"
 )
 
+// Context key type for tests
+type testCtxKey string
+
+const testUserKey testCtxKey = "user"
+
 // Mock OPA Service
 type MockOPAService struct {
 	mock.Mock
@@ -141,7 +146,7 @@ func TestJWTMiddleware_NoAuthHeader(t *testing.T) {
 
 	authService := NewAuthService(config, logger, opa)
 
-	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testHandler := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		t.Error("Handler should not be called")
 	})
 
@@ -164,7 +169,7 @@ func TestJWTMiddleware_InvalidToken(t *testing.T) {
 
 	authService := NewAuthService(config, logger, opa)
 
-	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testHandler := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		t.Error("Handler should not be called")
 	})
 
@@ -216,7 +221,7 @@ func TestJWTMiddleware_AuthorizationDenied(t *testing.T) {
 	// Mock OPA authorization - return false
 	opa.On("IsAuthorized", mock.Anything, mock.AnythingOfType("*security.Claims"), "GET", "/api/v1/tasks").Return(false)
 
-	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testHandler := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		t.Error("Handler should not be called")
 	})
 
@@ -299,7 +304,7 @@ func TestRequireScope(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("GET", "/api/v1/tasks", nil)
-		ctx := context.WithValue(req.Context(), "user", claims)
+		ctx := context.WithValue(req.Context(), testUserKey, claims)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -320,7 +325,7 @@ func TestRequireScope(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("DELETE", "/api/v1/tasks/123", nil)
-		ctx := context.WithValue(req.Context(), "user", claims)
+		ctx := context.WithValue(req.Context(), testUserKey, claims)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -361,7 +366,7 @@ func TestRequireRole(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("GET", "/api/v1/users", nil)
-		ctx := context.WithValue(req.Context(), "user", claims)
+		ctx := context.WithValue(req.Context(), testUserKey, claims)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -382,7 +387,7 @@ func TestRequireRole(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("GET", "/api/v1/users", nil)
-		ctx := context.WithValue(req.Context(), "user", claims)
+		ctx := context.WithValue(req.Context(), testUserKey, claims)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -402,7 +407,7 @@ func TestRequireRole(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("GET", "/api/v1/manager", nil)
-		ctx := context.WithValue(req.Context(), "user", claims)
+		ctx := context.WithValue(req.Context(), testUserKey, claims)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -425,7 +430,7 @@ func TestGetUserFromContext(t *testing.T) {
 			Role:   "user",
 		}
 
-		ctx := context.WithValue(context.Background(), "user", claims)
+		ctx := context.WithValue(context.Background(), testUserKey, claims)
 
 		user, err := GetUserFromContext(ctx)
 		assert.NoError(t, err)
@@ -444,7 +449,7 @@ func TestGetUserFromContext(t *testing.T) {
 
 	// Test with invalid user context type
 	t.Run("InvalidUserContext", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), "user", "invalid")
+		ctx := context.WithValue(context.Background(), testUserKey, "invalid")
 
 		user, err := GetUserFromContext(ctx)
 		assert.Error(t, err)

@@ -7,8 +7,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
+	"go.uber.org/zap"
+
 	"github.com/vertikon/mcp-ultra/internal/observability"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // LifecycleState represents the current state of the application
@@ -34,7 +36,7 @@ func (s LifecycleState) String() string {
 	case StateReady:
 		return "ready"
 	case StateHealthy:
-		return "healthy"
+		return string(HealthStatusHealthy)
 	case StateDegraded:
 		return "degraded"
 	case StateStopping:
@@ -192,8 +194,8 @@ func (lm *LifecycleManager) RegisterComponent(component Component) {
 	}
 
 	lm.logger.Info("Component registered",
-		"component", component.Name(),
-		"priority", component.Priority(),
+		zap.String("component", component.Name()),
+		zap.Int("priority", component.Priority()),
 	)
 
 	lm.emitEvent("component_registered", component.Name(), lm.GetState(),
@@ -237,8 +239,8 @@ func (lm *LifecycleManager) Start(ctx context.Context) error {
 	lm.readyTime = time.Now()
 
 	lm.logger.Info("Application started successfully",
-		"startup_duration", time.Since(lm.startTime),
-		"components_count", len(lm.components),
+		zap.Duration("startup_duration", time.Since(lm.startTime)),
+		zap.Int("components_count", len(lm.components)),
 	)
 
 	lm.emitEvent("startup_completed", "", StateReady, "Application startup completed successfully",
@@ -282,8 +284,8 @@ func (lm *LifecycleManager) Stop(ctx context.Context) error {
 		component := components[i]
 		if err := lm.stopComponent(shutdownCtx, component); err != nil {
 			lm.logger.Error("Failed to stop component gracefully",
-				"component", component.Name(),
-				"error", err,
+				zap.String("component", component.Name()),
+				zap.Error(err),
 			)
 			// Continue stopping other components even if one fails
 		}
@@ -422,7 +424,7 @@ func (lm *LifecycleManager) getSortedComponents() []Component {
 func (lm *LifecycleManager) startComponent(ctx context.Context, component Component) error {
 	name := component.Name()
 
-	lm.logger.Info("Starting component", "component", name)
+	lm.logger.Info("Starting component", zap.String("component", name))
 	lm.updateComponentState(name, "starting", nil)
 
 	lm.emitEvent("component_starting", name, lm.GetState(),
@@ -434,10 +436,10 @@ func (lm *LifecycleManager) startComponent(ctx context.Context, component Compon
 		if err := component.Start(ctx); err != nil {
 			lastErr = err
 			lm.logger.Warn("Component start failed",
-				"component", name,
-				"attempt", attempt,
-				"max_attempts", lm.config.MaxRetries,
-				"error", err,
+				zap.String("component", name),
+				zap.Int("attempt", attempt),
+				zap.Int("max_attempts", lm.config.MaxRetries),
+				zap.Error(err),
 			)
 
 			if attempt < lm.config.MaxRetries {
@@ -466,14 +468,14 @@ func (lm *LifecycleManager) startComponent(ctx context.Context, component Compon
 	lm.emitEvent("component_started", name, lm.GetState(),
 		fmt.Sprintf("Component %s started successfully", name), nil, nil)
 
-	lm.logger.Info("Component started successfully", "component", name)
+	lm.logger.Info("Component started successfully", zap.String("component", name))
 	return nil
 }
 
 func (lm *LifecycleManager) stopComponent(ctx context.Context, component Component) error {
 	name := component.Name()
 
-	lm.logger.Info("Stopping component", "component", name)
+	lm.logger.Info("Stopping component", zap.String("component", name))
 	lm.updateComponentState(name, "stopping", nil)
 
 	lm.emitEvent("component_stopping", name, lm.GetState(),
@@ -490,7 +492,7 @@ func (lm *LifecycleManager) stopComponent(ctx context.Context, component Compone
 	lm.emitEvent("component_stopped", name, lm.GetState(),
 		fmt.Sprintf("Component %s stopped successfully", name), nil, nil)
 
-	lm.logger.Info("Component stopped successfully", "component", name)
+	lm.logger.Info("Component stopped successfully", zap.String("component", name))
 	return nil
 }
 
@@ -546,8 +548,8 @@ func (lm *LifecycleManager) emitEvent(eventType, component string, state Lifecyc
 			defer func() {
 				if r := recover(); r != nil {
 					lm.logger.Error("Event handler panicked",
-						"event_type", eventType,
-						"panic", r,
+						zap.String("event_type", eventType),
+						zap.Any("panic", r),
 					)
 				}
 			}()
@@ -607,8 +609,8 @@ func (lm *LifecycleManager) performHealthChecks() {
 			lm.updateComponentState(name, "error", err)
 			errorCount++
 			lm.logger.Warn("Component health check failed",
-				"component", name,
-				"error", err,
+				zap.String("component", name),
+				zap.Error(err),
 			)
 		} else {
 			lm.updateComponentState(name, "healthy", nil)

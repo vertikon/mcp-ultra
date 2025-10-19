@@ -132,7 +132,7 @@ func NewDataMapper(config ComplianceConfig, logger *zap.Logger) (*DataMapper, er
 }
 
 // MapDataField maps a data field with its compliance metadata
-func (dm *DataMapper) MapDataField(ctx context.Context, fieldName string, metadata DataMapping) error {
+func (dm *DataMapper) MapDataField(_ context.Context, fieldName string, metadata DataMapping) error {
 	metadata.FieldName = fieldName
 	metadata.UpdatedAt = time.Now()
 
@@ -162,7 +162,7 @@ func (dm *DataMapper) GetAllMappings() map[string]DataMapping {
 }
 
 // DiscoverDataSources automatically discovers data sources and their mappings
-func (dm *DataMapper) DiscoverDataSources(ctx context.Context) error {
+func (dm *DataMapper) DiscoverDataSources(_ context.Context) error {
 	// In a real implementation, this would scan databases, APIs, files, etc.
 	// to automatically discover data sources and create mappings
 
@@ -211,7 +211,7 @@ func (dm *DataMapper) DiscoverDataSources(ctx context.Context) error {
 }
 
 // GenerateDataMap generates a comprehensive data map
-func (dm *DataMapper) GenerateDataMap(ctx context.Context) (map[string]interface{}, error) {
+func (dm *DataMapper) GenerateDataMap(_ context.Context) (map[string]interface{}, error) {
 	dataMap := map[string]interface{}{
 		"generated_at":    time.Now(),
 		"total_fields":    len(dm.dataMap),
@@ -225,7 +225,7 @@ func (dm *DataMapper) GenerateDataMap(ctx context.Context) (map[string]interface
 }
 
 // TrackDataFlow tracks how data flows through the system
-func (dm *DataMapper) TrackDataFlow(ctx context.Context, fieldName string, source DataSource, destination DataDestination) error {
+func (dm *DataMapper) TrackDataFlow(_ context.Context, fieldName string, source DataSource, destination DataDestination) error {
 	mapping, exists := dm.dataMap[fieldName]
 	if !exists {
 		// Create new mapping

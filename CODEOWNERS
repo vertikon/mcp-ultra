@@ -1,0 +1,33 @@
+# CODEOWNERS
+# This file defines code ownership and review requirements
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+* @vertikon/platform-team
+
+# Security-sensitive files require security team review
+/internal/security/** @vertikon/security-team
+/internal/compliance/** @vertikon/security-team
+SECURITY.md @vertikon/security-team
+.github/workflows/security*.yml @vertikon/security-team
+.github/workflows/codeql.yml @vertikon/security-team
+.github/workflows/gosec.yml @vertikon/security-team
+
+# Infrastructure and deployment files
+/deploy/** @vertikon/platform-team @vertikon/devops-team
+/config/** @vertikon/platform-team
+Dockerfile @vertikon/devops-team
+docker-compose.yml @vertikon/devops-team
+Makefile @vertikon/platform-team
+
+# CI/CD workflows
+/.github/workflows/** @vertikon/platform-team
+
+# Documentation
+/docs/** @vertikon/platform-team
+*.md @vertikon/platform-team
+
+# Dependencies and security updates
+go.mod @vertikon/platform-team @vertikon/security-team
+go.sum @vertikon/platform-team @vertikon/security-team
+.github/dependabot.yml @vertikon/security-team

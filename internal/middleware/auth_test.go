@@ -27,7 +27,7 @@ func TestAuthMiddleware_JWTAuth(t *testing.T) {
 	authMiddleware := NewAuthMiddleware(config, logger)
 
 	t.Run("should skip authentication for configured paths", func(t *testing.T) {
-		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
 
@@ -39,7 +39,7 @@ func TestAuthMiddleware_JWTAuth(t *testing.T) {
 	})
 
 	t.Run("should return 401 for missing token", func(t *testing.T) {
-		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
 
@@ -58,7 +58,7 @@ func TestAuthMiddleware_JWTAuth(t *testing.T) {
 
 		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Check if user context is set
-			userID := r.Context().Value("user_id")
+			userID := r.Context().Value(ctxUserID)
 			assert.Equal(t, "user123", userID)
 			w.WriteHeader(http.StatusOK)
 		}))
@@ -72,7 +72,7 @@ func TestAuthMiddleware_JWTAuth(t *testing.T) {
 	})
 
 	t.Run("should reject invalid JWT token", func(t *testing.T) {
-		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
 
@@ -155,7 +155,7 @@ func TestAuthMiddleware_RequireRole(t *testing.T) {
 		}))
 
 		req := httptest.NewRequest("GET", "/admin", nil)
-		ctx := context.WithValue(req.Context(), "auth_claims", claims)
+		ctx := context.WithValue(req.Context(), ctxAuthClaims, claims)
 		req = req.WithContext(ctx)
 		w := httptest.NewRecorder()
 
@@ -174,7 +174,7 @@ func TestAuthMiddleware_RequireRole(t *testing.T) {
 		}))
 
 		req := httptest.NewRequest("GET", "/admin", nil)
-		ctx := context.WithValue(req.Context(), "auth_claims", claims)
+		ctx := context.WithValue(req.Context(), ctxAuthClaims, claims)
 		req = req.WithContext(ctx)
 		w := httptest.NewRecorder()
 
@@ -300,7 +300,7 @@ func TestAuthMiddleware_RateLimitByUser(t *testing.T) {
 	// Test with user context
 	t.Run("should allow requests within rate limit", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/test", nil)
-		ctx := context.WithValue(req.Context(), "user_id", "user123")
+		ctx := context.WithValue(req.Context(), ctxUserID, "user123")
 		req = req.WithContext(ctx)
 		w := httptest.NewRecorder()
 
@@ -315,7 +315,7 @@ func TestAuthMiddleware_RateLimitByUser(t *testing.T) {
 
 	t.Run("should rate limit after exceeding limit", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/test", nil)
-		ctx := context.WithValue(req.Context(), "user_id", "user456")
+		ctx := context.WithValue(req.Context(), ctxUserID, "user456")
 		req = req.WithContext(ctx)
 
 		// Make requests up to the limit

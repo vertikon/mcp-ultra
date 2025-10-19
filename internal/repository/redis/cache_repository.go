@@ -3,19 +3,20 @@ package redis
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/redis/go-redis/v9"
+	"github.com/vertikon/mcp-ultra/pkg/redisx"
 )
 
 // CacheRepository implements domain.CacheRepository using Redis
 type CacheRepository struct {
-	client *redis.Client
+	client *redisx.Client
 }
 
 // NewCacheRepository creates a new Redis cache repository
-func NewCacheRepository(client *redis.Client) *CacheRepository {
+func NewCacheRepository(client *redisx.Client) *CacheRepository {
 	return &CacheRepository{client: client}
 }
 
@@ -31,7 +32,7 @@ func (r *CacheRepository) Set(ctx context.Context, key string, value interface{}
 		expiration = 0 // No expiration
 	}
 
-	err = r.client.Set(ctx, key, data, expiration).Err()
+	err = r.client.Set(ctx, key, data, expiration)
 	if err != nil {
 		return fmt.Errorf("setting cache value: %w", err)
 	}
@@ -41,11 +42,11 @@ func (r *CacheRepository) Set(ctx context.Context, key string, value interface{}
 
 // Get retrieves a value from cache
 func (r *CacheRepository) Get(ctx context.Context, key string) (string, error) {
-	result, err := r.client.Get(ctx, key).Result()
-	if err == redis.Nil {
-		return "", fmt.Errorf("key not found")
-	}
+	result, err := r.client.Get(ctx, key)
 	if err != nil {
+		if errors.Is(err, redisx.ErrKeyNotFound) {
+			return "", ErrNotFound
+		}
 		return "", fmt.Errorf("getting cache value: %w", err)
 	}
 
@@ -54,7 +55,7 @@ func (r *CacheRepository) Get(ctx context.Context, key string) (string, error) {
 
 // Delete removes a key from cache
 func (r *CacheRepository) Delete(ctx context.Context, key string) error {
-	err := r.client.Del(ctx, key).Err()
+	err := r.client.Del(ctx, key)
 	if err != nil {
 		return fmt.Errorf("deleting cache key: %w", err)
 	}
@@ -64,17 +65,17 @@ func (r *CacheRepository) Delete(ctx context.Context, key string) error {
 
 // Exists checks if a key exists in cache
 func (r *CacheRepository) Exists(ctx context.Context, key string) (bool, error) {
-	result, err := r.client.Exists(ctx, key).Result()
+	ok, err := r.client.Exists(ctx, key)
 	if err != nil {
 		return false, fmt.Errorf("checking cache key existence: %w", err)
 	}
 
-	return result > 0, nil
+	return ok, nil
 }
 
 // Increment increments a counter
 func (r *CacheRepository) Increment(ctx context.Context, key string) (int64, error) {
-	result, err := r.client.Incr(ctx, key).Result()
+	result, err := r.client.Incr(ctx, key)
 	if err != nil {
 		return 0, fmt.Errorf("incrementing counter: %w", err)
 	}
@@ -94,7 +95,7 @@ func (r *CacheRepository) SetNX(ctx context.Context, key string, value interface
 		expiration = 0 // No expiration
 	}
 
-	result, err := r.client.SetNX(ctx, key, data, expiration).Result()
+	result, err := r.client.SetNX(ctx, key, data, expiration)
 	if err != nil {
 		return false, fmt.Errorf("setting cache value with NX: %w", err)
 	}
@@ -124,7 +125,7 @@ func (r *CacheRepository) SetWithExpiry(ctx context.Context, key string, value i
 		return fmt.Errorf("marshaling value: %w", err)
 	}
 
-	err = r.client.SetEx(ctx, key, data, time.Until(expiry)).Err()
+	err = r.client.SetEx(ctx, key, data, time.Until(expiry))
 	if err != nil {
 		return fmt.Errorf("setting cache value with expiry: %w", err)
 	}
@@ -134,7 +135,7 @@ func (r *CacheRepository) SetWithExpiry(ctx context.Context, key string, value i
 
 // GetTTL returns the remaining time-to-live of a key
 func (r *CacheRepository) GetTTL(ctx context.Context, key string) (time.Duration, error) {
-	result, err := r.client.TTL(ctx, key).Result()
+	result, err := r.client.TTL(ctx, key)
 	if err != nil {
 		return 0, fmt.Errorf("getting TTL: %w", err)
 	}
@@ -144,7 +145,7 @@ func (r *CacheRepository) GetTTL(ctx context.Context, key string) (time.Duration
 
 // FlushAll removes all keys (use with caution)
 func (r *CacheRepository) FlushAll(ctx context.Context) error {
-	err := r.client.FlushAll(ctx).Err()
+	err := r.client.FlushAll(ctx)
 	if err != nil {
 		return fmt.Errorf("flushing all cache: %w", err)
 	}

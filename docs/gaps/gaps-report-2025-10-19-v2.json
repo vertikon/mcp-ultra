@@ -1,0 +1,133 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-19 16:27:11",
+  "Critical": [
+    {
+      "Type": "Código compila",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "Não compila: # github.com/vertikon/mcp-ultra/internal/cache\ninternal\\cache\\distributed.go:761:4: cannot use \"operation\" (untyped string constant) as zap.Field value in argument to dc.logger.Warn\ninternal\\cache\\dis...",
+      "Suggestion": "Corrija os erros de compilação listados",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Corrija os erros de compilação manualmente, um por um",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "# github.com/vertikon/mcp-ultra/internal/cache",
+        "internal\\cache\\distributed.go:761:4: cannot use \"operation\" (untyped string constant) as zap.Field value in argument to dc.logger.Warn",
+        "internal\\cache\\distributed.go:761:17: cannot use operation (variable of type string) as zap.Field value in argument to dc.logger.Warn",
+        "internal\\cache\\distributed.go:762:4: cannot use \"latency\" (untyped string constant) as zap.Field value in argument to dc.logger.Warn",
+        "internal\\cache\\distributed.go:762:15: cannot use latency (variable of int64 type time.Duration) as zap.Field value in argument to dc.logger.Warn",
+        "internal\\cache\\distributed.go:763:28: cannot use dc.config.SlowQueryThreshold (variable of int64 type time.Duration) as string value in argument to zap.String",
+        "internal\\cache\\distributed.go:849:54: cannot use \"key\" (untyped string constant) as zap.Field value in argument to dc.logger.Error",
+        "internal\\cache\\distributed.go:849:61: cannot use op.Key (variable of type string) as zap.Field value in argument to dc.logger.Error",
+        "internal\\cache\\distributed.go:849:89: cannot use err (variable of interface type error) as string value in argument to zap.String",
+        "internal\\cache\\distributed.go:856:53: cannot use \"key\" (untyped string constant) as zap.Field value in argument to dc.logger.Error"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    },
+    {
+      "Type": "Erros não tratados",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "12 erro(s) não tratado(s)",
+      "Suggestion": "Adicione verificação de erro: if err != nil { ... }",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": true,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Para cada erro não tratado, decida:\n   a) Retornar o erro (wrap com context)\n   b) Logar e continuar\n   c) Logar e retornar\n2. Adicione if err != nil { } manualmente",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "error: failed to check packages: errors while loading package github.com/vertikon/mcp-ultra/internal/cache: [-: # github.com/vertikon/mcp-ultra/internal/cache",
+        "internal\\cache\\distributed.go:761:4: cannot use \"operation\" (untyped string constant) as zap.Field value in argument to dc.logger.Warn",
+        "internal\\cache\\distributed.go:761:17: cannot use operation (variable of type string) as zap.Field value in argument to dc.logger.Warn",
+        "internal\\cache\\distributed.go:762:4: cannot use \"latency\" (untyped string constant) as zap.Field value in argument to dc.logger.Warn",
+        "internal\\cache\\distributed.go:762:15: cannot use latency (variable of int64 type time.Duration) as zap.Field value in argument to dc.logger.Warn",
+        "internal\\cache\\distributed.go:763:28: cannot use dc.config.SlowQueryThreshold (variable of int64 type time.Duration) as string value in argument to zap.String",
+        "internal\\cache\\distributed.go:849:54: cannot use \"key\" (untyped string constant) as zap.Field value in argument to dc.logger.Error",
+        "internal\\cache\\distributed.go:849:61: cannot use op.Key (variable of type string) as zap.Field value in argument to dc.logger.Error",
+        "internal\\cache\\distributed.go:849:89: cannot use err (variable of interface type error) as string value in argument to zap.String",
+        "internal\\cache\\distributed.go:856:53: cannot use \"key\" (untyped string constant) as zap.Field value in argument to dc.logger.Error",
+        "internal\\cache\\distributed.go:856:88: cannot use err (variable of interface type error) as string value in argument to zap.String",
+        "internal\\cache\\distributed.go:856:53: too many errors E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:763:28: cannot use dc.config.SlowQueryThreshold (variable of int64 type time.Duration) as string value in argument to zap.String E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:761:4: cannot use \"operation\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Warn E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:761:17: cannot use operation (variable of type string) as zapcore.Field value in argument to dc.logger.Warn E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:762:4: cannot use \"latency\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Warn E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:762:15: cannot use latency (variable of int64 type time.Duration) as zapcore.Field value in argument to dc.logger.Warn E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:849:89: cannot use err (variable of interface type error) as string value in argument to zap.String E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:849:54: cannot use \"key\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:849:61: cannot use op.Key (variable of type string) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:856:88: cannot use err (variable of interface type error) as string value in argument to zap.String E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:856:53: cannot use \"key\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:856:60: cannot use op.Key (variable of type string) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:871:66: cannot use len(batch) (value of type int) as string value in argument to zap.String E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:871:79: cannot use \"error\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:871:88: cannot use err (variable of interface type error) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:873:69: cannot use len(batch) (value of type int) as string value in argument to zap.String E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:924:70: cannot use err (variable of interface type error) as string value in argument to zap.String]"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Formatação (gofmt)",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "12 arquivo(s) mal formatado(s)",
+      "Suggestion": "Execute: gofmt -w . ou gofumpt -w .",
+      "Fixability": {
+        "Safe": true,
+        "RollbackEasy": true,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "gofmt -w . \u0026\u0026 goimports -w .",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": [
+        "cmd\\mcp-model-ultra\\main.go",
+        "docs\\mcp-ultra-v11.3-lint-clean\\internal\\handlers\\http\\router_example.go",
+        "internal\\grpc\\server\\compliance_server.go",
+        "internal\\grpc\\server\\grpc_server.go",
+        "internal\\grpc\\server\\interceptors.go",
+        "internal\\grpc\\server\\system_server.go",
+        "internal\\grpc\\server\\task_server.go",
+        "test\\compliance\\compliance_integration_test.go",
+        "test\\integration\\database_integration_test.go",
+        "test\\observability\\integration_test.go",
+        "test\\security\\auth_security_test.go",
+        "tests\\integration\\integration_test.go"
+      ],
+      "NonFixableReason": ""
+    },
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/lifecycle\\ninternal\\\\lifecycle\\\\health.go:182:3: cannot use \\\"type\\\" (untyped string constant) as zap.Field value in argument to hm.logger.Info\\ninternal\\\\lifecycle\\\\health.go:182:11: cannot use dependency.Type() (value of type string) as zap.Field value in argument to hm.logger.Info\\ninternal\\\\lifecycle\\\\health.go:183:3: cannot use \\\"required\\\" (untyped string constant) as zap.Field value in argument to hm.logger.Info\\ninternal\\\\lifecycle\\\\health.go:183:15: cannot use dependency.IsRequired() (value of type bool) as zap.Field value in argument to hm.logger.Info\\ninternal\\\\lifecycle\\\\health.go:209:3: cannot use \\\"http_endpoint\\\" (untyped string constant) as zap.Field value in argument to hm.logger.Info\\ninternal\\\\lifecycle\\\\health.go:209:20: cannot use hm.config.EnableHTTPEndpoint (variable of type bool) as zap.Field value in argument to hm.logger.Info\\ninternal\\\\lifecycle\\\\health.go:210:32: cannot use len(hm.checkers) (value of type int) as string value in argument to zap.String\\ninternal\\\\lifecycle\\\\health.go:328:4: cannot use \\\"new_status\\\" (untyped string constant) as zap.Field value in argument to hm.logger.Info\\ninternal\\\\lifecycle\\\\health.go:328:18: cannot use report.Status (variable of string type HealthStatus) as zap.Field value in argument to hm.logger.Info\\ninternal\\\\lifecycle\\\\health.go:331:28: cannot use report.Summary.Unhealthy (variable of type int) as string value in argument to zap.String\\ninternal\\\\lifecycle\\\\health.go:328:18: too many errors\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/metrics\\ninternal\\\\metrics\\\\business.go:803:4: cannot use \\\"metric\\\" (untyped string constant) as zap.Field value in argument to bmc.logger.Info\\ninternal\\\\metrics\\\\business.go:803:14: cannot use rule.MetricName (variable of type string) as zap.Field value in argument to bmc.logger.Info\\ninternal\\\\metrics\\\\business.go:804:32: cannot use currentValue (variable of type float64) as string value in argument to zap.String\\ninternal\\\\metrics\\\\business.go:828:3: cannot use \\\"format\\\" (untyped string constant) as zap.Field value in argument to bmc.logger.Debug\\ninternal\\\\metrics\\\\business.go:828:13: cannot use bmc.config.ExportFormat (variable of type string) as zap.Field value in argument to bmc.logger.Debug\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/ratelimit\\ninternal\\\\ratelimit\\\\distributed.go:789:4: cannot use \\\"key\\\" (untyped string constant) as zap.Field value in argument to al.logger.Debug\\ninternal\\\\ratelimit\\\\distributed.go:789:11: cannot use key (variable of type string) as zap.Field value in argument to al.logger.Debug\\ninternal\\\\ratelimit\\\\distributed.go:791:29: cannot use errorRate (variable of type float64) as string value in argument to zap.String\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/tracing\\ninternal\\\\tracing\\\\business.go:442:3: cannot use \\\"transaction_id\\\" (untyped string constant) as zap.Field value in argument to btt.logger.Debug\\ninternal\\\\tracing\\\\business.go:442:21: cannot use transaction.ID (variable of type string) as zap.Field value in argument to btt.logger.Debug\\ninternal\\\\tracing\\\\business.go:443:3: cannot use \\\"status\\\" (untyped string constant) as zap.Field value in argument to btt.logger.Debug\\ninternal\\\\tracing\\\\business.go:443:13: cannot use transaction.Status (variable of string type TransactionStatus) as zap.Field value in argument to btt.logger.Debug\\ninternal\\\\tracing\\\\business.go:445:23: cannot use len(transaction.Steps) (value of type int) as string value in argument to zap.String\\ninternal\\\\tracing\\\\business.go:446:3: cannot use \\\"errors\\\" (untyped string constant) as zap.Field value in argument to btt.logger.Debug\\ninternal\\\\tracing\\\\business.go:446:13: cannot use len(transaction.Errors) (value of type int) as zap.Field value in argument to btt.logger.Debug\\ninternal\\\\tracing\\\\business.go:560:4: cannot use \\\"transaction_id\\\" (untyped string constant) as zap.Field value in argument to btt.logger.Error\\ninternal\\\\tracing\\\\business.go:560:22: cannot use transaction.ID (variable of type string) as zap.Field value in argument to btt.logger.Error\\ninternal\\\\tracing\\\\business.go:563:24: cannot use level (variable of string type EventLevel) as string value in argument to zap.String\\ninternal\\\\tracing\\\\business.go:560:22: too many errors\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/cache [github.com/vertikon/mcp-ultra/internal/cache.test]\\ninternal\\\\cache\\\\distributed.go:761:4: cannot use \\\"operation\\\" (untyped string constant) as zap.Field value in argument to dc.logger.Warn\\ninternal\\\\cache\\\\distributed.go:761:17: cannot use operation (variable of type string) as zap.Field value in argument to dc.logger.Warn\\ninternal\\\\cache\\\\distributed.go:762:4: cannot use \\\"latency\\\" (untyped string constant) as zap.Field value in argument to dc.logger.Warn\\ninternal\\\\cache\\\\distributed.go:762:15: cannot use latency (variable of int64 type time.Duration) as zap.Field value in argument to dc.logger.Warn\\ninternal\\\\cache\\\\distributed.go:763:28: cannot use dc.config.SlowQueryThreshold (variable of int64 type time.Duration) as string value in argument to zap.String\\ninternal\\\\cache\\\\distributed.go:849:54: cannot use \\\"key\\\" (untyped string constant) as zap.Field value in argument to dc.logger.Error\\ninternal\\\\cache\\\\distributed.go:849:61: cannot use op.Key (variable of type string) as zap.Field value in argument to dc.logger.Error\\ninternal\\\\cache\\\\distributed.go:849:89: cannot use err (variable of interface type error) as string value in argument to zap.String\\ninternal\\\\cache\\\\distributed.go:856:53: cannot use \\\"key\\\" (untyped string constant) as zap.Field value in argument to dc.logger.Error\\ninternal\\\\cache\\\\distributed.go:856:88: cannot use err (variable of interface type error) as string value in argument to zap.String\\ninternal\\\\cache\\\\distributed.go:856:53: too many errors\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/domain [github.com/vertikon/mcp-ultra/internal/domain.test]\\ninternal\\\\domain\\\\models_test.go:14:21: undefined: types.New\\ninternal\\\\domain\\\\models_test.go:23:27: undefined: types.Nil\\ninternal\\\\domain\\\\models_test.go:31:47: undefined: types.New\\ninternal\\\\domain\\\\models_test.go:46:47: undefined: types.New\\ninternal\\\\domain\\\\models_test.go:58:47: undefined: types.New\\ninternal\\\\domain\\\\models_test.go:122:49: undefined: types.New\"",
+        "level=error msg=\"[linters_context] typechecking error: E:\\\\vertikon\\\\business\\\\SaaS\\\\templates\\\\mcp-ultra\\\\internal\\\\handlers\\\\http\\\\router.go:17:2: could not import github.com/vertikon/mcp-ultra/internal/telemetry (-: # github.com/vertikon/mcp-ultra/internal/telemetry\\ninternal\\\\telemetry\\\\telemetry.go:16:2: \\\"go.uber.org/zap\\\" imported and not used\\ninternal\\\\telemetry\\\\telemetry.go:19:2: \\\"github.com/vertikon/mcp-ultra/pkg/httpx\\\" imported and not used)\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/telemetry [github.com/vertikon/mcp-ultra/internal/telemetry.test]\\ninternal\\\\telemetry\\\\telemetry.go:16:2: \\\"go.uber.org/zap\\\" imported and not used\\ninternal\\\\telemetry\\\\telemetry.go:19:2: \\\"github.com/vertikon/mcp-ultra/pkg/httpx\\\" imported and not used\"",
+        "level=warning msg=\"[runner] Can't run linter goanalysis_metalinter: buildir: failed to load package telemetry: could not load export data: no export data for \\\"github.com/vertikon/mcp-ultra/internal/telemetry\\\"\"",
+        "level=error msg=\"Running error: can't run linter goanalysis_metalinter\\nbuildir: failed to load package telemetry: could not load export data: no export data for \\\"github.com/vertikon/mcp-ultra/internal/telemetry\\\"\""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 4,
+  "Score": 80,
+  "AutoFixable": 1,
+  "Manual": 3
+}

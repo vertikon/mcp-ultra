@@ -6,8 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
+	"go.uber.org/zap"
+
 	"github.com/vertikon/mcp-ultra/internal/observability"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // MetricType represents different types of business metrics
@@ -400,9 +402,9 @@ func NewBusinessMetricsCollector(
 	collector.startBackgroundTasks()
 
 	logger.Info("Business metrics collector initialized",
-		"metrics_count", len(config.CustomMetrics),
-		"storage_backend", config.StorageBackend,
-		"alerting_enabled", config.AlertingEnabled,
+		zap.Int("metrics_count", len(config.CustomMetrics)),
+		zap.String("storage_backend", config.StorageBackend),
+		zap.Bool("alerting_enabled", config.AlertingEnabled),
 	)
 
 	return collector, nil
@@ -626,9 +628,9 @@ func (bmc *BusinessMetricsCollector) performCollection() {
 			if len(values) > 0 {
 				if err := bmc.storage.Store(bmc.ctx, values); err != nil {
 					bmc.logger.Error("Failed to store metric values",
-						"metric", metricName,
-						"count", len(values),
-						"error", err,
+						zap.String("metric", metricName),
+						zap.Int("count", len(values)),
+						zap.Error(err),
 					)
 				}
 
@@ -755,7 +757,7 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 	bmc.mu.Unlock()
 
 	if conditionMet {
-		if !exists || existingState.State == "resolved" {
+		if !exists || existingState.State == StateResolved {
 			// New alert or previously resolved
 			newState := AlertState{
 				MetricName:  rule.MetricName,
@@ -782,15 +784,15 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 			bmc.mu.Unlock()
 
 			bmc.logger.Warn("Alert firing",
-				"metric", rule.MetricName,
-				"condition", fmt.Sprintf("%s %f", rule.Condition, rule.Threshold),
-				"current_value", currentValue,
-				"severity", rule.Severity,
+				zap.String("metric", rule.MetricName),
+				zap.String("condition", fmt.Sprintf("%s %f", rule.Condition, rule.Threshold)),
+				zap.Float64("current_value", currentValue),
+				zap.String("severity", rule.Severity),
 			)
 		}
-	} else if exists && existingState.State != "resolved" {
+	} else if exists && existingState.State != StateResolved {
 		// Resolve alert
-		existingState.State = "resolved"
+		existingState.State = StateResolved
 		existingState.Value = currentValue
 
 		bmc.mu.Lock()
@@ -798,8 +800,8 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 		bmc.mu.Unlock()
 
 		bmc.logger.Info("Alert resolved",
-			"metric", rule.MetricName,
-			"current_value", currentValue,
+			zap.String("metric", rule.MetricName),
+			zap.Float64("current_value", currentValue),
 		)
 	}
 }
@@ -823,8 +825,8 @@ func (bmc *BusinessMetricsCollector) exportTask() {
 func (bmc *BusinessMetricsCollector) performExport() {
 	// Implementation would depend on export format and endpoint
 	bmc.logger.Debug("Performing metrics export",
-		"format", bmc.config.ExportFormat,
-		"endpoint", bmc.config.ExportEndpoint,
+		zap.String("format", bmc.config.ExportFormat),
+		zap.String("endpoint", bmc.config.ExportEndpoint),
 	)
 }
 
@@ -863,7 +865,7 @@ func (bmc *BusinessMetricsCollector) performCleanup() {
 	// Clean up persistent storage
 	if bmc.storage != nil {
 		if err := bmc.storage.Delete(bmc.ctx, cutoff); err != nil {
-			bmc.logger.Error("Failed to clean up old metrics", "error", err)
+			bmc.logger.Error("Failed to clean up old metrics", zap.Error(err))
 		}
 	}
 }
@@ -888,7 +890,7 @@ func (bmc *BusinessMetricsCollector) matchesQuery(value MetricValue, query Metri
 }
 
 // NewMetricStorage creates a new metric storage backend
-func NewMetricStorage(backend string, config map[string]interface{}) (MetricStorage, error) {
+func NewMetricStorage(backend string, _ map[string]interface{}) (MetricStorage, error) {
 	switch backend {
 	case "memory":
 		return NewMemoryMetricStorage(), nil

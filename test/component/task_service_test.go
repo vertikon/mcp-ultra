@@ -393,7 +393,8 @@ func (suite *TaskServiceTestSuite) TestDeleteTask_AdminSuccess() {
 	}
 
 	// Mock admin context
-	ctx = context.WithValue(ctx, "user_role", "admin")
+	type ctxKey string
+	ctx = context.WithValue(ctx, ctxKey("user_role"), "admin")
 
 	// Setup mocks
 	suite.taskRepo.On("GetByID", ctx, taskID).Return(task, nil)

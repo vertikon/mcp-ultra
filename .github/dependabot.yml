@@ -1,37 +1,65 @@
+# Dependabot configuration for automated dependency updates
+# Docs: https://docs.github.com/en/code-security/dependabot
+
 version: 2
 updates:
-  # Go dependencies
+  # Go modules
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "06:00"
     open-pull-requests-limit: 10
-    commit-message:
-      prefix: "chore(deps)"
+    reviewers:
+      - "vertikon/security-team"
+      - "vertikon/platform-team"
     labels:
       - "dependencies"
       - "go"
-    reviewers:
-      - "vertikon/security-team"
+      - "security"
+    commit-message:
+      prefix: "deps(go)"
+      include: "scope"
+    # Group minor and patch updates
+    groups:
+      go-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    commit-message:
-      prefix: "chore(ci)"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "vertikon/platform-team"
     labels:
       - "dependencies"
       - "ci"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
 
   # Docker
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
-    commit-message:
-      prefix: "chore(docker)"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "vertikon/platform-team"
     labels:
       - "dependencies"
       - "docker"
+    commit-message:
+      prefix: "docker"
+      include: "scope"

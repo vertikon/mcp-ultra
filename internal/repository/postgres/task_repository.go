@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/vertikon/mcp-ultra/internal/domain"
+	"github.com/vertikon/mcp-ultra/pkg/types"
 )
 
 // TaskRepository implements domain.TaskRepository using PostgreSQL
@@ -46,7 +46,7 @@ func (r *TaskRepository) Create(ctx context.Context, task *domain.Task) error {
 }
 
 // GetByID retrieves a task by ID
-func (r *TaskRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Task, error) {
+func (r *TaskRepository) GetByID(ctx context.Context, id types.UUID) (*domain.Task, error) {
 	query := `
 		SELECT id, title, description, status, priority, assignee_id, created_by,
 		       created_at, updated_at, completed_at, due_date, tags, metadata
@@ -89,7 +89,7 @@ func (r *TaskRepository) Update(ctx context.Context, task *domain.Task) error {
 }
 
 // Delete removes a task
-func (r *TaskRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *TaskRepository) Delete(ctx context.Context, id types.UUID) error {
 	query := `DELETE FROM tasks WHERE id = $1`
 
 	result, err := r.db.ExecContext(ctx, query, id)
@@ -192,10 +192,7 @@ func (r *TaskRepository) List(ctx context.Context, filter domain.TaskFilter) ([]
 		return nil, 0, fmt.Errorf("querying tasks: %w", err)
 	}
 	defer func() {
-		if err := rows.Close(); err != nil {
-			// Log error but don't return - defer already happened
-			// Consider logging: logger.Warn("failed to close resource", zap.Error(err))
-		}
+		_ = rows.Close() // ignore error in defer - query already succeeded or failed
 	}()
 
 	tasks := make([]*domain.Task, 0)
@@ -224,10 +221,7 @@ func (r *TaskRepository) GetByStatus(ctx context.Context, status domain.TaskStat
 		return nil, fmt.Errorf("querying tasks by status: %w", err)
 	}
 	defer func() {
-		if err := rows.Close(); err != nil {
-			// Log error but don't return - defer already happened
-			// Consider logging: logger.Warn("failed to close resource", zap.Error(err))
-		}
+		_ = rows.Close() // ignore error in defer - query already succeeded or failed
 	}()
 
 	tasks := make([]*domain.Task, 0)
@@ -243,7 +237,7 @@ func (r *TaskRepository) GetByStatus(ctx context.Context, status domain.TaskStat
 }
 
 // GetByAssignee retrieves tasks assigned to a specific user
-func (r *TaskRepository) GetByAssignee(ctx context.Context, assigneeID uuid.UUID) ([]*domain.Task, error) {
+func (r *TaskRepository) GetByAssignee(ctx context.Context, assigneeID types.UUID) ([]*domain.Task, error) {
 	query := `
 		SELECT id, title, description, status, priority, assignee_id, created_by,
 		       created_at, updated_at, completed_at, due_date, tags, metadata
@@ -256,10 +250,7 @@ func (r *TaskRepository) GetByAssignee(ctx context.Context, assigneeID uuid.UUID
 		return nil, fmt.Errorf("querying tasks by assignee: %w", err)
 	}
 	defer func() {
-		if err := rows.Close(); err != nil {
-			// Log error but don't return - defer already happened
-			// Consider logging: logger.Warn("failed to close resource", zap.Error(err))
-		}
+		_ = rows.Close() // Explicitly ignore error in defer
 	}()
 
 	tasks := make([]*domain.Task, 0)

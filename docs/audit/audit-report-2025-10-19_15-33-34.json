@@ -1,0 +1,106 @@
+{
+  "project": "mcp-ultra",
+  "timestamp": "2025-10-19T15:33:34-03:00",
+  "files": {
+    "docs_gaps": {
+      "count": 122,
+      "total_size_kb": 1468.93
+    },
+    "docs_melhorias": {
+      "count": 36,
+      "total_size_kb": 1265.97
+    },
+    "scripts_potentially_unused": 0
+  },
+  "dependencies": {
+    "total_replaces": 1,
+    "total_requires": 89
+  },
+  "summary": {},
+  "candidates_for_cleanup": [
+    {
+      "size_bytes": 6036,
+      "path": ".\\go.mod.bak",
+      "reason": "Arquivo obsoleto (padrão: .bak)",
+      "action": "remove"
+    }
+  ],
+  "recommendations": [
+    "Consolidar docs/gaps/ (122 arquivos) em histórico único",
+    "Consolidar docs/melhorias/ (36 arquivos) em histórico único"
+  ],
+  "directories": {
+    "migrations": {
+      "md_files": 2,
+      "test_files": 2,
+      "total_size_bytes": 2148.0,
+      "total_files": 2,
+      "go_files": 2,
+      "total_size_mb": 0.0
+    },
+    "scripts": {
+      "md_files": 2,
+      "test_files": 2,
+      "total_size_bytes": 73665.0,
+      "total_files": 16,
+      "go_files": 2,
+      "total_size_mb": 0.07
+    },
+    "test": {
+      "md_files": 2,
+      "test_files": 6,
+      "total_size_bytes": 91192.0,
+      "total_files": 10,
+      "go_files": 7,
+      "total_size_mb": 0.09
+    },
+    "deploy": {
+      "md_files": 2,
+      "test_files": 2,
+      "total_size_bytes": 79291.0,
+      "total_files": 20,
+      "go_files": 2,
+      "total_size_mb": 0.08
+    },
+    "tests": {
+      "md_files": 2,
+      "test_files": 2,
+      "total_size_bytes": 264.0,
+      "total_files": 2,
+      "go_files": 2,
+      "total_size_mb": 0.0
+    },
+    "docs": {
+      "md_files": 82,
+      "test_files": 18,
+      "total_size_bytes": 3734671.0,
+      "total_files": 222,
+      "go_files": 3,
+      "total_size_mb": 3.56
+    },
+    "api": {
+      "md_files": 2,
+      "test_files": 2,
+      "total_size_bytes": 82001.0,
+      "total_files": 8,
+      "go_files": 3,
+      "total_size_mb": 0.08
+    },
+    "pkg": {
+      "md_files": 2,
+      "test_files": 18,
+      "total_size_bytes": 13096.0,
+      "total_files": 9,
+      "go_files": 7,
+      "total_size_mb": 0.01
+    },
+    "internal": {
+      "md_files": 2,
+      "test_files": 18,
+      "total_size_bytes": 856396.0,
+      "total_files": 118,
+      "go_files": 101,
+      "total_size_mb": 0.82
+    }
+  }
+}

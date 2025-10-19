@@ -1,0 +1,141 @@
+name: Lint & Quality Check
+
+on:
+  push:
+    branches: [ main, develop, 'chore/**', 'feature/**', 'fix/**' ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  golangci-lint:
+    name: Go Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.0'
+          cache: true
+      
+      - name: Download dependencies
+        run: go mod download
+      
+      - name: Verify dependencies
+        run: go mod verify
+      
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+          args: --timeout=10m --config=golangci.yml
+          only-new-issues: false
+      
+      # Verificação específica para prevenir loop de depguard
+      - name: Verify no depguard loop in facades
+        run: |
+          echo "Checking depguard in facade packages..."
+          golangci-lint run --disable-all -E depguard ./pkg/httpx/... | tee depguard.log
+          golangci-lint run --disable-all -E depguard ./pkg/observability/... | tee -a depguard.log
+          golangci-lint run --disable-all -E depguard ./pkg/metrics/... | tee -a depguard.log
+          golangci-lint run --disable-all -E depguard ./pkg/redisx/... | tee -a depguard.log
+          
+          if grep -q "pkg/httpx\|pkg/observability\|pkg/metrics\|pkg/redisx" depguard.log; then
+            echo "❌ ERRO: Loop de depguard detectado nos facades!"
+            echo "As exclude-rules podem ter sido removidas do golangci.yml"
+            exit 1
+          fi
+          
+          echo "✅ Nenhum loop de depguard detectado"
+      
+      - name: Format check
+        run: |
+          if [ -n "$(gofmt -s -l .)" ]; then
+            echo "❌ Código não formatado corretamente:"
+            gofmt -s -l .
+            exit 1
+          fi
+          echo "✅ Código formatado corretamente"
+  
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.0'
+      
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: '-no-fail -fmt sarif -out gosec-results.sarif ./...'
+      
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gosec-results.sarif
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.0'
+          cache: true
+      
+      - name: Run tests
+        run: make test
+      
+      - name: Generate coverage report
+        run: make coverage
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage.out
+          flags: unittests
+          name: codecov-mcp-ultra
+          fail_ci_if_error: false
+
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [golangci-lint, security-scan, tests]
+    if: always()
+    
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [ "${{ needs.golangci-lint.result }}" != "success" ] || \
+             [ "${{ needs.security-scan.result }}" != "success" ] || \
+             [ "${{ needs.tests.result }}" != "success" ]; then
+            echo "❌ Quality gate failed"
+            exit 1
+          fi
+          echo "✅ Quality gate passed - All checks successful!"
+

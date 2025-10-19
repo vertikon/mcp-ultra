@@ -219,7 +219,7 @@ func TestTelemetryService_HTTPMiddleware(t *testing.T) {
 	}()
 
 	// Create a test handler
-	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		// Simulate some processing time
 		time.Sleep(10 * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
@@ -325,7 +325,7 @@ func TestTelemetryService_ConcurrentMetrics(t *testing.T) {
 
 	// Run concurrent metric operations
 	for i := 0; i < numGoroutines; i++ {
-		go func(i int) {
+		go func(_ int) {
 			// Record various metrics (ignoring errors in concurrent test as we're testing concurrency safety)
 			_ = service.IncrementRequestCounter(ctx, "GET", "/test", "200")
 			_ = service.RecordRequestDuration(ctx, "GET", "/test", time.Millisecond*100)

@@ -10,6 +10,11 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	TLS12 = "1.2"
+	TLS13 = "1.3"
+)
+
 type TLSConfig struct {
 	Enabled            bool     `yaml:"enabled" envconfig:"TLS_ENABLED" default:"false"`
 	CertFile           string   `yaml:"cert_file" envconfig:"TLS_CERT_FILE" default:"./certs/server.crt"`
@@ -142,9 +147,9 @@ func (tm *TLSManager) setTLSVersions(tlsConfig *tls.Config) error {
 		tlsConfig.MinVersion = tls.VersionTLS10
 	case "1.1":
 		tlsConfig.MinVersion = tls.VersionTLS11
-	case "1.2":
+	case TLS12:
 		tlsConfig.MinVersion = tls.VersionTLS12
-	case "1.3":
+	case TLS13:
 		tlsConfig.MinVersion = tls.VersionTLS13
 	default:
 		return fmt.Errorf("unsupported minimum TLS version: %s", tm.config.MinVersion)
@@ -156,9 +161,9 @@ func (tm *TLSManager) setTLSVersions(tlsConfig *tls.Config) error {
 		tlsConfig.MaxVersion = tls.VersionTLS10
 	case "1.1":
 		tlsConfig.MaxVersion = tls.VersionTLS11
-	case "1.2":
+	case TLS12:
 		tlsConfig.MaxVersion = tls.VersionTLS12
-	case "1.3":
+	case TLS13:
 		tlsConfig.MaxVersion = tls.VersionTLS13
 	default:
 		return fmt.Errorf("unsupported maximum TLS version: %s", tm.config.MaxVersion)

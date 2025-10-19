@@ -10,9 +10,20 @@
       "Bash('E:\\go1.25.0\\go\\bin\\go.exe' test ./internal/observability/...)",
       "Bash('E:\\go1.25.0\\go\\bin\\go.exe' test ./internal/observability/... -v -run \"^TestTelemetryService\")",
       "Bash('E:\\go1.25.0\\go\\bin\\go.exe' test:*)",
-      "Bash('E:\\go1.25.0\\go\\bin\\go.exe' test ./... -timeout 2m)"
+      "Bash('E:\\go1.25.0\\go\\bin\\go.exe' test ./... -timeout 2m)",
+      "Bash(if not exist \"pkg\\metrics\" md \"pkg\\metrics\")",
+      "Bash(\"C:\\Program Files\\Git\\bin\\git.exe\" status)",
+      "Bash(\"C:\\Program Files\\Git\\bin\\git.exe\" diff --stat)",
+      "Bash(\"C:\\Program Files\\Git\\bin\\git.exe\" log -1 --oneline)",
+      "Bash(\"E:\\go1.25.0\\go\\bin\\go.exe\" run enhanced_validator_v7.go \"E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\")",
+      "Bash(cat \"E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\docs\\gaps\\gaps-report-2025-10-19-v82.json\")",
+      "Bash(\"C:\\Program Files\\Git\\bin\\git.exe\" status --short)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "mcp-ai-shell"
+  ]
 }

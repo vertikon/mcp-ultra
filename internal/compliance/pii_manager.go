@@ -375,7 +375,7 @@ func (d *CPFDetector) GetSensitivity() PIISensitivity { return PIISensitivityRes
 // Additional detector implementations...
 type CNPJDetector struct{}
 
-func (d *CNPJDetector) Detect(field string, value interface{}) (bool, float64, map[string]string) {
+func (d *CNPJDetector) Detect(_ string, value interface{}) (bool, float64, map[string]string) {
 	// CNPJ detection logic
 	return false, 0, nil
 }
@@ -384,7 +384,7 @@ func (d *CNPJDetector) GetSensitivity() PIISensitivity { return PIISensitivityCo
 
 type PhoneDetector struct{}
 
-func (d *PhoneDetector) Detect(field string, value interface{}) (bool, float64, map[string]string) {
+func (d *PhoneDetector) Detect(_ string, value interface{}) (bool, float64, map[string]string) {
 	// Phone detection logic
 	str, ok := value.(string)
 	if !ok {
@@ -402,7 +402,7 @@ func (d *PhoneDetector) GetSensitivity() PIISensitivity { return PIISensitivityC
 
 type CreditCardDetector struct{}
 
-func (d *CreditCardDetector) Detect(field string, value interface{}) (bool, float64, map[string]string) {
+func (d *CreditCardDetector) Detect(_ string, value interface{}) (bool, float64, map[string]string) {
 	// Credit card detection logic (Luhn algorithm)
 	return false, 0, nil
 }
@@ -411,7 +411,7 @@ func (d *CreditCardDetector) GetSensitivity() PIISensitivity { return PIISensiti
 
 type IPAddressDetector struct{}
 
-func (d *IPAddressDetector) Detect(field string, value interface{}) (bool, float64, map[string]string) {
+func (d *IPAddressDetector) Detect(_ string, value interface{}) (bool, float64, map[string]string) {
 	// IP address detection logic
 	return false, 0, nil
 }
@@ -436,7 +436,7 @@ func (d *NameDetector) GetSensitivity() PIISensitivity { return PIISensitivityCo
 // HashAnonymizer anonymizes data using SHA-256 hashing
 type HashAnonymizer struct{}
 
-func (a *HashAnonymizer) Anonymize(value interface{}, context map[string]string) (interface{}, error) {
+func (a *HashAnonymizer) Anonymize(value interface{}, _ map[string]string) (interface{}, error) {
 	str := fmt.Sprintf("%v", value)
 	hash := sha256.Sum256([]byte(str))
 	return hex.EncodeToString(hash[:]), nil
@@ -448,7 +448,7 @@ func (a *HashAnonymizer) GetMethod() AnonymizationMethod { return AnonymizationH
 // TokenizeAnonymizer creates reversible tokens
 type TokenizeAnonymizer struct{}
 
-func (a *TokenizeAnonymizer) Anonymize(value interface{}, context map[string]string) (interface{}, error) {
+func (a *TokenizeAnonymizer) Anonymize(value interface{}, _ map[string]string) (interface{}, error) {
 	str := fmt.Sprintf("%v", value)
 	// Generate a token (simplified - in production, use proper tokenization)
 	hash := sha256.Sum256([]byte(str))
@@ -462,7 +462,7 @@ func (a *TokenizeAnonymizer) GetMethod() AnonymizationMethod { return Anonymizat
 // RedactAnonymizer replaces data with asterisks
 type RedactAnonymizer struct{}
 
-func (a *RedactAnonymizer) Anonymize(value interface{}, context map[string]string) (interface{}, error) {
+func (a *RedactAnonymizer) Anonymize(value interface{}, _ map[string]string) (interface{}, error) {
 	str := fmt.Sprintf("%v", value)
 	if len(str) <= 4 {
 		return "****", nil

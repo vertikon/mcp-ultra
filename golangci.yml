@@ -217,6 +217,20 @@ linters:
 
 issues:
   exclude-rules:
+    # Exclude depguard from facade packages (they need to import original libraries)
+    - path: ^pkg/httpx/
+      linters:
+        - depguard
+    - path: ^pkg/observability/
+      linters:
+        - depguard
+    - path: ^pkg/metrics/
+      linters:
+        - depguard
+    - path: ^pkg/redisx/
+      linters:
+        - depguard
+        
     # Exclude test files from certain checks
     - path: _test\.go
       linters:

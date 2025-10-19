@@ -287,10 +287,7 @@ func loadFromFile(filename string, cfg *Config) error {
 		return err
 	}
 	defer func() {
-		if err := file.Close(); err != nil {
-			// Log error but don't return - defer already happened
-			// Consider logging: logger.Warn("failed to close resource", zap.Error(err))
-		}
+		_ = file.Close() // Explicitly ignore error in defer
 	}()
 
 	decoder := yaml.NewDecoder(file)

@@ -10,37 +10,37 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/httpx"
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
-	"github.com/vertikon/mcp-ultra-fix/pkg/metrics"
-	"github.com/vertikon/mcp-ultra-fix/pkg/version"
 	"github.com/vertikon/mcp-ultra/internal/config"
 	"github.com/vertikon/mcp-ultra/internal/handlers"
+	"github.com/vertikon/mcp-ultra/pkg/httpx"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
+	"github.com/vertikon/mcp-ultra/pkg/metrics"
+	"github.com/vertikon/mcp-ultra/pkg/version"
 )
 
 func main() {
 	// Initialize logger
-	logger, err := logger.NewLogger()
+	zapLog, err := logger.NewProduction()
 	if err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
 	defer func() {
-		if syncErr := logger.Sync(); syncErr != nil {
+		if syncErr := zapLog.Sync(); syncErr != nil {
 			// Ignore sync errors on shutdown (common on Windows)
 			log.Printf("Warning: failed to sync logger: %v", syncErr)
 		}
 	}()
 
-	logger.Info("Starting MCP Ultra service",
-		"version", version.Version,
-		"build_date", version.BuildDate,
-		"commit", version.GitCommit,
+	zapLog.Info("Starting MCP Ultra service",
+		logger.String("version", version.Version),
+		logger.String("build_date", version.BuildDate),
+		logger.String("commit", version.GitCommit),
 	)
 
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
-		logger.Fatal("Failed to load configuration", "error", err)
+		zapLog.Fatal("Failed to load configuration", logger.Error(err))
 	}
 
 	// Initialize HTTP router
@@ -54,14 +54,7 @@ func main() {
 	router.Use(httpx.Timeout(60 * time.Second))
 
 	// CORS configuration
-	router.Use(httpx.CORS(httpx.CORSOptions{
-		AllowedOrigins:   []string{"*"}, // Configure appropriately for production
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
-		MaxAge:           300,
-	}))
+	router.Use(httpx.DefaultCORS())
 
 	// Initialize health handler
 	healthHandler := handlers.NewHealthHandler()
@@ -83,13 +76,13 @@ func main() {
 
 	// Start server in goroutine
 	go func() {
-		logger.Info("Starting HTTP server",
-			"address", server.Addr,
-			"port", cfg.Server.Port,
+		zapLog.Info("Starting HTTP server",
+			logger.String("address", server.Addr),
+			logger.Int("port", cfg.Server.Port),
 		)
 
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatal("Failed to start HTTP server", "error", err)
+			zapLog.Fatal("Failed to start HTTP server", logger.Error(err))
 		}
 	}()
 
@@ -98,7 +91,7 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	logger.Info("Shutting down server...")
+	zapLog.Info("Shutting down server...")
 
 	// Graceful shutdown with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -106,8 +99,8 @@ func main() {
 
 	// Shutdown HTTP server
 	if err := server.Shutdown(ctx); err != nil {
-		logger.Error("Server forced to shutdown", "error", err)
+		zapLog.Error("Server forced to shutdown", logger.Error(err))
 	}
 
-	logger.Info("Server exited")
+	zapLog.Info("Server exited")
 }
