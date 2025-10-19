@@ -1,6 +1,6 @@
 # MCP Ultra Multi-stage Dockerfile
 # Build stage
-FROM golang:1.24-rc-alpine AS builder
+FROM golang:alpine AS builder
 
 # Install build dependencies
 RUN apk update && \

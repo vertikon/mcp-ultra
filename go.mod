@@ -21,7 +21,6 @@ require (
 	github.com/testcontainers/testcontainers-go v0.39.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.39.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.39.0
-	github.com/vertikon/mcp-ultra-fix v0.1.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.63.0
 	go.opentelemetry.io/otel v1.38.0
@@ -126,4 +125,5 @@ require (
 
 replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20250825161204-c5933d9347a5
 
-replace github.com/vertikon/mcp-ultra-fix => E:/vertikon/.ecosistema-vertikon/shared/mcp-ultra-fix
+// replace github.com/vertikon/mcp-ultra-fix => E:/vertikon/.ecosistema-vertikon/shared/mcp-ultra-fix
+// Commented out for Docker build - using version from go.mod

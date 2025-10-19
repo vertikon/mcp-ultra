@@ -10,8 +10,8 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 	obs "github.com/vertikon/mcp-ultra/pkg/observability"
 )
 

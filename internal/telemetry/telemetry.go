@@ -13,10 +13,10 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/httpx"
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
-	"github.com/vertikon/mcp-ultra-fix/pkg/metrics"
 	"github.com/vertikon/mcp-ultra/internal/config"
+	"github.com/vertikon/mcp-ultra/pkg/httpx"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
+	"github.com/vertikon/mcp-ultra/pkg/metrics"
 )
 
 var (

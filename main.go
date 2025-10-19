@@ -10,17 +10,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/httpx"
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
-	"github.com/vertikon/mcp-ultra-fix/pkg/metrics"
-	"github.com/vertikon/mcp-ultra-fix/pkg/version"
 	"github.com/vertikon/mcp-ultra/internal/config"
 	"github.com/vertikon/mcp-ultra/internal/handlers"
+	"github.com/vertikon/mcp-ultra/pkg/httpx"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
+	"github.com/vertikon/mcp-ultra/pkg/metrics"
+	"github.com/vertikon/mcp-ultra/pkg/version"
 )
 
 func main() {
 	// Initialize logger
-	logger, err := logger.NewLogger()
+	logger, err := logger.NewProduction()
 	if err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
@@ -54,14 +54,7 @@ func main() {
 	router.Use(httpx.Timeout(60 * time.Second))
 
 	// CORS configuration
-	router.Use(httpx.CORS(httpx.CORSOptions{
-		AllowedOrigins:   []string{"*"}, // Configure appropriately for production
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
-		MaxAge:           300,
-	}))
+	router.Use(httpx.DefaultCORS())
 
 	// Initialize health handler
 	healthHandler := handlers.NewHealthHandler()

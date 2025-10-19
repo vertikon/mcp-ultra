@@ -10,7 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 func newTestLogger(t *testing.T) *logger.Logger {

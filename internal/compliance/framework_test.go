@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/vertikon/mcp-ultra-fix/pkg/types"
+	"github.com/vertikon/mcp-ultra/pkg/types"
 	"go.uber.org/zap/zaptest"
 )
 

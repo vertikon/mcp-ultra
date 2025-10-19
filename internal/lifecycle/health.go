@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // HealthStatus represents the health status of a component
