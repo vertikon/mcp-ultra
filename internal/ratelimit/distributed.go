@@ -1,6 +1,8 @@
 package ratelimit
 
 import (
+	"go.uber.org/zap"
+
 	"context"
 	"fmt"
 	"strconv"
@@ -262,10 +264,10 @@ func NewDistributedRateLimiter(client redis.Cmdable, config Config, logger logge
 	limiter.startBackgroundTasks()
 
 	logger.Info("Distributed rate limiter initialized",
-		"default_algorithm", config.DefaultAlgorithm,
-		"default_limit", config.DefaultLimit,
-		"default_window", config.DefaultWindow,
-		"adaptive_enabled", config.AdaptiveEnabled,
+		zap.String("default_algorithm", string(config.DefaultAlgorithm)),
+		zap.Int64("default_limit", config.DefaultLimit),
+		zap.Duration("default_window", config.DefaultWindow),
+		zap.Bool("adaptive_enabled", config.AdaptiveEnabled),
 	)
 
 	return limiter, nil
@@ -379,7 +381,7 @@ func (drl *DistributedRateLimiter) AllowWithRule(ctx context.Context, request Re
 func (drl *DistributedRateLimiter) Reset(ctx context.Context, key string) error {
 	for _, limiter := range drl.limiters {
 		if err := limiter.Reset(ctx, key); err != nil {
-			drl.logger.Error("Failed to reset rate limit", "key", key, "error", err)
+			drl.logger.Error("Failed to reset rate limit", zap.String("key", key), zap.Error(err))
 			return err
 		}
 	}
@@ -785,8 +787,8 @@ func (al *AdaptiveLimiter) performAdjustments() {
 
 		al.logger.Debug("Adaptive limit adjusted",
 			"key", key,
-			"new_limit", state.CurrentLimit,
-			"error_rate", errorRate,
+			zap.Int64("new_limit", state.CurrentLimit),
+			zap.String("error_rate", errorRate),
 		)
 	}
 }

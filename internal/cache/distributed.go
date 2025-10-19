@@ -1,6 +1,8 @@
 package cache
 
 import (
+	"go.uber.org/zap"
+
 	"context"
 	"encoding/json"
 	"fmt"
@@ -240,10 +242,10 @@ func NewDistributedCache(config CacheConfig, log *logger.Logger, telemetry *obse
 	cache.startBackgroundTasks()
 
 	log.Info("Distributed cache initialized",
-		"strategy", config.Strategy,
-		"eviction_policy", config.EvictionPolicy,
-		"sharding_enabled", config.EnableSharding,
-		"compression_enabled", config.CompressionEnabled,
+		zap.String("strategy", string(config.Strategy)),
+		zap.String("eviction_policy", string(config.EvictionPolicy)),
+		zap.Bool("sharding_enabled", config.EnableSharding),
+		zap.Bool("compression_enabled", config.CompressionEnabled),
 	)
 
 	return cache, nil
@@ -702,7 +704,7 @@ func (dc *DistributedCache) initializeSharding(ctx context.Context) error {
 		dc.consistent.Add(nodeID, 1)
 	}
 
-	dc.logger.Info("Sharding initialized", "shards_count", len(dc.shards))
+	dc.logger.Info("Sharding initialized", zap.Int("shards_count", len(dc.shards)))
 	return nil
 }
 
@@ -758,7 +760,7 @@ func (dc *DistributedCache) recordLatency(operation string, latency time.Duratio
 		dc.logger.Warn("Slow cache operation detected",
 			"operation", operation,
 			"latency", latency,
-			"threshold", dc.config.SlowQueryThreshold,
+			zap.String("threshold", dc.config.SlowQueryThreshold),
 		)
 	}
 }
@@ -844,14 +846,14 @@ func (dc *DistributedCache) processBatch(batch []WriteOperation) {
 		case "set":
 			data, err := dc.serialize(op.Value)
 			if err != nil {
-				dc.logger.Error("Serialization failed in batch", "key", op.Key, "error", err)
+				dc.logger.Error("Serialization failed in batch", "key", op.Key, zap.String("error", err))
 				continue
 			}
 
 			if dc.config.CompressionEnabled {
 				data, err = dc.compress(data)
 				if err != nil {
-					dc.logger.Error("Compression failed in batch", "key", op.Key, "error", err)
+					dc.logger.Error("Compression failed in batch", "key", op.Key, zap.String("error", err))
 					continue
 				}
 			}
@@ -866,9 +868,9 @@ func (dc *DistributedCache) processBatch(batch []WriteOperation) {
 
 	_, err := pipe.Exec(ctx)
 	if err != nil {
-		dc.logger.Error("Batch write failed", "batch_size", len(batch), "error", err)
+		dc.logger.Error("Batch write failed", zap.String("batch_size", len(batch)), "error", err)
 	} else {
-		dc.logger.Debug("Batch write completed", "batch_size", len(batch))
+		dc.logger.Debug("Batch write completed", zap.String("batch_size", len(batch)))
 	}
 }
 
@@ -919,7 +921,7 @@ func (dc *DistributedCache) healthMonitor() {
 		case <-ticker.C:
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			if err := dc.HealthCheck(ctx); err != nil {
-				dc.logger.Error("Cache health check failed", "error", err)
+				dc.logger.Error("Cache health check failed", zap.String("error", err))
 			}
 			cancel()
 		}

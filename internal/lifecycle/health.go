@@ -1,6 +1,8 @@
 package lifecycle
 
 import (
+	"go.uber.org/zap"
+
 	"context"
 	"encoding/json"
 	"fmt"
@@ -163,9 +165,9 @@ func (hm *HealthMonitor) RegisterChecker(checker HealthChecker) {
 
 	hm.checkers = append(hm.checkers, checker)
 	hm.logger.Info("Health checker registered",
-		"name", checker.Name(),
-		"required", checker.IsRequired(),
-		"timeout", checker.Timeout(),
+		zap.String("name", checker.Name()),
+		zap.Bool("required", checker.IsRequired()),
+		zap.Duration("timeout", checker.Timeout()),
 	)
 }
 
@@ -176,7 +178,7 @@ func (hm *HealthMonitor) RegisterDependency(dependency DependencyChecker) {
 
 	hm.dependencies = append(hm.dependencies, dependency)
 	hm.logger.Info("Dependency checker registered",
-		"name", dependency.Name(),
+		zap.String("name", dependency.Name()),
 		"type", dependency.Type(),
 		"required", dependency.IsRequired(),
 	)
@@ -203,9 +205,9 @@ func (hm *HealthMonitor) Start() error {
 	go hm.runHealthChecks()
 
 	hm.logger.Info("Health monitor started",
-		"check_interval", hm.config.CheckInterval,
+		zap.Duration("check_interval", hm.config.CheckInterval),
 		"http_endpoint", hm.config.EnableHTTPEndpoint,
-		"checkers_count", len(hm.checkers),
+		zap.String("checkers_count", len(hm.checkers)),
 	)
 
 	return nil
@@ -326,7 +328,7 @@ func (hm *HealthMonitor) performHealthCheck(ctx context.Context) *HealthReport {
 			"new_status", report.Status,
 			"healthy", report.Summary.Healthy,
 			"degraded", report.Summary.Degraded,
-			"unhealthy", report.Summary.Unhealthy,
+			zap.String("unhealthy", report.Summary.Unhealthy),
 		)
 	}
 
@@ -485,12 +487,12 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 		if hm.IsHealthy() || hm.IsDegraded() {
 			w.WriteHeader(http.StatusOK)
 			if _, err := w.Write([]byte("OK")); err != nil {
-				hm.logger.Warn("Failed to write readiness response", "error", err)
+				hm.logger.Warn("Failed to write readiness response", zap.String("error", err))
 			}
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := w.Write([]byte("Not Ready")); err != nil {
-				hm.logger.Warn("Failed to write readiness response", "error", err)
+				hm.logger.Warn("Failed to write readiness response", zap.String("error", err))
 			}
 		}
 	})
@@ -500,12 +502,12 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 		if !hm.IsUnhealthy() {
 			w.WriteHeader(http.StatusOK)
 			if _, err := w.Write([]byte("OK")); err != nil {
-				hm.logger.Warn("Failed to write liveness response", "error", err)
+				hm.logger.Warn("Failed to write liveness response", zap.String("error", err))
 			}
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := w.Write([]byte("Unhealthy")); err != nil {
-				hm.logger.Warn("Failed to write liveness response", "error", err)
+				hm.logger.Warn("Failed to write liveness response", zap.String("error", err))
 			}
 		}
 	})
@@ -519,24 +521,24 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 
 	hm.logger.Info("Health HTTP endpoint started",
 		"port", hm.config.HTTPPort,
-		"path", hm.config.HTTPPath,
+		zap.String("path", hm.config.HTTPPath),
 	)
 
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		hm.logger.Error("Health HTTP endpoint error", "error", err)
+		hm.logger.Error("Health HTTP endpoint error", zap.String("error", err))
 	}
 }
 
 func (hm *HealthMonitor) persistHealthReport(report *HealthReport) {
 	_, err := json.Marshal(report)
 	if err != nil {
-		hm.logger.Error("Failed to marshal health report", "error", err)
+		hm.logger.Error("Failed to marshal health report", zap.String("error", err))
 		return
 	}
 
 	// This is a simplified implementation
 	// In production, you might want to use a proper file system or database
-	hm.logger.Debug("Health report persisted", "path", hm.config.PersistencePath)
+	hm.logger.Debug("Health report persisted", zap.String("path", hm.config.PersistencePath))
 }
 
 // Built-in health checkers

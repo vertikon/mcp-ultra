@@ -1,6 +1,8 @@
 package lifecycle
 
 import (
+	"go.uber.org/zap"
+
 	"context"
 	"fmt"
 	"os/exec"
@@ -615,12 +617,12 @@ func (da *DeploymentAutomation) getPreviousVersion() string {
 
 func (da *DeploymentAutomation) addLog(result *DeploymentResult, message string) {
 	result.Logs = append(result.Logs, fmt.Sprintf("%s: %s", time.Now().Format(time.RFC3339), message))
-	da.logger.Info(message, "deployment", result.NewVersion, "phase", result.Phase)
+	da.logger.Info(message, zap.String("deployment", result.NewVersion), zap.String("phase", string(result.Phase)))
 }
 
 func (da *DeploymentAutomation) addError(result *DeploymentResult, message string) {
 	result.Errors = append(result.Errors, fmt.Sprintf("%s: %s", time.Now().Format(time.RFC3339), message))
-	da.logger.Error(message, "deployment", result.NewVersion, "phase", result.Phase)
+	da.logger.Error(message, zap.String("deployment", result.NewVersion), zap.String("phase", string(result.Phase)))
 }
 
 func (da *DeploymentAutomation) addDeploymentToHistory(result DeploymentResult) {

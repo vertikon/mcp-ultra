@@ -7,11 +7,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	promexporter "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.uber.org/zap"
 
 	"github.com/vertikon/mcp-ultra/internal/config"
 	"github.com/vertikon/mcp-ultra/pkg/httpx"
@@ -82,7 +84,7 @@ type Telemetry struct {
 
 // Init initializes telemetry system
 func Init(_ config.TelemetryConfig) (*Telemetry, error) {
-	log, err := logger.NewLogger()
+	log, err := logger.NewProduction()
 	if err != nil {
 		return nil, fmt.Errorf("creating logger: %w", err)
 	}
@@ -112,7 +114,7 @@ func HTTPMetrics(next http.Handler) http.Handler {
 		start := time.Now()
 
 		// Wrap response writer to capture status code
-		ww := httpx.NewWrapResponseWriter(w, r.ProtoMajor)
+		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 
 		// Process request
 		next.ServeHTTP(ww, r)

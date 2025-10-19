@@ -1,6 +1,8 @@
 package tracing
 
 import (
+	"go.uber.org/zap"
+
 	"context"
 	"encoding/json"
 	"fmt"
@@ -292,10 +294,10 @@ func NewBusinessTransactionTracer(config TracingConfig, logger logger.Logger, te
 	}
 
 	logger.Info("Business transaction tracer initialized",
-		"service_name", config.ServiceName,
-		"sampling_rate", config.SamplingRate,
-		"auto_instrumentation", config.AutoInstrumentation,
-		"correlation_enabled", config.CorrelationEnabled,
+		zap.String("service_name", config.ServiceName),
+		zap.Float64("sampling_rate", config.SamplingRate),
+		zap.Bool("auto_instrumentation", config.AutoInstrumentation),
+		zap.Bool("correlation_enabled", config.CorrelationEnabled),
 	)
 
 	return btt, nil
@@ -374,11 +376,11 @@ func (btt *BusinessTransactionTracer) StartTransaction(ctx context.Context, tran
 	btt.recordTransactionStart(transaction)
 
 	btt.logger.Debug("Transaction started",
-		"transaction_id", transaction.ID,
-		"type", transactionType,
-		"name", name,
-		"trace_id", transaction.TraceID,
-		"critical", transaction.Critical,
+		zap.String("transaction_id", transaction.ID),
+		zap.String("type", string(transactionType)),
+		zap.String("name", name),
+		zap.String("trace_id", transaction.TraceID),
+		zap.Bool("critical", transaction.Critical),
 	)
 
 	return transaction, spanCtx
@@ -439,8 +441,8 @@ func (btt *BusinessTransactionTracer) EndTransaction(transaction *BusinessTransa
 	btt.logger.Debug("Transaction ended",
 		"transaction_id", transaction.ID,
 		"status", transaction.Status,
-		"duration", transaction.Duration,
-		"steps", len(transaction.Steps),
+		zap.Duration("duration", transaction.Duration),
+		zap.String("steps", len(transaction.Steps)),
 		"errors", len(transaction.Errors),
 	)
 
@@ -558,7 +560,7 @@ func (btt *BusinessTransactionTracer) AddEvent(transaction *BusinessTransaction,
 			"transaction_id", transaction.ID,
 			"event_type", eventType,
 			"event_name", eventName,
-			"level", level,
+			zap.String("level", level),
 		)
 	}
 }
@@ -655,7 +657,7 @@ func (btt *BusinessTransactionTracer) RegisterTemplate(template *TransactionTemp
 	btt.logger.Info("Transaction template registered",
 		"template_name", template.Name,
 		"type", template.Type,
-		"critical", template.Critical,
+		zap.String("critical", template.Critical),
 	)
 }
 
@@ -881,15 +883,15 @@ func (btt *BusinessTransactionTracer) checkAlerts(transaction *BusinessTransacti
 		btt.logger.Error("Very high transaction latency detected",
 			"transaction_id", transaction.ID,
 			"type", transaction.Type,
-			"duration", transaction.Duration,
-			"threshold", btt.config.AlertThresholds.VeryHighLatency,
+			zap.Duration("duration", transaction.Duration),
+			zap.String("threshold", btt.config.AlertThresholds.VeryHighLatency),
 		)
 	} else if transaction.Duration > btt.config.AlertThresholds.HighLatency {
 		btt.logger.Warn("High transaction latency detected",
 			"transaction_id", transaction.ID,
 			"type", transaction.Type,
-			"duration", transaction.Duration,
-			"threshold", btt.config.AlertThresholds.HighLatency,
+			zap.Duration("duration", transaction.Duration),
+			zap.String("threshold", btt.config.AlertThresholds.HighLatency),
 		)
 	}
 
@@ -898,7 +900,7 @@ func (btt *BusinessTransactionTracer) checkAlerts(transaction *BusinessTransacti
 		btt.logger.Error("Transaction completed with errors",
 			"transaction_id", transaction.ID,
 			"type", transaction.Type,
-			"error_count", len(transaction.Errors),
+			zap.String("error_count", len(transaction.Errors)),
 		)
 	}
 }
