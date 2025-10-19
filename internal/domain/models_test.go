@@ -11,7 +11,7 @@ import (
 func TestNewTask(t *testing.T) {
 	title := "Test Task"
 	description := "Test Description"
-	createdBy := types.New()
+	createdBy := types.NewUUID()
 
 	task := NewTask(title, description, createdBy)
 
@@ -28,7 +28,7 @@ func TestNewTask(t *testing.T) {
 }
 
 func TestTaskComplete(t *testing.T) {
-	task := NewTask("Test", "Description", types.New())
+	task := NewTask("Test", "Description", types.NewUUID())
 	task.Status = TaskStatusInProgress
 
 	beforeComplete := time.Now()
@@ -43,7 +43,7 @@ func TestTaskComplete(t *testing.T) {
 }
 
 func TestTaskCancel(t *testing.T) {
-	task := NewTask("Test", "Description", types.New())
+	task := NewTask("Test", "Description", types.NewUUID())
 
 	beforeCancel := time.Now()
 	task.Cancel()
@@ -55,7 +55,7 @@ func TestTaskCancel(t *testing.T) {
 }
 
 func TestTaskUpdateStatus(t *testing.T) {
-	task := NewTask("Test", "Description", types.New())
+	task := NewTask("Test", "Description", types.NewUUID())
 
 	beforeUpdate := time.Now()
 	task.UpdateStatus(TaskStatusInProgress)
@@ -119,7 +119,7 @@ func TestTaskIsValidStatus(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			task := NewTask("Test", "Description", types.New())
+			task := NewTask("Test", "Description", types.NewUUID())
 			task.Status = tt.currentStatus
 
 			result := task.IsValidStatus(tt.newStatus)

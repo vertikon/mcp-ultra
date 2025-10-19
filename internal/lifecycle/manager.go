@@ -7,6 +7,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/vertikon/mcp-ultra/internal/observability"
 	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
@@ -192,8 +194,8 @@ func (lm *LifecycleManager) RegisterComponent(component Component) {
 	}
 
 	lm.logger.Info("Component registered",
-		"component", component.Name(),
-		"priority", component.Priority(),
+		zap.String("component", component.Name()),
+		zap.Int("priority", component.Priority()),
 	)
 
 	lm.emitEvent("component_registered", component.Name(), lm.GetState(),
@@ -237,8 +239,8 @@ func (lm *LifecycleManager) Start(ctx context.Context) error {
 	lm.readyTime = time.Now()
 
 	lm.logger.Info("Application started successfully",
-		"startup_duration", time.Since(lm.startTime),
-		"components_count", len(lm.components),
+		zap.Duration("startup_duration", time.Since(lm.startTime)),
+		zap.Int("components_count", len(lm.components)),
 	)
 
 	lm.emitEvent("startup_completed", "", StateReady, "Application startup completed successfully",

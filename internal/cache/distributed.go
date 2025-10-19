@@ -758,9 +758,9 @@ func (dc *DistributedCache) recordLatency(operation string, latency time.Duratio
 	// Record slow queries
 	if latency > dc.config.SlowQueryThreshold {
 		dc.logger.Warn("Slow cache operation detected",
-			"operation", operation,
-			"latency", latency,
-			zap.String("threshold", dc.config.SlowQueryThreshold),
+			zap.String("operation", operation),
+			zap.Duration("latency", latency),
+			zap.Duration("threshold", dc.config.SlowQueryThreshold),
 		)
 	}
 }
@@ -846,14 +846,14 @@ func (dc *DistributedCache) processBatch(batch []WriteOperation) {
 		case "set":
 			data, err := dc.serialize(op.Value)
 			if err != nil {
-				dc.logger.Error("Serialization failed in batch", "key", op.Key, zap.String("error", err))
+				dc.logger.Error("Serialization failed in batch", zap.String("key", op.Key), zap.Error(err))
 				continue
 			}
 
 			if dc.config.CompressionEnabled {
 				data, err = dc.compress(data)
 				if err != nil {
-					dc.logger.Error("Compression failed in batch", "key", op.Key, zap.String("error", err))
+					dc.logger.Error("Compression failed in batch", zap.String("key", op.Key), zap.Error(err))
 					continue
 				}
 			}
@@ -868,9 +868,9 @@ func (dc *DistributedCache) processBatch(batch []WriteOperation) {
 
 	_, err := pipe.Exec(ctx)
 	if err != nil {
-		dc.logger.Error("Batch write failed", zap.String("batch_size", len(batch)), "error", err)
+		dc.logger.Error("Batch write failed", zap.Int("batch_size", len(batch)), zap.Error(err))
 	} else {
-		dc.logger.Debug("Batch write completed", zap.String("batch_size", len(batch)))
+		dc.logger.Debug("Batch write completed", zap.Int("batch_size", len(batch)))
 	}
 }
 
@@ -921,7 +921,7 @@ func (dc *DistributedCache) healthMonitor() {
 		case <-ticker.C:
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			if err := dc.HealthCheck(ctx); err != nil {
-				dc.logger.Error("Cache health check failed", zap.String("error", err))
+				dc.logger.Error("Cache health check failed", zap.Error(err))
 			}
 			cancel()
 		}

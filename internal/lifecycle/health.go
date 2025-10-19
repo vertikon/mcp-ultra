@@ -179,8 +179,8 @@ func (hm *HealthMonitor) RegisterDependency(dependency DependencyChecker) {
 	hm.dependencies = append(hm.dependencies, dependency)
 	hm.logger.Info("Dependency checker registered",
 		zap.String("name", dependency.Name()),
-		"type", dependency.Type(),
-		"required", dependency.IsRequired(),
+		zap.String("type", dependency.Type()),
+		zap.Bool("required", dependency.IsRequired()),
 	)
 }
 
@@ -206,8 +206,8 @@ func (hm *HealthMonitor) Start() error {
 
 	hm.logger.Info("Health monitor started",
 		zap.Duration("check_interval", hm.config.CheckInterval),
-		"http_endpoint", hm.config.EnableHTTPEndpoint,
-		zap.String("checkers_count", len(hm.checkers)),
+		zap.Bool("http_endpoint", hm.config.EnableHTTPEndpoint),
+		zap.Int("checkers_count", len(hm.checkers)),
 	)
 
 	return nil
@@ -325,10 +325,10 @@ func (hm *HealthMonitor) performHealthCheck(ctx context.Context) *HealthReport {
 	// Log status change
 	if hm.lastReport == nil || hm.lastReport.Status != report.Status {
 		hm.logger.Info("Health status changed",
-			"new_status", report.Status,
-			"healthy", report.Summary.Healthy,
-			"degraded", report.Summary.Degraded,
-			zap.String("unhealthy", report.Summary.Unhealthy),
+			zap.String("new_status", string(report.Status)),
+			zap.Int("healthy", report.Summary.Healthy),
+			zap.Int("degraded", report.Summary.Degraded),
+			zap.Int("unhealthy", report.Summary.Unhealthy),
 		)
 	}
 
@@ -487,12 +487,12 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 		if hm.IsHealthy() || hm.IsDegraded() {
 			w.WriteHeader(http.StatusOK)
 			if _, err := w.Write([]byte("OK")); err != nil {
-				hm.logger.Warn("Failed to write readiness response", zap.String("error", err))
+				hm.logger.Warn("Failed to write readiness response", zap.Error(err))
 			}
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := w.Write([]byte("Not Ready")); err != nil {
-				hm.logger.Warn("Failed to write readiness response", zap.String("error", err))
+				hm.logger.Warn("Failed to write readiness response", zap.Error(err))
 			}
 		}
 	})
@@ -502,12 +502,12 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 		if !hm.IsUnhealthy() {
 			w.WriteHeader(http.StatusOK)
 			if _, err := w.Write([]byte("OK")); err != nil {
-				hm.logger.Warn("Failed to write liveness response", zap.String("error", err))
+				hm.logger.Warn("Failed to write liveness response", zap.Error(err))
 			}
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := w.Write([]byte("Unhealthy")); err != nil {
-				hm.logger.Warn("Failed to write liveness response", zap.String("error", err))
+				hm.logger.Warn("Failed to write liveness response", zap.Error(err))
 			}
 		}
 	})
@@ -520,19 +520,19 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 	}
 
 	hm.logger.Info("Health HTTP endpoint started",
-		"port", hm.config.HTTPPort,
+		zap.Int("port", hm.config.HTTPPort),
 		zap.String("path", hm.config.HTTPPath),
 	)
 
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		hm.logger.Error("Health HTTP endpoint error", zap.String("error", err))
+		hm.logger.Error("Health HTTP endpoint error", zap.Error(err))
 	}
 }
 
 func (hm *HealthMonitor) persistHealthReport(report *HealthReport) {
 	_, err := json.Marshal(report)
 	if err != nil {
-		hm.logger.Error("Failed to marshal health report", zap.String("error", err))
+		hm.logger.Error("Failed to marshal health report", zap.Error(err))
 		return
 	}
 

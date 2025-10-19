@@ -13,10 +13,8 @@ import (
 	promexporter "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.uber.org/zap"
 
 	"github.com/vertikon/mcp-ultra/internal/config"
-	"github.com/vertikon/mcp-ultra/pkg/httpx"
 	"github.com/vertikon/mcp-ultra/pkg/logger"
 	"github.com/vertikon/mcp-ultra/pkg/metrics"
 )

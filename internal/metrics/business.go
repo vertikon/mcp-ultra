@@ -800,8 +800,8 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 		bmc.mu.Unlock()
 
 		bmc.logger.Info("Alert resolved",
-			"metric", rule.MetricName,
-			zap.String("current_value", currentValue),
+			zap.String("metric", rule.MetricName),
+			zap.Float64("current_value", currentValue),
 		)
 	}
 }
@@ -825,7 +825,7 @@ func (bmc *BusinessMetricsCollector) exportTask() {
 func (bmc *BusinessMetricsCollector) performExport() {
 	// Implementation would depend on export format and endpoint
 	bmc.logger.Debug("Performing metrics export",
-		"format", bmc.config.ExportFormat,
+		zap.String("format", bmc.config.ExportFormat),
 		zap.String("endpoint", bmc.config.ExportEndpoint),
 	)
 }

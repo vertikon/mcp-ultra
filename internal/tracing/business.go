@@ -439,11 +439,11 @@ func (btt *BusinessTransactionTracer) EndTransaction(transaction *BusinessTransa
 	btt.updateCorrelations(transaction)
 
 	btt.logger.Debug("Transaction ended",
-		"transaction_id", transaction.ID,
-		"status", transaction.Status,
+		zap.String("transaction_id", transaction.ID),
+		zap.String("status", string(transaction.Status)),
 		zap.Duration("duration", transaction.Duration),
-		zap.String("steps", len(transaction.Steps)),
-		"errors", len(transaction.Errors),
+		zap.Int("steps", len(transaction.Steps)),
+		zap.Int("errors", len(transaction.Errors)),
 	)
 
 	// Schedule for cleanup
@@ -557,10 +557,10 @@ func (btt *BusinessTransactionTracer) AddEvent(transaction *BusinessTransaction,
 	// Log high-level events
 	if level == EventLevelError || level == EventLevelCritical {
 		btt.logger.Error("Transaction event",
-			"transaction_id", transaction.ID,
-			"event_type", eventType,
-			"event_name", eventName,
-			zap.String("level", level),
+			zap.String("transaction_id", transaction.ID),
+			zap.String("event_type", string(eventType)),
+			zap.String("event_name", eventName),
+			zap.String("level", string(level)),
 		)
 	}
 }
@@ -655,9 +655,9 @@ func (btt *BusinessTransactionTracer) RegisterTemplate(template *TransactionTemp
 	btt.templates[template.Name] = template
 
 	btt.logger.Info("Transaction template registered",
-		"template_name", template.Name,
-		"type", template.Type,
-		zap.String("critical", template.Critical),
+		zap.String("template_name", template.Name),
+		zap.String("type", string(template.Type)),
+		zap.Bool("critical", template.Critical),
 	)
 }
 
@@ -898,9 +898,9 @@ func (btt *BusinessTransactionTracer) checkAlerts(transaction *BusinessTransacti
 	// Check error alerts
 	if len(transaction.Errors) > 0 {
 		btt.logger.Error("Transaction completed with errors",
-			"transaction_id", transaction.ID,
-			"type", transaction.Type,
-			zap.String("error_count", len(transaction.Errors)),
+			zap.String("transaction_id", transaction.ID),
+			zap.String("type", string(transaction.Type)),
+			zap.Int("error_count", len(transaction.Errors)),
 		)
 	}
 }

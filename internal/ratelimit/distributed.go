@@ -786,9 +786,9 @@ func (al *AdaptiveLimiter) performAdjustments() {
 		state.LastAdjustment = now
 
 		al.logger.Debug("Adaptive limit adjusted",
-			"key", key,
+			zap.String("key", key),
 			zap.Int64("new_limit", state.CurrentLimit),
-			zap.String("error_rate", errorRate),
+			zap.Float64("error_rate", errorRate),
 		)
 	}
 }
