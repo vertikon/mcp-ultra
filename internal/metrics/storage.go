@@ -183,7 +183,7 @@ func (mms *MemoryMetricStorage) buildGroupKey(value MetricValue, groupBy []strin
 	return key
 }
 
-func (mms *MemoryMetricStorage) extractLabels(groupKey string, groupBy []string) map[string]string {
+func (mms *MemoryMetricStorage) extractLabels(_ string, groupBy []string) map[string]string {
 	labels := make(map[string]string)
 
 	// This is a simplified implementation

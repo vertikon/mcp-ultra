@@ -39,7 +39,7 @@ func TestAuthMiddleware_JWTAuth(t *testing.T) {
 	})
 
 	t.Run("should return 401 for missing token", func(t *testing.T) {
-		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
 
@@ -72,7 +72,7 @@ func TestAuthMiddleware_JWTAuth(t *testing.T) {
 	})
 
 	t.Run("should reject invalid JWT token", func(t *testing.T) {
-		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
 

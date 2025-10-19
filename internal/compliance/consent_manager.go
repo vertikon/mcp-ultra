@@ -396,7 +396,7 @@ func (r *InMemoryConsentRepository) GetConsent(_ context.Context, subjectID, pur
 	return &consents[len(consents)-1], nil
 }
 
-func (r *InMemoryConsentRepository) GetAllConsents(ctx context.Context, subjectID string) ([]ConsentRecord, error) {
+func (r *InMemoryConsentRepository) GetAllConsents(_ context.Context, subjectID string) ([]ConsentRecord, error) {
 	var allConsents []ConsentRecord
 	for _, consents := range r.consents {
 		if len(consents) > 0 && consents[0].SubjectID == subjectID {

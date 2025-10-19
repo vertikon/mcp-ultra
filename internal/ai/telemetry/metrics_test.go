@@ -123,7 +123,7 @@ func TestIncBudgetBreach(t *testing.T) {
 	}
 }
 
-func TestNoOpWhenNotInitialized(t *testing.T) {
+func TestNoOpWhenNotInitialized(_ *testing.T) {
 	// Create a new registry to isolate this test
 	// Don't reset the global once - it would break other tests
 

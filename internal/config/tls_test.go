@@ -340,7 +340,7 @@ func TestTLSManager_Stop(t *testing.T) {
 		assert.Nil(t, manager.certWatcher)
 	})
 
-	t.Run("should handle multiple stops", func(t *testing.T) {
+	t.Run("should handle multiple stops", func(_ *testing.T) {
 		config := &TLSConfig{Enabled: false}
 		manager := &TLSManager{config: config, logger: logger}
 

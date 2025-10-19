@@ -402,7 +402,7 @@ func NewNATSHealthChecker(isConnectedFunc func() bool) *NATSHealthChecker {
 	}
 }
 
-func (n *NATSHealthChecker) Check(ctx context.Context) HealthCheck {
+func (n *NATSHealthChecker) Check(_ context.Context) HealthCheck {
 	start := time.Now()
 	check := HealthCheck{
 		Name:      "nats",

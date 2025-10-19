@@ -8,7 +8,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/exporters/jaeger" //nolint:staticcheck // TODO: migrate to OTLP exporter
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
@@ -184,7 +184,7 @@ func createStdoutExporter() (sdktrace.SpanExporter, error) {
 // GetTracer returns a tracer for the given name
 func (tp *TracingProvider) GetTracer(name string) trace.Tracer {
 	if tp.provider == nil {
-		return trace.NewNoopTracerProvider().Tracer(name)
+		return trace.NewNoopTracerProvider().Tracer(name) //nolint:staticcheck // TODO: migrate to noop.NewTracerProvider()
 	}
 	return tp.provider.Tracer(name)
 }

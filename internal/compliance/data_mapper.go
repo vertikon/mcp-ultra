@@ -225,7 +225,7 @@ func (dm *DataMapper) GenerateDataMap(_ context.Context) (map[string]interface{}
 }
 
 // TrackDataFlow tracks how data flows through the system
-func (dm *DataMapper) TrackDataFlow(ctx context.Context, fieldName string, source DataSource, destination DataDestination) error {
+func (dm *DataMapper) TrackDataFlow(_ context.Context, fieldName string, source DataSource, destination DataDestination) error {
 	mapping, exists := dm.dataMap[fieldName]
 	if !exists {
 		// Create new mapping
