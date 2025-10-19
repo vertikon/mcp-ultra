@@ -481,7 +481,7 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 	})
 
 	// Add readiness endpoint
-	mux.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/ready", func(w http.ResponseWriter, _ *http.Request) {
 		if hm.IsHealthy() || hm.IsDegraded() {
 			w.WriteHeader(http.StatusOK)
 			if _, err := w.Write([]byte("OK")); err != nil {
@@ -496,7 +496,7 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 	})
 
 	// Add liveness endpoint
-	mux.HandleFunc("/live", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/live", func(w http.ResponseWriter, _ *http.Request) {
 		if !hm.IsUnhealthy() {
 			w.WriteHeader(http.StatusOK)
 			if _, err := w.Write([]byte("OK")); err != nil {
@@ -569,7 +569,7 @@ func (d *DatabaseHealthChecker) Timeout() time.Duration {
 	return d.timeout
 }
 
-func (d *DatabaseHealthChecker) Check(ctx context.Context) HealthCheck {
+func (d *DatabaseHealthChecker) Check(_ context.Context) HealthCheck {
 	start := time.Now()
 
 	// Implement actual database check
@@ -617,7 +617,7 @@ func (r *RedisHealthChecker) Timeout() time.Duration {
 	return r.timeout
 }
 
-func (r *RedisHealthChecker) Check(ctx context.Context) HealthCheck {
+func (r *RedisHealthChecker) Check(_ context.Context) HealthCheck {
 	start := time.Now()
 
 	// Implement actual Redis check

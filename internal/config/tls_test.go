@@ -11,6 +11,8 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
+const invalidTLS = "invalid"
+
 func TestTLSConfig_ValidateConfig(t *testing.T) {
 	t.Run("should validate disabled TLS", func(t *testing.T) {
 		config := &TLSConfig{
@@ -49,7 +51,7 @@ func TestTLSConfig_ValidateConfig(t *testing.T) {
 			Enabled:    true,
 			CertFile:   createTempFile(t, "cert", testCert),
 			KeyFile:    createTempFile(t, "key", testKey),
-			MinVersion: "invalid",
+			MinVersion: invalidTLS,
 		}
 
 		err := config.ValidateConfig()
@@ -62,9 +64,9 @@ func TestTLSConfig_ValidateConfig(t *testing.T) {
 			Enabled:    true,
 			CertFile:   createTempFile(t, "cert", testCert),
 			KeyFile:    createTempFile(t, "key", testKey),
-			MinVersion: "1.2",
-			MaxVersion: "1.3",
-			ClientAuth: "invalid",
+			MinVersion: TLS12,
+			MaxVersion: TLS13,
+			ClientAuth: invalidTLS,
 		}
 
 		err := config.ValidateConfig()
@@ -77,8 +79,8 @@ func TestTLSConfig_ValidateConfig(t *testing.T) {
 			Enabled:    true,
 			CertFile:   createTempFile(t, "cert", testCert),
 			KeyFile:    createTempFile(t, "key", testKey),
-			MinVersion: "1.2",
-			MaxVersion: "1.3",
+			MinVersion: TLS12,
+			MaxVersion: TLS13,
 			ClientAuth: "none",
 		}
 
@@ -110,8 +112,8 @@ func TestNewTLSManager(t *testing.T) {
 			Enabled:    true,
 			CertFile:   certFile,
 			KeyFile:    keyFile,
-			MinVersion: "1.2",
-			MaxVersion: "1.3",
+			MinVersion: TLS12,
+			MaxVersion: TLS13,
 			ClientAuth: "none",
 			AutoReload: false, // Disable for testing
 		}
@@ -146,8 +148,8 @@ func TestTLSManager_SetTLSVersions(t *testing.T) {
 
 	t.Run("should set valid TLS versions", func(t *testing.T) {
 		tlsConfig := &tls.Config{}
-		manager.config.MinVersion = "1.2"
-		manager.config.MaxVersion = "1.3"
+		manager.config.MinVersion = TLS12
+		manager.config.MaxVersion = TLS13
 
 		err := manager.setTLSVersions(tlsConfig)
 		assert.NoError(t, err)
@@ -157,8 +159,8 @@ func TestTLSManager_SetTLSVersions(t *testing.T) {
 
 	t.Run("should reject invalid minimum version", func(t *testing.T) {
 		tlsConfig := &tls.Config{}
-		manager.config.MinVersion = "invalid"
-		manager.config.MaxVersion = "1.3"
+		manager.config.MinVersion = invalidTLS
+		manager.config.MaxVersion = TLS13
 
 		err := manager.setTLSVersions(tlsConfig)
 		assert.Error(t, err)
@@ -168,7 +170,7 @@ func TestTLSManager_SetTLSVersions(t *testing.T) {
 	t.Run("should reject invalid maximum version", func(t *testing.T) {
 		tlsConfig := &tls.Config{}
 		manager.config.MinVersion = "1.2"
-		manager.config.MaxVersion = "invalid"
+		manager.config.MaxVersion = invalidTLS
 
 		err := manager.setTLSVersions(tlsConfig)
 		assert.Error(t, err)
@@ -272,7 +274,7 @@ func TestTLSManager_ConfigureClientAuth(t *testing.T) {
 
 	t.Run("should reject invalid client auth mode", func(t *testing.T) {
 		tlsConfig := &tls.Config{}
-		manager.config.ClientAuth = "invalid"
+		manager.config.ClientAuth = invalidTLS
 
 		err := manager.configureClientAuth(tlsConfig)
 		assert.Error(t, err)

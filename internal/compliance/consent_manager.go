@@ -315,7 +315,7 @@ func (cm *ConsentManager) GetAllConsents(ctx context.Context, subjectID string) 
 }
 
 // HealthCheck returns the health status of the consent manager
-func (cm *ConsentManager) HealthCheck(ctx context.Context) map[string]interface{} {
+func (cm *ConsentManager) HealthCheck(_ context.Context) map[string]interface{} {
 	return map[string]interface{}{
 		"enabled":          cm.config.Enabled,
 		"default_purposes": cm.config.DefaultPurposes,
@@ -379,13 +379,13 @@ type InMemoryConsentRepository struct {
 	consents map[string][]ConsentRecord
 }
 
-func (r *InMemoryConsentRepository) StoreConsent(ctx context.Context, consent ConsentRecord) error {
+func (r *InMemoryConsentRepository) StoreConsent(_ context.Context, consent ConsentRecord) error {
 	key := fmt.Sprintf("%s:%s", consent.SubjectID, consent.Purpose)
 	r.consents[key] = append(r.consents[key], consent)
 	return nil
 }
 
-func (r *InMemoryConsentRepository) GetConsent(ctx context.Context, subjectID, purpose string) (*ConsentRecord, error) {
+func (r *InMemoryConsentRepository) GetConsent(_ context.Context, subjectID, purpose string) (*ConsentRecord, error) {
 	key := fmt.Sprintf("%s:%s", subjectID, purpose)
 	consents, exists := r.consents[key]
 	if !exists || len(consents) == 0 {

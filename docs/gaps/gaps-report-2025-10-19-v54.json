@@ -1,0 +1,73 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-19 01:47:28",
+  "Critical": [
+    {
+      "Type": "Erros não tratados",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "12 erro(s) não tratado(s)",
+      "Suggestion": "Adicione verificação de erro: if err != nil { ... }",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": true,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Para cada erro não tratado, decida:\n   a) Retornar o erro (wrap com context)\n   b) Logar e continuar\n   c) Logar e retornar\n2. Adicione if err != nil { } manualmente",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "error: failed to check packages: errors while loading package github.com/vertikon/mcp-ultra/test/component [github.com/vertikon/mcp-ultra/test/component.test]: [-: # github.com/vertikon/mcp-ultra/test/component [github.com/vertikon/mcp-ultra/test/component.test]",
+        "test\\component\\task_service_test.go:52:3: cannot use suite.logger (variable of type interface{}) as *zap.Logger value in argument to services.NewTaskService: need type assertion",
+        "test\\component\\task_service_test.go:68:18: undefined: types.NewUUID",
+        "test\\component\\task_service_test.go:79:22: undefined: types.NewUUID",
+        "test\\component\\task_service_test.go:124:22: undefined: types.NewUUID",
+        "test\\component\\task_service_test.go:139:18: undefined: types.NewUUID",
+        "test\\component\\task_service_test.go:140:18: undefined: types.NewUUID",
+        "test\\component\\task_service_test.go:162:18: undefined: types.NewUUID",
+        "test\\component\\task_service_test.go:163:18: undefined: types.NewUUID",
+        "test\\component\\task_service_test.go:187:18: undefined: types.NewUUID",
+        "test\\component\\task_service_test.go:205:18: undefined: types.NewUUID",
+        "test\\component\\task_service_test.go:205:18: too many errors E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:52:3: cannot use suite.logger (variable of type interface{}) as *zap.Logger value in argument to services.NewTaskService: need type assertion E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:68:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:79:22: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:124:22: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:139:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:140:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:162:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:163:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:187:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:205:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:206:27: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:230:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:231:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:275:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:276:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:309:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:310:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:334:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:344:21: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:351:21: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:385:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:386:23: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:417:18: undefined: types.NewUUID E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\test\\component\\task_service_test.go:418:23: undefined: types.NewUUID]"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/test/component [github.com/vertikon/mcp-ultra/test/component.test]\\ntest\\\\component\\\\task_service_test.go:52:3: cannot use suite.logger (variable of type interface{}) as *zap.Logger value in argument to services.NewTaskService: need type assertion\\ntest\\\\component\\\\task_service_test.go:68:18: undefined: types.NewUUID\\ntest\\\\component\\\\task_service_test.go:79:22: undefined: types.NewUUID\\ntest\\\\component\\\\task_service_test.go:124:22: undefined: types.NewUUID\\ntest\\\\component\\\\task_service_test.go:139:18: undefined: types.NewUUID\\ntest\\\\component\\\\task_service_test.go:140:18: undefined: types.NewUUID\\ntest\\\\component\\\\task_service_test.go:162:18: undefined: types.NewUUID\\ntest\\\\component\\\\task_service_test.go:163:18: undefined: types.NewUUID\\ntest\\\\component\\\\task_service_test.go:187:18: undefined: types.NewUUID\\ntest\\\\component\\\\task_service_test.go:205:18: undefined: types.NewUUID\\ntest\\\\component\\\\task_service_test.go:205:18: too many errors\"",
+        "internal\\services\\task_service.go:310:43: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (s *TaskService) invalidateTaskCache(ctx context.Context) {",
+        "                                          ^",
+        "internal\\services\\task_service.go:9:2: import 'github.com/google/uuid' is not allowed from list 'main': Use pkg/types (uuid re-exports) (depguard)",
+        "\t\"github.com/google/uuid\"",
+        "\t^",
+        "internal\\services\\task_service.go:10:2: import 'go.uber.org/zap' is not allowed from list 'main': Use logger facade (depguard)",
+        "\t\"go.uber.org/zap\"",
+        "\t^"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 2,
+  "Score": 90,
+  "AutoFixable": 0,
+  "Manual": 2
+}

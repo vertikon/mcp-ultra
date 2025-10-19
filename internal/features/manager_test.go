@@ -12,10 +12,10 @@ import (
 // mockLogger implements the local Log interface for testing
 type mockLogger struct{}
 
-func (m *mockLogger) Debug(msg string, keysAndValues ...interface{}) {}
-func (m *mockLogger) Info(msg string, keysAndValues ...interface{})  {}
-func (m *mockLogger) Warn(msg string, keysAndValues ...interface{})  {}
-func (m *mockLogger) Error(msg string, keysAndValues ...interface{}) {}
+func (m *mockLogger) Debug(_ string, _ ...interface{}) {}
+func (m *mockLogger) Info(_ string, _ ...interface{})  {}
+func (m *mockLogger) Warn(_ string, _ ...interface{})  {}
+func (m *mockLogger) Error(_ string, _ ...interface{}) {}
 
 // Mock repositories
 type MockFeatureFlagRepository struct {

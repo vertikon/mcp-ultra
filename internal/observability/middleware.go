@@ -107,7 +107,7 @@ func (ts *TelemetryService) HTTPTelemetryMiddleware(next http.Handler) http.Hand
 		ts.config.ServiceName,
 		otelhttp.WithTracerProvider(ts.tracerProvider),
 		otelhttp.WithMeterProvider(ts.meterProvider),
-		otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
+		otelhttp.WithSpanNameFormatter(func(_ string, r *http.Request) string {
 			return fmt.Sprintf("%s %s", r.Method, r.URL.Path)
 		}),
 	)

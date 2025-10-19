@@ -367,7 +367,7 @@ func TestComplianceFramework_ConcurrentOperations(t *testing.T) {
 
 	// Run concurrent consent operations
 	for i := 0; i < numOperations; i++ {
-		go func(i int) {
+		go func(_ int) {
 			userID := types.NewUUID()
 			purposes := []string{"processing", "analytics"}
 

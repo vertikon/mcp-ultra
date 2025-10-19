@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+const ctJSON = "application/json"
+
 func TestHealthHandler_Live(t *testing.T) {
 	h := NewHealthHandler()
 	req := httptest.NewRequest(http.MethodGet, "/livez", nil)
@@ -18,7 +20,7 @@ func TestHealthHandler_Live(t *testing.T) {
 	}
 
 	ct := rec.Header().Get("Content-Type")
-	if ct != "application/json" {
+	if ct != ctJSON {
 		t.Errorf("esperado application/json, obteve %s", ct)
 	}
 }
@@ -76,7 +78,7 @@ func TestHealthHandler_Livez(t *testing.T) {
 	}
 
 	ct := rec.Header().Get("Content-Type")
-	if ct != "application/json" {
+	if ct != ctJSON {
 		t.Errorf("esperado application/json, obteve %s", ct)
 	}
 }
@@ -93,7 +95,7 @@ func TestHealthHandler_Readyz(t *testing.T) {
 	}
 
 	ct := rec.Header().Get("Content-Type")
-	if ct != "application/json" {
+	if ct != ctJSON {
 		t.Errorf("esperado application/json, obteve %s", ct)
 	}
 }

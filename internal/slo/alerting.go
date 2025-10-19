@@ -485,7 +485,7 @@ func (am *AlertManager) sendToEmail(alert AlertEvent, _ ChannelConfig) error {
 }
 
 // sendToPagerDuty sends alert to PagerDuty (placeholder implementation)
-func (am *AlertManager) sendToPagerDuty(alert AlertEvent, config ChannelConfig) error {
+func (am *AlertManager) sendToPagerDuty(alert AlertEvent, _ ChannelConfig) error {
 	am.logger.Info("PagerDuty alert sent (placeholder)",
 		zap.String("slo", alert.SLOName),
 		zap.String("severity", alert.Severity))
@@ -493,7 +493,7 @@ func (am *AlertManager) sendToPagerDuty(alert AlertEvent, config ChannelConfig) 
 }
 
 // sendToMSTeams sends alert to Microsoft Teams (placeholder implementation)
-func (am *AlertManager) sendToMSTeams(alert AlertEvent, config ChannelConfig) error {
+func (am *AlertManager) sendToMSTeams(alert AlertEvent, _ ChannelConfig) error {
 	am.logger.Info("MS Teams alert sent (placeholder)",
 		zap.String("slo", alert.SLOName),
 		zap.String("severity", alert.Severity))

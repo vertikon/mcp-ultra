@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 
+	"github.com/google/uuid"
 	"github.com/vertikon/mcp-ultra/internal/domain"
 )
 
@@ -307,7 +307,7 @@ func (s *TaskService) publishEvent(ctx context.Context, event *domain.Event) err
 }
 
 // invalidateTaskCache clears task-related cache entries
-func (s *TaskService) invalidateTaskCache(ctx context.Context) {
+func (s *TaskService) invalidateTaskCache(_ context.Context) {
 	// Implementation would depend on cache invalidation strategy
 	// For now, we'll just log it
 	s.logger.Debug("Task cache invalidated")

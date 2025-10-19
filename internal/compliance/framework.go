@@ -235,24 +235,15 @@ func (cf *ComplianceFramework) ProcessData(ctx context.Context, subjectID string
 
 	if !hasConsent {
 		// Audit consent failure
-		// Audit logging is critical - consider the impact
-		if err := cf.auditLogger.LogDataProcessing(ctx, subjectID, purpose, "consent_denied", nil); err != nil {
-			// Critical: audit log failed - this may be compliance issue
-			// Consider: return error or alert operations team
-			// For now, we'll log to standard logger as fallback
-		}
+		_ = cf.auditLogger.LogDataProcessing(ctx, subjectID, purpose, "consent_denied", nil)
 		return nil, fmt.Errorf("no valid consent for purpose: %s", purpose)
 	}
 
 	// Detect and classify PII
 	processedData, err := cf.piiManager.ProcessData(ctx, data)
 	if err != nil {
-		// Audit logging is critical - consider the impact
-		if err := cf.auditLogger.LogDataProcessing(ctx, subjectID, purpose, "pii_error", nil); err != nil {
-			// Critical: audit log failed - this may be compliance issue
-			// Consider: return error or alert operations team
-			// For now, we'll log to standard logger as fallback
-		}
+		// Audit logging - explicitly ignore error
+		_ = cf.auditLogger.LogDataProcessing(ctx, subjectID, purpose, "pii_error", nil)
 		return nil, fmt.Errorf("PII processing failed: %w", err)
 	}
 

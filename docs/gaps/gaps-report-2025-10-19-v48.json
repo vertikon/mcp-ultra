@@ -1,0 +1,87 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-19 01:30:16",
+  "Critical": [
+    {
+      "Type": "Código compila",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "Não compila: # github.com/vertikon/mcp-ultra/internal/cache\ninternal\\cache\\distributed.go:116:13: undefined: redis\ninternal\\cache\\distributed.go:193:9: undefined: redis\ninternal\\cache\\distributed.go:624:12: undefi...",
+      "Suggestion": "Corrija os erros de compilação listados",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Corrija os erros de compilação manualmente, um por um",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "# github.com/vertikon/mcp-ultra/internal/cache",
+        "internal\\cache\\distributed.go:116:13: undefined: redis",
+        "internal\\cache\\distributed.go:193:9: undefined: redis",
+        "internal\\cache\\distributed.go:624:12: undefined: redis",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Formatação (gofmt)",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "2 arquivo(s) mal formatado(s)",
+      "Suggestion": "Execute: gofmt -w . ou gofumpt -w .",
+      "Fixability": {
+        "Safe": true,
+        "RollbackEasy": true,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "gofmt -w . \u0026\u0026 goimports -w .",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": [
+        "internal\\cache\\distributed.go",
+        "internal\\ratelimit\\distributed.go"
+      ],
+      "NonFixableReason": ""
+    },
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/cache [github.com/vertikon/mcp-ultra/internal/cache.test]\\ninternal\\\\cache\\\\distributed.go:116:13: undefined: redis\\ninternal\\\\cache\\\\distributed.go:193:9: undefined: redis\\ninternal\\\\cache\\\\distributed.go:624:12: undefined: redis\"",
+        "internal\\services\\task_service.go:310:43: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (s *TaskService) invalidateTaskCache(ctx context.Context) {",
+        "                                          ^",
+        "internal\\services\\task_service.go:9:2: import 'github.com/google/uuid' is not allowed from list 'main': Use pkg/types (uuid re-exports) (depguard)",
+        "\t\"github.com/google/uuid\"",
+        "\t^",
+        "internal\\services\\task_service.go:10:2: import 'go.uber.org/zap' is not allowed from list 'main': Use logger facade (depguard)",
+        "\t\"go.uber.org/zap\"",
+        "\t^"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 3,
+  "Score": 85,
+  "AutoFixable": 1,
+  "Manual": 2
+}

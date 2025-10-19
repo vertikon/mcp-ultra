@@ -12,6 +12,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const authMethodToken = "token"
+
 // VaultConfig holds Vault configuration
 type VaultConfig struct {
 	Address   string        `yaml:"address"`
@@ -78,7 +80,7 @@ func NewVaultService(config VaultConfig, logger *zap.Logger) *VaultService {
 	}
 
 	// Start token renewal goroutine if using token auth
-	if config.AuthMethod == "token" && config.Token != "" {
+	if config.AuthMethod == authMethodToken && config.Token != "" {
 		go vs.renewToken(context.Background())
 	}
 

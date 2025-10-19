@@ -616,7 +616,7 @@ func (me *MaintenanceExecutor) Execute(ctx context.Context, operation *Operation
 	return nil
 }
 
-func (me *MaintenanceExecutor) Rollback(ctx context.Context, operation *Operation) error {
+func (me *MaintenanceExecutor) Rollback(_ context.Context, operation *Operation) error {
 	me.logger.Info("Rolling back maintenance operation", "id", operation.ID)
 	return nil
 }

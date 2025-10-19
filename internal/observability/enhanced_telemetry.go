@@ -64,7 +64,6 @@ type EnhancedTelemetryService struct {
 
 	// Tracing
 	activeSpans map[string]oteltrace.Span
-	spanMutex   sync.RWMutex
 
 	// Alerting
 	alertRules         map[string]AlertRule
@@ -373,7 +372,7 @@ func (ets *EnhancedTelemetryService) initPrometheusMetrics() {
 }
 
 // collectRuntimeMetrics collects runtime metrics
-func (ets *EnhancedTelemetryService) collectRuntimeMetrics(ctx context.Context, observer metric.Observer) error {
+func (ets *EnhancedTelemetryService) collectRuntimeMetrics(_ context.Context, observer metric.Observer) error {
 	var m goruntime.MemStats
 	goruntime.ReadMemStats(&m)
 
@@ -634,7 +633,7 @@ func (rw *responseWriter) Write(b []byte) (int, error) {
 }
 
 // Shutdown gracefully shuts down the telemetry service
-func (ets *EnhancedTelemetryService) Shutdown(ctx context.Context) error {
+func (ets *EnhancedTelemetryService) Shutdown(_ context.Context) error {
 	close(ets.alertNotifications)
 	ets.logger.Info("Enhanced telemetry service shutdown completed")
 	return nil

@@ -250,10 +250,7 @@ func (r *TaskRepository) GetByAssignee(ctx context.Context, assigneeID types.UUI
 		return nil, fmt.Errorf("querying tasks by assignee: %w", err)
 	}
 	defer func() {
-		if err := rows.Close(); err != nil {
-			// Log error but don't return - defer already happened
-			// Consider logging: logger.Warn("failed to close resource", zap.Error(err))
-		}
+		_ = rows.Close() // Explicitly ignore error in defer
 	}()
 
 	tasks := make([]*domain.Task, 0)

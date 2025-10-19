@@ -264,7 +264,7 @@ func (evs *EnhancedVaultService) rotateSecret(schedule *RotationSchedule) error 
 }
 
 // generateNewSecretValue generates a new secret value based on the type
-func (evs *EnhancedVaultService) generateNewSecretValue(secretPath string, currentData map[string]interface{}) (map[string]interface{}, error) {
+func (evs *EnhancedVaultService) generateNewSecretValue(_ string, currentData map[string]interface{}) (map[string]interface{}, error) {
 	newData := make(map[string]interface{})
 
 	// Copy non-secret metadata
@@ -293,7 +293,7 @@ func (evs *EnhancedVaultService) generateNewSecretValue(secretPath string, curre
 }
 
 // generateSecretForField generates a new secret value for a specific field
-func (evs *EnhancedVaultService) generateSecretForField(fieldName string, currentValue interface{}) (string, error) {
+func (evs *EnhancedVaultService) generateSecretForField(fieldName string, _ interface{}) (string, error) {
 	switch fieldName {
 	case "password", "secret", "api_key", "token":
 		return evs.generateSecurePassword(32)

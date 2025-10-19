@@ -1,0 +1,74 @@
+# Patch consolidado v45 - Bloco A (fixes rápidos)
+# Aplicar com: buscar e substituir em cada arquivo OU usar sed/awk
+
+## Arquivo: internal/middleware/auth.go
+# Adicionar após imports:
+type ctxKey string
+const (
+    ctxUserID   ctxKey = "user_id"
+    ctxUsername ctxKey = "username"
+    ctxRoles    ctxKey = "user_roles"
+)
+
+# Substituir:
+context.WithValue(ctx, "user_id", claims.UserID)
+context.WithValue(ctx, "username", claims.Username)
+context.WithValue(ctx, "user_roles", claims.Roles)
+
+# Por:
+context.WithValue(ctx, ctxUserID, claims.UserID)
+context.WithValue(ctx, ctxUsername, claims.Username)
+context.WithValue(ctx, ctxRoles, claims.Roles)
+
+## Arquivo: internal/telemetry/tracing.go
+# Adicionar import:
+"go.opentelemetry.io/otel/trace/noop"
+
+# Substituir:
+trace.NewNoopTracerProvider().Tracer(name)
+
+# Por:
+noop.NewTracerProvider().Tracer(name)
+
+## Arquivo: internal/security/tls.go
+# Substituir import:
+"io/ioutil"
+
+# Por:
+"io"
+
+# Substituir chamadas:
+ioutil.ReadAll(r) → io.ReadAll(r)
+ioutil.ReadFile(path) → os.ReadFile(path)
+
+## Arquivos de teste - substituir parâmetros não usados por _
+# internal/middleware/auth_test.go:
+func(w http.ResponseWriter, r *http.Request) → func(w http.ResponseWriter, _ *http.Request)
+
+# internal/handlers/http/health_test.go:
+func(ctx context.Context) error → func(_ context.Context) error
+
+# internal/ai/telemetry/metrics_test.go:
+func TestNoOpWhenNotInitialized(t *testing.T) → func TestNoOpWhenNotInitialized(_ *testing.T)
+
+# internal/metrics/business.go:
+func NewMetricStorage(backend string, config map[string]interface{}) → func NewMetricStorage(backend string, _ map[string]interface{})
+
+# internal/metrics/storage.go:
+func (mms *MemoryMetricStorage) extractLabels(groupKey string, groupBy []string) → func (mms *MemoryMetricStorage) extractLabels(_ string, groupBy []string)
+
+# internal/compliance/pii_manager.go - múltiplas funções:
+func (d *IPAddressDetector) Detect(field string, value interface{}) → func (d *IPAddressDetector) Detect(_ string, value interface{})
+func (d *NameDetector) Detect(field string, value interface{}) → func (d *NameDetector) Detect(_ string, value interface{})
+func (a *HashAnonymizer) Anonymize(value interface{}, context map[string]string) → func (a *HashAnonymizer) Anonymize(value interface{}, _ map[string]string)
+func (a *TokenizeAnonymizer) Anonymize(value interface{}, context map[string]string) → func (a *TokenizeAnonymizer) Anonymize(value interface{}, _ map[string]string)
+func (a *RedactAnonymizer) Anonymize(value interface{}, context map[string]string) → func (a *RedactAnonymizer) Anonymize(value interface{}, _ map[string]string)
+
+# internal/compliance/data_mapper.go:
+func (dm *DataMapper) MapDataField(ctx context.Context, fieldName string, metadata DataMapping) error → func (dm *DataMapper) MapDataField(_ context.Context, fieldName string, metadata DataMapping) error
+func (dm *DataMapper) DiscoverDataSources(ctx context.Context) error → func (dm *DataMapper) DiscoverDataSources(_ context.Context) error
+func (dm *DataMapper) GenerateDataMap(ctx context.Context) (map[string]interface{}, error) → func (dm *DataMapper) GenerateDataMap(_ context.Context) (map[string]interface{}, error)
+
+# test/mocks/mocks.go:
+"github.com/google/uuid" → "github.com/vertikon/mcp-ultra/pkg/types"
+uuid.New() → types.NewUUID()  # OU types.New() dependendo do alias

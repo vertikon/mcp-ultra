@@ -15,6 +15,14 @@ import (
 	"go.uber.org/zap"
 )
 
+type ctxKey string
+
+const (
+	ctxKeyUser     ctxKey = "user"
+	ctxKeyUserID   ctxKey = "user_id"
+	ctxKeyTenantID ctxKey = "tenant_id"
+)
+
 // OPAAuthorizer is the interface for OPA authorization
 type OPAAuthorizer interface {
 	IsAuthorized(ctx context.Context, claims *Claims, method, path string) bool
@@ -105,9 +113,9 @@ func (as *AuthService) JWTMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Add user context
-		ctx := context.WithValue(r.Context(), "user", claims)
-		ctx = context.WithValue(ctx, "user_id", claims.UserID)
-		ctx = context.WithValue(ctx, "tenant_id", claims.TenantID)
+		ctx := context.WithValue(r.Context(), ctxKeyUser, claims)
+		ctx = context.WithValue(ctx, ctxKeyUserID, claims.UserID)
+		ctx = context.WithValue(ctx, ctxKeyTenantID, claims.TenantID)
 
 		// Set security headers
 		w.Header().Set("X-User-ID", claims.UserID)

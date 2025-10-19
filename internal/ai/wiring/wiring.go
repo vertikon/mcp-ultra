@@ -6,15 +6,14 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/vertikon/mcp-ultra/internal/ai/router"
 	"github.com/vertikon/mcp-ultra/internal/ai/telemetry"
+	"github.com/vertikon/mcp-ultra/pkg/metrics"
 )
 
 type Config struct {
 	BasePathAI string // path to templates/ai
-	Registry   prometheus.Registerer
+	Registry   metrics.Registerer
 }
 
 // Service holds minimal IA singletons (router + telemetry enabled flag).

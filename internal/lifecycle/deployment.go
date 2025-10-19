@@ -562,11 +562,11 @@ func (da *DeploymentAutomation) executeScript(ctx context.Context, script string
 		return err
 	}
 
-	da.addLog(result, fmt.Sprintf("Script executed successfully"))
+	da.addLog(result, "Script executed successfully")
 	return nil
 }
 
-func (da *DeploymentAutomation) executeHTTPHook(ctx context.Context, hook DeploymentHook, result *DeploymentResult) error {
+func (da *DeploymentAutomation) executeHTTPHook(_ context.Context, hook DeploymentHook, result *DeploymentResult) error {
 	// Implementation for HTTP hook execution
 	da.addLog(result, fmt.Sprintf("Executing HTTP hook: %s", hook.URL))
 	// This would implement HTTP request logic
@@ -578,7 +578,7 @@ func (da *DeploymentAutomation) validateKubernetesManifests() error {
 	return nil
 }
 
-func (da *DeploymentAutomation) validateDockerImage(version string) error {
+func (da *DeploymentAutomation) validateDockerImage(_ string) error {
 	// Implementation for image validation
 	return nil
 }
@@ -588,12 +588,12 @@ func (da *DeploymentAutomation) validateClusterResources() error {
 	return nil
 }
 
-func (da *DeploymentAutomation) validateCanaryMetrics(ctx context.Context, result *DeploymentResult) error {
+func (da *DeploymentAutomation) validateCanaryMetrics(_ context.Context, _ *DeploymentResult) error {
 	// Implementation for canary metrics validation
 	return nil
 }
 
-func (da *DeploymentAutomation) performHealthChecks(ctx context.Context, result *DeploymentResult) error {
+func (da *DeploymentAutomation) performHealthChecks(_ context.Context, _ *DeploymentResult) error {
 	// Implementation for health checks
 	return nil
 }

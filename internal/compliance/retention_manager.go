@@ -510,7 +510,7 @@ func (rm *RetentionManager) getApplicablePolicies(data map[string]interface{}) [
 	return applicable
 }
 
-func (rm *RetentionManager) policyApplies(policy RetentionPolicy, data map[string]interface{}) bool {
+func (rm *RetentionManager) policyApplies(policy RetentionPolicy, _ map[string]interface{}) bool {
 	// Simplified policy matching - in production, this would be more sophisticated
 	return policy.IsActive
 }

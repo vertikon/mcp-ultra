@@ -1,0 +1,41 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-19 02:38:56",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\handlers\\http\\health_test.go:184:55: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "\t\tchecker := NewDatabaseHealthChecker(\"test-db\", func(ctx context.Context) error {",
+        "\t\t                                                    ^",
+        "internal\\handlers\\http\\health_test.go:197:55: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "\t\tchecker := NewDatabaseHealthChecker(\"test-db\", func(ctx context.Context) error {",
+        "\t\t                                                    ^",
+        "internal\\handlers\\http\\health_test.go:212:41: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "\t\tchecker := NewRedisHealthChecker(func(ctx context.Context) error {",
+        "\t\t                                      ^",
+        "internal\\handlers\\http\\router.go:118:41: unused-parameter: parameter 'r' seems to be unused, consider removing or renaming it as _ (revive)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

@@ -888,7 +888,7 @@ func (bmc *BusinessMetricsCollector) matchesQuery(value MetricValue, query Metri
 }
 
 // NewMetricStorage creates a new metric storage backend
-func NewMetricStorage(backend string, config map[string]interface{}) (MetricStorage, error) {
+func NewMetricStorage(backend string, _ map[string]interface{}) (MetricStorage, error) {
 	switch backend {
 	case "memory":
 		return NewMemoryMetricStorage(), nil
