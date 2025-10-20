@@ -209,7 +209,7 @@ jobs:
           docker/docker-bench-security > docker-bench-results.txt
 
     - name: Upload Docker Bench results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: docker-bench-results
         path: docker-bench-results.txt
@@ -329,7 +329,7 @@ jobs:
         container: ghcr.io/fossas/fossa-cli:latest
 
     - name: Upload license report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: license-report
         path: licenses.csv
@@ -451,7 +451,7 @@ jobs:
         echo "- Review access controls quarterly" >> security-report.md
 
     - name: Upload security report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: security-report
         path: security-report.md
