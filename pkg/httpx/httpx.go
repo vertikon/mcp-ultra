@@ -63,23 +63,30 @@ func NewRouter() Router {
 
 // Group creates a new inline-Router with the same middleware stack.
 func (r *router) Group(fn func(r Router)) Router {
-	subRouter := &router{r.Mux.Group(func(subMux chi.Router) {
-		fn(&router{subMux.(*chi.Mux)})
-	}).(*chi.Mux)}
-	return subRouter
+	newMux := chi.NewRouter()
+	// Copy middleware stack
+	newMux.Use(r.Mux.Middlewares()...)
+	fn(&router{newMux})
+	return &router{newMux}
 }
 
 // Route creates a new Mux with the same middleware stack and mounts it.
 func (r *router) Route(pattern string, fn func(r Router)) Router {
-	subRouter := &router{r.Mux.Route(pattern, func(subMux chi.Router) {
-		fn(&router{subMux.(*chi.Mux)})
-	}).(*chi.Mux)}
-	return subRouter
+	subRouter := chi.NewRouter()
+	subRouter.Use(r.Mux.Middlewares()...)
+	fn(&router{subRouter})
+	r.Mux.Mount(pattern, subRouter)
+	return &router{subRouter}
 }
 
 // With creates a new inline-Router with the same middleware stack.
 func (r *router) With(middlewares ...func(http.Handler) http.Handler) Router {
-	return &router{r.Mux.With(middlewares...).(*chi.Mux)}
+	newMux := chi.NewRouter()
+	// Copy existing middlewares
+	newMux.Use(r.Mux.Middlewares()...)
+	// Add new middlewares
+	newMux.Use(middlewares...)
+	return &router{newMux}
 }
 
 // CORS returns a CORS middleware with the given options.

@@ -60,7 +60,7 @@ type HistogramVec interface {
 
 type counter struct{ prometheus.Counter }
 
-func (c *counter) Inc()        { c.Counter.Inc() }
+func (c *counter) Inc()          { c.Counter.Inc() }
 func (c *counter) Add(v float64) { c.Counter.Add(v) }
 
 type gauge struct{ prometheus.Gauge }
