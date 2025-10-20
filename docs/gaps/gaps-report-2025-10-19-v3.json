@@ -1,0 +1,59 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-19 21:05:03",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\repository\\postgres\\task_repository.go:11:2: import 'github.com/google/uuid' is not allowed from list 'main': Use pkg/types (uuid re-exports) (depguard)",
+        "\t\"github.com/google/uuid\"",
+        "\t^",
+        "internal\\repository\\postgres\\task_repository.go:195:3: SA9003: empty branch (staticcheck)",
+        "\t\tif err := rows.Close(); err != nil {",
+        "\t\t^",
+        "internal\\repository\\postgres\\task_repository.go:227:3: SA9003: empty branch (staticcheck)",
+        "\t\tif err := rows.Close(); err != nil {",
+        "\t\t^",
+        "internal\\repository\\postgres\\task_repository.go:259:3: SA9003: empty branch (staticcheck)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    },
+    {
+      "Type": "NATS subjects documentados",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "NATS subjects não documentados",
+      "Suggestion": "Crie docs/NATS_SUBJECTS.md",
+      "Fixability": {
+        "Safe": true,
+        "RollbackEasy": true,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "mkdir -p docs \u0026\u0026 touch docs/NATS_SUBJECTS.md",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": null,
+      "NonFixableReason": ""
+    }
+  ],
+  "TotalGAPs": 2,
+  "Score": 90,
+  "AutoFixable": 1,
+  "Manual": 1
+}
