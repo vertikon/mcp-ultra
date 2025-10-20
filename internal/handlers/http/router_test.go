@@ -8,13 +8,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"go.uber.org/zap"
+
 	"github.com/vertikon/mcp-ultra/internal/domain"
 	"github.com/vertikon/mcp-ultra/internal/services"
-	"go.uber.org/zap"
+	"github.com/vertikon/mcp-ultra/pkg/httpx"
+	"github.com/vertikon/mcp-ultra/pkg/types"
 )
 
 // MockHealthService for testing
@@ -41,7 +42,7 @@ func (m *MockHealthService) RegisterChecker(name string, checker services.Health
 	m.Called(name, checker)
 }
 
-func (m *MockHealthService) RegisterRoutes(r chi.Router) {
+func (m *MockHealthService) RegisterRoutes(r httpx.Router) {
 	m.Called(r)
 }
 
@@ -55,7 +56,7 @@ func (m *MockTaskService) CreateTask(ctx context.Context, req services.CreateTas
 	return args.Get(0).(*domain.Task), args.Error(1)
 }
 
-func (m *MockTaskService) GetTask(ctx context.Context, taskID uuid.UUID) (*domain.Task, error) {
+func (m *MockTaskService) GetTask(ctx context.Context, taskID types.UUID) (*domain.Task, error) {
 	args := m.Called(ctx, taskID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -63,12 +64,12 @@ func (m *MockTaskService) GetTask(ctx context.Context, taskID uuid.UUID) (*domai
 	return args.Get(0).(*domain.Task), args.Error(1)
 }
 
-func (m *MockTaskService) UpdateTask(ctx context.Context, taskID uuid.UUID, req services.UpdateTaskRequest) (*domain.Task, error) {
+func (m *MockTaskService) UpdateTask(ctx context.Context, taskID types.UUID, req services.UpdateTaskRequest) (*domain.Task, error) {
 	args := m.Called(ctx, taskID, req)
 	return args.Get(0).(*domain.Task), args.Error(1)
 }
 
-func (m *MockTaskService) DeleteTask(ctx context.Context, taskID uuid.UUID) error {
+func (m *MockTaskService) DeleteTask(ctx context.Context, taskID types.UUID) error {
 	args := m.Called(ctx, taskID)
 	return args.Error(0)
 }
@@ -78,7 +79,7 @@ func (m *MockTaskService) ListTasks(ctx context.Context, filters domain.TaskFilt
 	return args.Get(0).(*domain.TaskList), args.Error(1)
 }
 
-func (m *MockTaskService) CompleteTask(ctx context.Context, taskID uuid.UUID) (*domain.Task, error) {
+func (m *MockTaskService) CompleteTask(ctx context.Context, taskID types.UUID) (*domain.Task, error) {
 	args := m.Called(ctx, taskID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -91,7 +92,7 @@ func (m *MockTaskService) GetTasksByStatus(ctx context.Context, status domain.Ta
 	return args.Get(0).([]*domain.Task), args.Error(1)
 }
 
-func (m *MockTaskService) GetTasksByAssignee(ctx context.Context, assigneeID uuid.UUID) ([]*domain.Task, error) {
+func (m *MockTaskService) GetTasksByAssignee(ctx context.Context, assigneeID types.UUID) ([]*domain.Task, error) {
 	args := m.Called(ctx, assigneeID)
 	return args.Get(0).([]*domain.Task), args.Error(1)
 }
@@ -216,7 +217,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
 
 	t.Run("POST /tasks - create task", func(t *testing.T) {
-		creatorID := uuid.New()
+		creatorID := types.New()
 		taskRequest := services.CreateTaskRequest{
 			Title:       "Test Task",
 			Description: "Test Description",
@@ -225,7 +226,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 		}
 
 		expectedTask := &domain.Task{
-			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000123"),
+			ID:          types.MustParse("00000000-0000-0000-0000-000000000123"),
 			Title:       "Test Task",
 			Description: "Test Description",
 			Priority:    "high",
@@ -253,7 +254,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	})
 
 	t.Run("GET /tasks/:id - get task", func(t *testing.T) {
-		taskID := uuid.MustParse("00000000-0000-0000-0000-000000000123")
+		taskID := types.MustParse("00000000-0000-0000-0000-000000000123")
 		expectedTask := &domain.Task{
 			ID:          taskID,
 			Title:       "Test Task",
@@ -279,7 +280,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	})
 
 	t.Run("PUT /tasks/:id - update task", func(t *testing.T) {
-		taskUUID := uuid.MustParse("00000000-0000-0000-0000-000000000123")
+		taskUUID := types.MustParse("00000000-0000-0000-0000-000000000123")
 		taskID := taskUUID.String()
 		updateRequest := services.UpdateTaskRequest{
 			Title:       ptr("Updated Task"),
@@ -312,7 +313,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	})
 
 	t.Run("DELETE /tasks/:id - delete task", func(t *testing.T) {
-		taskUUID := uuid.MustParse("00000000-0000-0000-0000-000000000123")
+		taskUUID := types.MustParse("00000000-0000-0000-0000-000000000123")
 		taskID := taskUUID.String()
 
 		mockTaskService.On("DeleteTask", mock.Anything, taskID).Return(nil)
@@ -328,8 +329,8 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	})
 
 	t.Run("GET /tasks - list tasks", func(t *testing.T) {
-		task1ID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
-		task2ID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
+		task1ID := types.MustParse("00000000-0000-0000-0000-000000000001")
+		task2ID := types.MustParse("00000000-0000-0000-0000-000000000002")
 
 		tasks := []*domain.Task{
 			{

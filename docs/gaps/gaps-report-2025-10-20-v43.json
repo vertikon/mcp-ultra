@@ -1,0 +1,43 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 16:03:18",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "📄 Log completo: E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\docs\\validation\\raw\\2025-10-20-16-03-18-linter.log",
+        "",
+        "internal\\middleware\\auth_test.go:303:43: SA1029: should not use built-in type string as key for value; define your own type to avoid collisions (staticcheck)",
+        "\t\tctx := context.WithValue(req.Context(), \"user_id\", \"user123\")",
+        "\t\t                                        ^",
+        "internal\\middleware\\auth_test.go:318:43: SA1029: should not use built-in type string as key for value; define your own type to avoid collisions (staticcheck)",
+        "\t\tctx := context.WithValue(req.Context(), \"user_id\", \"user456\")",
+        "\t\t                                        ^",
+        "internal\\security\\auth.go:108:41: SA1029: should not use built-in type string as key for value; define your own type to avoid collisions (staticcheck)",
+        "\t\tctx := context.WithValue(r.Context(), \"user\", claims)",
+        "\t\t                                      ^",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

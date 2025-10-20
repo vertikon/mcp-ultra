@@ -1,0 +1,41 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 13:58:50",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\config\\tls.go:147:7: string `1.2` has 5 occurrences, make it a constant (goconst)",
+        "\tcase \"1.2\":",
+        "\t     ^",
+        "internal\\config\\tls_test.go:152:31: string `1.3` has 3 occurrences, but such constant `tlsVersion13` already exists (goconst)",
+        "\t\tmanager.config.MaxVersion = \"1.3\"",
+        "\t\t                            ^",
+        "internal\\slo\\alerting.go:230:1: cyclomatic complexity 21 of func `(*AlertManager).shouldSilence` is high (\u003e 18) (gocyclo)",
+        "func (am *AlertManager) shouldSilence(alert AlertEvent) bool {",
+        "^",
+        "internal\\observability\\enhanced_telemetry.go:67:2: field `spanMutex` is unused (unused)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

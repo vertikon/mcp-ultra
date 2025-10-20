@@ -1,0 +1,41 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 12:52:52",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\cache\\distributed.go:175:6: exported: type name will be used as cache.CacheEntry by other packages, and that stutters; consider calling this Entry (revive)",
+        "type CacheEntry struct {",
+        "     ^",
+        "internal\\cache\\distributed.go:635:44: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (dc *DistributedCache) getReadThrough(ctx context.Context, key string) (interface{}, bool, error) {",
+        "                                           ^",
+        "internal\\config\\tls_test.go:160:31: string `invalid` has 3 occurrences, make it a constant (goconst)",
+        "\t\tmanager.config.MinVersion = \"invalid\"",
+        "\t\t                            ^",
+        "internal\\config\\tls.go:147:7: string `1.3` has 5 occurrences, make it a constant (goconst)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

@@ -1,0 +1,129 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 01:18:50",
+  "Critical": [
+    {
+      "Type": "Código compila",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "Não compila: # github.com/vertikon/mcp-ultra/internal/metrics\ninternal\\metrics\\business.go:403:3: cannot use \"metrics_count\" (untyped string constant) as zap.Field value in argument to logger.Info\ninternal\\metrics...",
+      "Suggestion": "Corrija os erros de compilação listados",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Corrija os erros de compilação manualmente, um por um",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "# github.com/vertikon/mcp-ultra/internal/metrics",
+        "internal\\metrics\\business.go:403:3: cannot use \"metrics_count\" (untyped string constant) as zap.Field value in argument to logger.Info",
+        "internal\\metrics\\business.go:403:20: cannot use len(config.CustomMetrics) (value of type int) as zap.Field value in argument to logger.Info",
+        "internal\\metrics\\business.go:404:3: cannot use \"storage_backend\" (untyped string constant) as zap.Field value in argument to logger.Info",
+        "internal\\metrics\\business.go:404:22: cannot use config.StorageBackend (variable of type string) as zap.Field value in argument to logger.Info",
+        "internal\\metrics\\business.go:405:3: cannot use \"alerting_enabled\" (untyped string constant) as zap.Field value in argument to logger.Info",
+        "internal\\metrics\\business.go:405:23: cannot use config.AlertingEnabled (variable of type bool) as zap.Field value in argument to logger.Info",
+        "internal\\metrics\\business.go:629:7: cannot use \"metric\" (untyped string constant) as zap.Field value in argument to bmc.logger.Error",
+        "internal\\metrics\\business.go:629:17: cannot use metricName (variable of type string) as zap.Field value in argument to bmc.logger.Error",
+        "internal\\metrics\\business.go:630:7: cannot use \"count\" (untyped string constant) as zap.Field value in argument to bmc.logger.Error"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    },
+    {
+      "Type": "Erros não tratados",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "12 erro(s) não tratado(s)",
+      "Suggestion": "Adicione verificação de erro: if err != nil { ... }",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": true,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Para cada erro não tratado, decida:\n   a) Retornar o erro (wrap com context)\n   b) Logar e continuar\n   c) Logar e retornar\n2. Adicione if err != nil { } manualmente",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "error: failed to check packages: errors while loading package github.com/vertikon/mcp-ultra/internal/cache: [-: # github.com/vertikon/mcp-ultra/internal/cache",
+        "internal\\cache\\distributed.go:243:3: cannot use \"strategy\" (untyped string constant) as zap.Field value in argument to log.Info",
+        "internal\\cache\\distributed.go:243:15: cannot use config.Strategy (variable of string type CacheStrategy) as zap.Field value in argument to log.Info",
+        "internal\\cache\\distributed.go:244:3: cannot use \"eviction_policy\" (untyped string constant) as zap.Field value in argument to log.Info",
+        "internal\\cache\\distributed.go:244:22: cannot use config.EvictionPolicy (variable of string type EvictionPolicy) as zap.Field value in argument to log.Info",
+        "internal\\cache\\distributed.go:245:3: cannot use \"sharding_enabled\" (untyped string constant) as zap.Field value in argument to log.Info",
+        "internal\\cache\\distributed.go:245:23: cannot use config.EnableSharding (variable of type bool) as zap.Field value in argument to log.Info",
+        "internal\\cache\\distributed.go:246:3: cannot use \"compression_enabled\" (untyped string constant) as zap.Field value in argument to log.Info",
+        "internal\\cache\\distributed.go:246:26: cannot use config.CompressionEnabled (variable of type bool) as zap.Field value in argument to log.Info",
+        "internal\\cache\\distributed.go:705:41: cannot use \"shards_count\" (untyped string constant) as zap.Field value in argument to dc.logger.Info",
+        "internal\\cache\\distributed.go:705:57: cannot use len(dc.shards) (value of type int) as zap.Field value in argument to dc.logger.Info",
+        "internal\\cache\\distributed.go:705:57: too many errors E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:243:3: cannot use \"strategy\" (untyped string constant) as zapcore.Field value in argument to log.Info E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:243:15: cannot use config.Strategy (variable of string type CacheStrategy) as zapcore.Field value in argument to log.Info E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:244:3: cannot use \"eviction_policy\" (untyped string constant) as zapcore.Field value in argument to log.Info E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:244:22: cannot use config.EvictionPolicy (variable of string type EvictionPolicy) as zapcore.Field value in argument to log.Info E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:245:3: cannot use \"sharding_enabled\" (untyped string constant) as zapcore.Field value in argument to log.Info E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:245:23: cannot use config.EnableSharding (variable of type bool) as zapcore.Field value in argument to log.Info E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:246:3: cannot use \"compression_enabled\" (untyped string constant) as zapcore.Field value in argument to log.Info E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:246:26: cannot use config.CompressionEnabled (variable of type bool) as zapcore.Field value in argument to log.Info E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:705:41: cannot use \"shards_count\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Info E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:705:57: cannot use len(dc.shards) (value of type int) as zapcore.Field value in argument to dc.logger.Info E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:759:4: cannot use \"operation\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Warn E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:759:17: cannot use operation (variable of type string) as zapcore.Field value in argument to dc.logger.Warn E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:760:4: cannot use \"latency\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Warn E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:760:15: cannot use latency (variable of int64 type time.Duration) as zapcore.Field value in argument to dc.logger.Warn E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:761:4: cannot use \"threshold\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Warn E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:761:17: cannot use dc.config.SlowQueryThreshold (variable of int64 type time.Duration) as zapcore.Field value in argument to dc.logger.Warn E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:847:54: cannot use \"key\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:847:61: cannot use op.Key (variable of type string) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:847:69: cannot use \"error\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:847:78: cannot use err (variable of interface type error) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:854:53: cannot use \"key\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:854:60: cannot use op.Key (variable of type string) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:854:68: cannot use \"error\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:854:77: cannot use err (variable of interface type error) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:869:41: cannot use \"batch_size\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:869:55: cannot use len(batch) (value of type int) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:869:67: cannot use \"error\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:869:76: cannot use err (variable of interface type error) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:871:44: cannot use \"batch_size\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Debug E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:871:58: cannot use len(batch) (value of type int) as zapcore.Field value in argument to dc.logger.Debug E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:922:50: cannot use \"error\" (untyped string constant) as zapcore.Field value in argument to dc.logger.Error E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\cache\\distributed.go:922:59: cannot use err (variable of interface type error) as zapcore.Field value in argument to dc.logger.Error]"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Formatação (gofmt)",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "8 arquivo(s) mal formatado(s)",
+      "Suggestion": "Execute: gofmt -w . ou gofumpt -w .",
+      "Fixability": {
+        "Safe": true,
+        "RollbackEasy": true,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "gofmt -w . \u0026\u0026 goimports -w .",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": [
+        "internal\\cache\\distributed.go",
+        "internal\\lifecycle\\manager.go",
+        "internal\\metrics\\business.go",
+        "internal\\ratelimit\\distributed.go",
+        "internal\\telemetry\\telemetry.go",
+        "internal\\tools\\vettools.go",
+        "internal\\tracing\\business.go",
+        "main.go"
+      ],
+      "NonFixableReason": ""
+    },
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/lifecycle\\ninternal\\\\lifecycle\\\\deployment.go:618:26: cannot use \\\"deployment\\\" (untyped string constant) as zap.Field value in argument to da.logger.Info\\ninternal\\\\lifecycle\\\\deployment.go:618:40: cannot use result.NewVersion (variable of type string) as zap.Field value in argument to da.logger.Info\\ninternal\\\\lifecycle\\\\deployment.go:618:59: cannot use \\\"phase\\\" (untyped string constant) as zap.Field value in argument to da.logger.Info\\ninternal\\\\lifecycle\\\\deployment.go:618:68: cannot use result.Phase (variable of string type DeploymentPhase) as zap.Field value in argument to da.logger.Info\\ninternal\\\\lifecycle\\\\deployment.go:623:27: cannot use \\\"deployment\\\" (untyped string constant) as zap.Field value in argument to da.logger.Error\\ninternal\\\\lifecycle\\\\deployment.go:623:41: cannot use result.NewVersion (variable of type string) as zap.Field value in argument to da.logger.Error\\ninternal\\\\lifecycle\\\\deployment.go:623:60: cannot use \\\"phase\\\" (untyped string constant) as zap.Field value in argument to da.logger.Error\\ninternal\\\\lifecycle\\\\deployment.go:623:69: cannot use result.Phase (variable of string type DeploymentPhase) as zap.Field value in argument to da.logger.Error\\ninternal\\\\lifecycle\\\\health.go:166:3: cannot use \\\"name\\\" (untyped string constant) as zap.Field value in argument to hm.logger.Info\\ninternal\\\\lifecycle\\\\health.go:166:11: cannot use checker.Name() (value of type string) as zap.Field value in argument to hm.logger.Info\\ninternal\\\\lifecycle\\\\health.go:166:11: too many errors\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/metrics\\ninternal\\\\metrics\\\\business.go:403:3: cannot use \\\"metrics_count\\\" (untyped string constant) as zap.Field value in argument to logger.Info\\ninternal\\\\metrics\\\\business.go:403:20: cannot use len(config.CustomMetrics) (value of type int) as zap.Field value in argument to logger.Info\\ninternal\\\\metrics\\\\business.go:404:3: cannot use \\\"storage_backend\\\" (untyped string constant) as zap.Field value in argument to logger.Info\\ninternal\\\\metrics\\\\business.go:404:22: cannot use config.StorageBackend (variable of type string) as zap.Field value in argument to logger.Info\\ninternal\\\\metrics\\\\business.go:405:3: cannot use \\\"alerting_enabled\\\" (untyped string constant) as zap.Field value in argument to logger.Info\\ninternal\\\\metrics\\\\business.go:405:23: cannot use config.AlertingEnabled (variable of type bool) as zap.Field value in argument to logger.Info\\ninternal\\\\metrics\\\\business.go:629:7: cannot use \\\"metric\\\" (untyped string constant) as zap.Field value in argument to bmc.logger.Error\\ninternal\\\\metrics\\\\business.go:629:17: cannot use metricName (variable of type string) as zap.Field value in argument to bmc.logger.Error\\ninternal\\\\metrics\\\\business.go:630:7: cannot use \\\"count\\\" (untyped string constant) as zap.Field value in argument to bmc.logger.Error\\ninternal\\\\metrics\\\\business.go:630:16: cannot use len(values) (value of type int) as zap.Field value in argument to bmc.logger.Error\\ninternal\\\\metrics\\\\business.go:630:16: too many errors\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/ratelimit\\ninternal\\\\ratelimit\\\\distributed.go:265:3: cannot use \\\"default_algorithm\\\" (untyped string constant) as zap.Field value in argument to logger.Info\\ninternal\\\\ratelimit\\\\distributed.go:265:24: cannot use config.DefaultAlgorithm (variable of string type Algorithm) as zap.Field value in argument to logger.Info\\ninternal\\\\ratelimit\\\\distributed.go:266:3: cannot use \\\"default_limit\\\" (untyped string constant) as zap.Field value in argument to logger.Info\\ninternal\\\\ratelimit\\\\distributed.go:266:20: cannot use config.DefaultLimit (variable of type int64) as zap.Field value in argument to logger.Info\\ninternal\\\\ratelimit\\\\distributed.go:267:3: cannot use \\\"default_window\\\" (untyped string constant) as zap.Field value in argument to logger.Info\\ninternal\\\\ratelimit\\\\distributed.go:267:21: cannot use config.DefaultWindow (variable of int64 type time.Duration) as zap.Field value in argument to logger.Info\\ninternal\\\\ratelimit\\\\distributed.go:268:3: cannot use \\\"adaptive_enabled\\\" (untyped string constant) as zap.Field value in argument to logger.Info\\ninternal\\\\ratelimit\\\\distributed.go:268:23: cannot use config.AdaptiveEnabled (variable of type bool) as zap.Field value in argument to logger.Info\\ninternal\\\\ratelimit\\\\distributed.go:382:51: cannot use \\\"key\\\" (untyped string constant) as zap.Field value in argument to drl.logger.Error\\ninternal\\\\ratelimit\\\\distributed.go:382:58: cannot use key (variable of type string) as zap.Field value in argument to drl.logger.Error\\ninternal\\\\ratelimit\\\\distributed.go:382:58: too many errors\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/tracing\\ninternal\\\\tracing\\\\business.go:297:3: cannot use \\\"service_name\\\" (untyped string constant) as zap.Field value in argument to logger.Info\\ninternal\\\\tracing\\\\business.go:297:19: cannot use config.ServiceName (variable of type string) as zap.Field value in argument to logger.Info\\ninternal\\\\tracing\\\\business.go:298:3: cannot use \\\"sampling_rate\\\" (untyped string constant) as zap.Field value in argument to logger.Info\\ninternal\\\\tracing\\\\business.go:298:20: cannot use config.SamplingRate (variable of type float64) as zap.Field value in argument to logger.Info\\ninternal\\\\tracing\\\\business.go:299:3: cannot use \\\"auto_instrumentation\\\" (untyped string constant) as zap.Field value in argument to logger.Info\\ninternal\\\\tracing\\\\business.go:299:27: cannot use config.AutoInstrumentation (variable of type bool) as zap.Field value in argument to logger.Info\\ninternal\\\\tracing\\\\business.go:300:3: cannot use \\\"correlation_enabled\\\" (untyped string constant) as zap.Field value in argument to logger.Info\\ninternal\\\\tracing\\\\business.go:300:26: cannot use config.CorrelationEnabled (variable of type bool) as zap.Field value in argument to logger.Info\\ninternal\\\\tracing\\\\business.go:379:3: cannot use \\\"transaction_id\\\" (untyped string constant) as zap.Field value in argument to btt.logger.Debug\\ninternal\\\\tracing\\\\business.go:379:21: cannot use transaction.ID (variable of type string) as zap.Field value in argument to btt.logger.Debug\\ninternal\\\\tracing\\\\business.go:379:21: too many errors\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/cache [github.com/vertikon/mcp-ultra/internal/cache.test]\\ninternal\\\\cache\\\\distributed_test.go:16:35: undefined: zap\\ninternal\\\\cache\\\\distributed.go:243:3: cannot use \\\"strategy\\\" (untyped string constant) as zap.Field value in argument to log.Info\\ninternal\\\\cache\\\\distributed.go:243:15: cannot use config.Strategy (variable of string type CacheStrategy) as zap.Field value in argument to log.Info\\ninternal\\\\cache\\\\distributed.go:244:3: cannot use \\\"eviction_policy\\\" (untyped string constant) as zap.Field value in argument to log.Info\\ninternal\\\\cache\\\\distributed.go:244:22: cannot use config.EvictionPolicy (variable of string type EvictionPolicy) as zap.Field value in argument to log.Info\\ninternal\\\\cache\\\\distributed.go:245:3: cannot use \\\"sharding_enabled\\\" (untyped string constant) as zap.Field value in argument to log.Info\\ninternal\\\\cache\\\\distributed.go:245:23: cannot use config.EnableSharding (variable of type bool) as zap.Field value in argument to log.Info\\ninternal\\\\cache\\\\distributed.go:246:3: cannot use \\\"compression_enabled\\\" (untyped string constant) as zap.Field value in argument to log.Info\\ninternal\\\\cache\\\\distributed.go:246:26: cannot use config.CompressionEnabled (variable of type bool) as zap.Field value in argument to log.Info\\ninternal\\\\cache\\\\distributed.go:705:41: cannot use \\\"shards_count\\\" (untyped string constant) as zap.Field value in argument to dc.logger.Info\\ninternal\\\\cache\\\\distributed.go:705:41: too many errors\"",
+        "level=error msg=\"[linters_context] typechecking error: E:\\\\vertikon\\\\business\\\\SaaS\\\\templates\\\\mcp-ultra\\\\internal\\\\handlers\\\\http\\\\router.go:13:2: could not import github.com/vertikon/mcp-ultra/internal/telemetry (-: # github.com/vertikon/mcp-ultra/internal/telemetry\\ninternal\\\\telemetry\\\\telemetry.go:25:11: undefined: metrics.CounterOpts\\ninternal\\\\telemetry\\\\telemetry.go:29:3: not enough arguments in call to metrics.NewCounterVec\\n\\thave (unknown type, []string)\\n\\twant (string, string, []string)\\ninternal\\\\telemetry\\\\telemetry.go:33:11: undefined: metrics.HistogramOpts\\ninternal\\\\telemetry\\\\telemetry.go:36:21: undefined: metrics.DefBuckets\\ninternal\\\\telemetry\\\\telemetry.go:38:3: not enough arguments in call to metrics.NewHistogramVec\\n\\thave (unknown type, []string)\\n\\twant (string, string, []string)\\ninternal\\\\telemetry\\\\telemetry.go:43:11: undefined: metrics.CounterOpts\\ninternal\\\\telemetry\\\\telemetry.go:47:3: not enough arguments in call to metrics.NewCounterVec\\n\\thave (unknown type, []string)\\n\\twant (string, string, []string)\\ninternal\\\\telemetry\\\\telemetry.go:51:11: undefined: metrics.HistogramOpts\\ninternal\\\\telemetry\\\\telemetry.go:56:3: not enough arguments in call to metrics.NewHistogramVec\\n\\thave (unknown type, []string)\\n\\twant (string, string, []string)\\ninternal\\\\telemetry\\\\telemetry.go:61:11: undefined: metrics.GaugeOpts\\ninternal\\\\telemetry\\\\telemetry.go:61:11: too many errors)\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/telemetry [github.com/vertikon/mcp-ultra/internal/telemetry.test]\\ninternal\\\\telemetry\\\\telemetry.go:25:11: undefined: metrics.CounterOpts\\ninternal\\\\telemetry\\\\telemetry.go:29:3: not enough arguments in call to metrics.NewCounterVec\\n\\thave (unknown type, []string)\\n\\twant (string, string, []string)\\ninternal\\\\telemetry\\\\telemetry.go:33:11: undefined: metrics.HistogramOpts\\ninternal\\\\telemetry\\\\telemetry.go:36:21: undefined: metrics.DefBuckets\\ninternal\\\\telemetry\\\\telemetry.go:38:3: not enough arguments in call to metrics.NewHistogramVec\\n\\thave (unknown type, []string)\\n\\twant (string, string, []string)\\ninternal\\\\telemetry\\\\telemetry.go:43:11: undefined: metrics.CounterOpts\\ninternal\\\\telemetry\\\\telemetry.go:47:3: not enough arguments in call to metrics.NewCounterVec\\n\\thave (unknown type, []string)\\n\\twant (string, string, []string)\\ninternal\\\\telemetry\\\\telemetry.go:51:11: undefined: metrics.HistogramOpts\\ninternal\\\\telemetry\\\\telemetry.go:56:3: not enough arguments in call to metrics.NewHistogramVec\\n\\thave (unknown type, []string)\\n\\twant (string, string, []string)\\ninternal\\\\telemetry\\\\telemetry.go:61:11: undefined: metrics.GaugeOpts\\ninternal\\\\telemetry\\\\telemetry.go:61:11: too many errors\"",
+        "level=warning msg=\"[runner] Can't run linter goanalysis_metalinter: buildir: failed to load package telemetry: could not load export data: no export data for \\\"github.com/vertikon/mcp-ultra/internal/telemetry\\\"\"",
+        "level=error msg=\"Running error: can't run linter goanalysis_metalinter\\nbuildir: failed to load package telemetry: could not load export data: no export data for \\\"github.com/vertikon/mcp-ultra/internal/telemetry\\\"\"",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 4,
+  "Score": 80,
+  "AutoFixable": 1,
+  "Manual": 3
+}

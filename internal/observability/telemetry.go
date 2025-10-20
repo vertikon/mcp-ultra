@@ -10,7 +10,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
@@ -164,15 +163,9 @@ func (ts *TelemetryService) initTracing(res *resource.Resource) error {
 	var err error
 
 	// Choose exporter based on configuration
-	if ts.config.JaegerEndpoint != "" {
-		exporter, err = jaeger.New(jaeger.WithCollectorEndpoint(
-			jaeger.WithEndpoint(ts.config.JaegerEndpoint),
-		))
-		if err != nil {
-			return fmt.Errorf("failed to create Jaeger exporter: %w", err)
-		}
-		ts.logger.Info("Using Jaeger exporter", zap.String("endpoint", ts.config.JaegerEndpoint))
-	} else if ts.config.OTLPEndpoint != "" {
+	// Note: Jaeger exporter removed as it was deprecated in July 2023
+	// Use OTLP instead (Jaeger supports OTLP natively)
+	if ts.config.OTLPEndpoint != "" {
 		exporter, err = otlptracehttp.New(context.Background(),
 			otlptracehttp.WithEndpoint(ts.config.OTLPEndpoint),
 			otlptracehttp.WithInsecure(), // Use HTTPS in production

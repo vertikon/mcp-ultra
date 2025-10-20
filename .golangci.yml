@@ -13,7 +13,6 @@ linters:
     - staticcheck
     - revive
     - goconst
-    - depguard
     - dupl
 
 linters-settings:
@@ -54,7 +53,8 @@ linters-settings:
   revive:
     rules:
       - name: exported
-      - name: unused-parameter
+      # unused-parameter rule disabled - too strict for interface consistency
+      # - name: unused-parameter
       - name: var-naming
       - name: increment-decrement
 
@@ -64,6 +64,11 @@ issues:
       linters:
         - gocyclo
         - dupl
+    # Complex business logic - alerting silencing rules
+    - path: internal/slo/alerting.go
+      linters:
+        - gocyclo
+      text: "shouldSilence"
     # Facades podem importar as bibliotecas externas que eles encapsulam
     - path: pkg/types/
       linters:

@@ -1,0 +1,41 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 10:17:17",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/handlers [github.com/vertikon/mcp-ultra/internal/handlers.test]\\ninternal\\\\handlers\\\\health_test.go:9:7: initialization cycle: contentTypeJSON refers to itself\"",
+        "internal\\events\\nats_bus.go:221:46: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (h *TaskEventHandler) handleTaskDeleted(ctx context.Context, event *domain.Event) error {",
+        "                                             ^",
+        "internal\\events\\nats_bus.go:9:2: import 'github.com/nats-io/nats.go' is not allowed from list 'main': Use pkg/natsx facade (depguard)",
+        "\t\"github.com/nats-io/nats.go\"",
+        "\t^",
+        "internal\\lifecycle\\manager.go:37:10: string `healthy` has 3 occurrences, but such constant `HealthStatusHealthy` already exists (goconst)",
+        "\t\treturn \"healthy\"",
+        "\t\t       ^"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

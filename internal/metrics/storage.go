@@ -21,7 +21,7 @@ func NewMemoryMetricStorage() *MemoryMetricStorage {
 }
 
 // Store stores metric values
-func (mms *MemoryMetricStorage) Store(ctx context.Context, values []MetricValue) error {
+func (mms *MemoryMetricStorage) Store(_ context.Context, values []MetricValue) error {
 	if len(values) == 0 {
 		return nil
 	}
@@ -37,7 +37,7 @@ func (mms *MemoryMetricStorage) Store(ctx context.Context, values []MetricValue)
 }
 
 // Query queries metric values
-func (mms *MemoryMetricStorage) Query(ctx context.Context, query MetricQuery) ([]MetricValue, error) {
+func (mms *MemoryMetricStorage) Query(_ context.Context, query MetricQuery) ([]MetricValue, error) {
 	mms.mu.RLock()
 	defer mms.mu.RUnlock()
 
@@ -110,7 +110,7 @@ func (mms *MemoryMetricStorage) Aggregate(ctx context.Context, query Aggregation
 }
 
 // Delete removes old metric values
-func (mms *MemoryMetricStorage) Delete(ctx context.Context, before time.Time) error {
+func (mms *MemoryMetricStorage) Delete(_ context.Context, before time.Time) error {
 	mms.mu.Lock()
 	defer mms.mu.Unlock()
 
@@ -183,7 +183,7 @@ func (mms *MemoryMetricStorage) buildGroupKey(value MetricValue, groupBy []strin
 	return key
 }
 
-func (mms *MemoryMetricStorage) extractLabels(groupKey string, groupBy []string) map[string]string {
+func (mms *MemoryMetricStorage) extractLabels(_ string, _ []string) map[string]string {
 	labels := make(map[string]string)
 
 	// This is a simplified implementation

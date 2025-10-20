@@ -1,0 +1,76 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-19 23:07:32",
+  "Critical": [
+    {
+      "Type": "Erros não tratados",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "26 erro(s) não tratado(s)",
+      "Suggestion": "Adicione verificação de erro: if err != nil { ... }",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": true,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Para cada erro não tratado, decida:\n   a) Retornar o erro (wrap com context)\n   b) Logar e continuar\n   c) Logar e retornar\n2. Adicione if err != nil { } manualmente",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "error: failed to check packages: errors while loading package github.com/vertikon/mcp-ultra/internal/handlers/http [github.com/vertikon/mcp-ultra/internal/handlers/http.test]: [-: # github.com/vertikon/mcp-ultra/internal/handlers/http [github.com/vertikon/mcp-ultra/internal/handlers/http.test]",
+        "internal\\handlers\\http\\router_test.go:112:44: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)",
+        "\t\thave RegisterRoutes(chi.Router)",
+        "\t\twant RegisterRoutes(\"github.com/vertikon/mcp-ultra/pkg/httpx\".Router)",
+        "internal\\handlers\\http\\router_test.go:191:46: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)",
+        "\t\thave RegisterRoutes(chi.Router)",
+        "\t\twant RegisterRoutes(\"github.com/vertikon/mcp-ultra/pkg/httpx\".Router)",
+        "internal\\handlers\\http\\router_test.go:216:44: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)",
+        "\t\thave RegisterRoutes(chi.Router)",
+        "\t\twant RegisterRoutes(\"github.com/vertikon/mcp-ultra/pkg/httpx\".Router)",
+        "internal\\handlers\\http\\router_test.go:385:44: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)",
+        "\t\thave RegisterRoutes(chi.Router)",
+        "\t\twant RegisterRoutes(\"github.com/vertikon/mcp-ultra/pkg/httpx\".Router)",
+        "internal\\handlers\\http\\router_test.go:423:44: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)",
+        "\t\thave RegisterRoutes(chi.Router)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/handlers/http [github.com/vertikon/mcp-ultra/internal/handlers/http.test]\\ninternal\\\\handlers\\\\http\\\\router_test.go:112:44: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)\\n\\t\\thave RegisterRoutes(chi.Router)\\n\\t\\twant RegisterRoutes(\\\"github.com/vertikon/mcp-ultra/pkg/httpx\\\".Router)\\ninternal\\\\handlers\\\\http\\\\router_test.go:191:46: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)\\n\\t\\thave RegisterRoutes(chi.Router)\\n\\t\\twant RegisterRoutes(\\\"github.com/vertikon/mcp-ultra/pkg/httpx\\\".Router)\\ninternal\\\\handlers\\\\http\\\\router_test.go:216:44: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)\\n\\t\\thave RegisterRoutes(chi.Router)\\n\\t\\twant RegisterRoutes(\\\"github.com/vertikon/mcp-ultra/pkg/httpx\\\".Router)\\ninternal\\\\handlers\\\\http\\\\router_test.go:385:44: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)\\n\\t\\thave RegisterRoutes(chi.Router)\\n\\t\\twant RegisterRoutes(\\\"github.com/vertikon/mcp-ultra/pkg/httpx\\\".Router)\\ninternal\\\\handlers\\\\http\\\\router_test.go:423:44: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)\\n\\t\\thave RegisterRoutes(chi.Router)\\n\\t\\twant RegisterRoutes(\\\"github.com/vertikon/mcp-ultra/pkg/httpx\\\".Router)\"",
+        "internal\\telemetry\\metrics.go:8:2: import 'github.com/prometheus/client_golang/prometheus' is not allowed from list 'main': Use pkg/metrics facade (depguard)",
+        "\t\"github.com/prometheus/client_golang/prometheus\"",
+        "\t^",
+        "internal\\telemetry\\metrics.go:9:2: import 'github.com/prometheus/client_golang/prometheus/promauto' is not allowed from list 'main': Use pkg/metrics facade (depguard)",
+        "\t\"github.com/prometheus/client_golang/prometheus/promauto\"",
+        "\t^",
+        "internal\\telemetry\\telemetry.go:10:2: import 'go.opentelemetry.io/otel' is not allowed from list 'main': Use pkg/observability facade (depguard)",
+        "\t\"go.opentelemetry.io/otel\"",
+        "\t^"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 2,
+  "Score": 90,
+  "AutoFixable": 0,
+  "Manual": 2
+}

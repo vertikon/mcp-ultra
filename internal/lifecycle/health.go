@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // HealthStatus represents the health status of a component
@@ -83,7 +83,7 @@ type HealthMonitor struct {
 
 	// Configuration
 	config HealthConfig
-	logger logger.Logger
+	logger *logger.Logger
 
 	// Background monitoring
 	ticker  *time.Ticker
@@ -144,7 +144,7 @@ func DefaultHealthConfig() HealthConfig {
 }
 
 // NewHealthMonitor creates a new health monitor
-func NewHealthMonitor(config HealthConfig, version string, logger logger.Logger) *HealthMonitor {
+func NewHealthMonitor(config HealthConfig, version string, logger *logger.Logger) *HealthMonitor {
 	return &HealthMonitor{
 		checkers:     make([]HealthChecker, 0),
 		dependencies: make([]DependencyChecker, 0),

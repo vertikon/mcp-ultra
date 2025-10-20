@@ -9,8 +9,8 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // Algorithm represents different rate limiting algorithms
@@ -29,7 +29,7 @@ const (
 type DistributedRateLimiter struct {
 	client    redis.Cmdable
 	config    Config
-	logger    logger.Logger
+	logger    *logger.Logger
 	telemetry *observability.TelemetryService
 
 	// State
@@ -168,7 +168,7 @@ type SlidingWindowLimiter struct {
 type AdaptiveLimiter struct {
 	client redis.Cmdable
 	config Config
-	logger logger.Logger
+	logger *logger.Logger
 
 	mu            sync.RWMutex
 	adaptiveState map[string]*AdaptiveState
@@ -218,7 +218,7 @@ func DefaultConfig() Config {
 }
 
 // NewDistributedRateLimiter creates a new distributed rate limiter
-func NewDistributedRateLimiter(client redis.Cmdable, config Config, logger logger.Logger, telemetry *observability.TelemetryService) (*DistributedRateLimiter, error) {
+func NewDistributedRateLimiter(client redis.Cmdable, config Config, logger *logger.Logger, telemetry *observability.TelemetryService) (*DistributedRateLimiter, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	scripts := &LuaScripts{

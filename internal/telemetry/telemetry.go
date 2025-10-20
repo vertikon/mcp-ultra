@@ -13,63 +13,49 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/httpx"
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
-	"github.com/vertikon/mcp-ultra-fix/pkg/metrics"
 	"github.com/vertikon/mcp-ultra/internal/config"
+	"github.com/vertikon/mcp-ultra/pkg/httpx"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
+	"github.com/vertikon/mcp-ultra/pkg/metrics"
 )
 
 var (
 	// HTTP Metrics
 	httpRequestsTotal = metrics.NewCounterVec(
-		metrics.CounterOpts{
-			Name: "http_requests_total",
-			Help: "Total number of HTTP requests",
-		},
+		"http_requests_total",
+		"Total number of HTTP requests",
 		[]string{"method", "path", "status"},
 	)
 
 	httpRequestDuration = metrics.NewHistogramVec(
-		metrics.HistogramOpts{
-			Name:    "http_request_duration_seconds",
-			Help:    "Duration of HTTP requests in seconds",
-			Buckets: metrics.DefBuckets,
-		},
+		"http_request_duration_seconds",
+		"Duration of HTTP requests in seconds",
 		[]string{"method", "path", "status"},
 	)
 
 	// Business Metrics
 	tasksTotal = metrics.NewCounterVec(
-		metrics.CounterOpts{
-			Name: "tasks_total",
-			Help: "Total number of tasks",
-		},
+		"tasks_total",
+		"Total number of tasks",
 		[]string{"status", "priority"},
 	)
 
 	tasksProcessingTime = metrics.NewHistogramVec(
-		metrics.HistogramOpts{
-			Name:    "task_processing_seconds",
-			Help:    "Time taken to process tasks",
-			Buckets: []float64{0.1, 0.5, 1.0, 2.5, 5.0, 10.0},
-		},
+		"task_processing_seconds",
+		"Time taken to process tasks",
 		[]string{"operation"},
 	)
 
 	// System Metrics
 	databaseConnections = metrics.NewGaugeVec(
-		metrics.GaugeOpts{
-			Name: "database_connections",
-			Help: "Number of database connections",
-		},
+		"database_connections",
+		"Number of database connections",
 		[]string{"database", "state"},
 	)
 
 	cacheOperations = metrics.NewCounterVec(
-		metrics.CounterOpts{
-			Name: "cache_operations_total",
-			Help: "Total number of cache operations",
-		},
+		"cache_operations_total",
+		"Total number of cache operations",
 		[]string{"operation", "result"},
 	)
 )

@@ -10,7 +10,7 @@ import (
 
 // DataMapper provides data mapping and discovery for compliance
 type DataMapper struct {
-	config    ComplianceConfig
+	config    Config
 	logger    *zap.Logger
 	dataMap   map[string]DataMapping
 	inventory []DataInventoryItem
@@ -117,7 +117,7 @@ type DataInventoryItem struct {
 }
 
 // NewDataMapper creates a new data mapper
-func NewDataMapper(config ComplianceConfig, logger *zap.Logger) (*DataMapper, error) {
+func NewDataMapper(config Config, logger *zap.Logger) (*DataMapper, error) {
 	dm := &DataMapper{
 		config:    config,
 		logger:    logger,
@@ -132,7 +132,7 @@ func NewDataMapper(config ComplianceConfig, logger *zap.Logger) (*DataMapper, er
 }
 
 // MapDataField maps a data field with its compliance metadata
-func (dm *DataMapper) MapDataField(ctx context.Context, fieldName string, metadata DataMapping) error {
+func (dm *DataMapper) MapDataField(_ context.Context, fieldName string, metadata DataMapping) error {
 	metadata.FieldName = fieldName
 	metadata.UpdatedAt = time.Now()
 
@@ -162,7 +162,7 @@ func (dm *DataMapper) GetAllMappings() map[string]DataMapping {
 }
 
 // DiscoverDataSources automatically discovers data sources and their mappings
-func (dm *DataMapper) DiscoverDataSources(ctx context.Context) error {
+func (dm *DataMapper) DiscoverDataSources(_ context.Context) error {
 	// In a real implementation, this would scan databases, APIs, files, etc.
 	// to automatically discover data sources and create mappings
 
@@ -211,7 +211,7 @@ func (dm *DataMapper) DiscoverDataSources(ctx context.Context) error {
 }
 
 // GenerateDataMap generates a comprehensive data map
-func (dm *DataMapper) GenerateDataMap(ctx context.Context) (map[string]interface{}, error) {
+func (dm *DataMapper) GenerateDataMap(_ context.Context) (map[string]interface{}, error) {
 	dataMap := map[string]interface{}{
 		"generated_at":    time.Now(),
 		"total_fields":    len(dm.dataMap),
@@ -225,7 +225,7 @@ func (dm *DataMapper) GenerateDataMap(ctx context.Context) (map[string]interface
 }
 
 // TrackDataFlow tracks how data flows through the system
-func (dm *DataMapper) TrackDataFlow(ctx context.Context, fieldName string, source DataSource, destination DataDestination) error {
+func (dm *DataMapper) TrackDataFlow(_ context.Context, fieldName string, source DataSource, destination DataDestination) error {
 	mapping, exists := dm.dataMap[fieldName]
 	if !exists {
 		// Create new mapping
@@ -254,7 +254,7 @@ func (dm *DataMapper) TrackDataFlow(ctx context.Context, fieldName string, sourc
 }
 
 // RecordDataAccess records access to data for compliance tracking
-func (dm *DataMapper) RecordDataAccess(ctx context.Context, fieldName, actor, action, purpose string) error {
+func (dm *DataMapper) RecordDataAccess(_ context.Context, fieldName, actor, action, purpose string) error {
 	mapping, exists := dm.dataMap[fieldName]
 	if !exists {
 		dm.logger.Warn("Attempted to record access for unmapped field", zap.String("field", fieldName))
@@ -293,13 +293,13 @@ func (dm *DataMapper) RecordDataAccess(ctx context.Context, fieldName, actor, ac
 }
 
 // ValidateCompliance validates compliance for mapped data
-func (dm *DataMapper) ValidateCompliance(ctx context.Context) ([]ComplianceViolation, error) {
-	violations := make([]ComplianceViolation, 0)
+func (dm *DataMapper) ValidateCompliance(_ context.Context) ([]Violation, error) {
+	violations := make([]Violation, 0)
 
 	for fieldName, mapping := range dm.dataMap {
 		// Check if PII fields have proper legal basis
 		if mapping.PIIType != "" && len(mapping.LegalBasis) == 0 {
-			violations = append(violations, ComplianceViolation{
+			violations = append(violations, Violation{
 				Type:        "missing_legal_basis",
 				Field:       fieldName,
 				Severity:    "high",
@@ -310,7 +310,7 @@ func (dm *DataMapper) ValidateCompliance(ctx context.Context) ([]ComplianceViola
 
 		// Check retention policies
 		if mapping.Retention.RetentionPeriod == 0 {
-			violations = append(violations, ComplianceViolation{
+			violations = append(violations, Violation{
 				Type:        "missing_retention_policy",
 				Field:       fieldName,
 				Severity:    "medium",
@@ -329,7 +329,7 @@ func (dm *DataMapper) ValidateCompliance(ctx context.Context) ([]ComplianceViola
 				}
 			}
 			if !hasEncryption {
-				violations = append(violations, ComplianceViolation{
+				violations = append(violations, Violation{
 					Type:        "unencrypted_sensitive_data",
 					Field:       fieldName,
 					Severity:    "critical",
@@ -343,8 +343,8 @@ func (dm *DataMapper) ValidateCompliance(ctx context.Context) ([]ComplianceViola
 	return violations, nil
 }
 
-// ComplianceViolation represents a compliance violation
-type ComplianceViolation struct {
+// Violation represents a compliance violation
+type Violation struct {
 	Type           string    `json:"type"`
 	Field          string    `json:"field"`
 	Severity       string    `json:"severity"`

@@ -1,0 +1,41 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 13:21:29",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\compliance\\data_mapper.go:228:37: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (dm *DataMapper) TrackDataFlow(ctx context.Context, fieldName string, source DataSource, destination DataDestination) error {",
+        "                                    ^",
+        "internal\\compliance\\data_mapper.go:257:40: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (dm *DataMapper) RecordDataAccess(ctx context.Context, fieldName, actor, action, purpose string) error {",
+        "                                       ^",
+        "internal\\compliance\\data_mapper.go:296:42: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (dm *DataMapper) ValidateCompliance(ctx context.Context) ([]Violation, error) {",
+        "                                         ^",
+        "internal\\compliance\\framework.go:590:6: exported: type name will be used as compliance.ComplianceValidationRequest by other packages, and that stutters; consider calling this ValidationRequest (revive)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

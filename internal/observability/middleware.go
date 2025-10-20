@@ -185,25 +185,22 @@ func (dtw *DatabaseTelemetryWrapper) WrapDatabaseOperation(
 	return err
 }
 
-// CacheOperation wrapper for cache operations
-func (ts *TelemetryService) CacheOperation(
+// instrumentedOperation is a generic helper for wrapping operations with telemetry
+func (ts *TelemetryService) instrumentedOperation(
 	ctx context.Context,
-	operation string,
-	key string,
+	spanName string,
+	spanKind trace.SpanKind,
+	attrs []attribute.KeyValue,
+	errorCategory string,
 	fn func(context.Context) error,
 ) error {
 	if !ts.config.Enabled {
 		return fn(ctx)
 	}
 
-	spanName := fmt.Sprintf("cache.%s", operation)
 	ctx, span := ts.StartSpan(ctx, spanName,
-		trace.WithSpanKind(trace.SpanKindClient),
-		trace.WithAttributes(
-			attribute.String("cache.system", "redis"),
-			attribute.String("cache.operation", operation),
-			attribute.String("cache.key", key),
-		),
+		trace.WithSpanKind(spanKind),
+		trace.WithAttributes(attrs...),
 	)
 	defer span.End()
 
@@ -211,17 +208,38 @@ func (ts *TelemetryService) CacheOperation(
 	err := fn(ctx)
 	duration := time.Since(start)
 
-	span.SetAttributes(attribute.Float64("cache.duration_ms", float64(duration.Nanoseconds())/1000000))
+	span.SetAttributes(attribute.Float64(fmt.Sprintf("%s.duration_ms", errorCategory), float64(duration.Nanoseconds())/1000000))
 
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		ts.RecordError("cache_error", "cache")
+		ts.RecordError(fmt.Sprintf("%s_error", errorCategory), errorCategory)
 	} else {
 		span.SetStatus(codes.Ok, "")
 	}
 
 	return err
+}
+
+// CacheOperation wrapper for cache operations
+func (ts *TelemetryService) CacheOperation(
+	ctx context.Context,
+	operation string,
+	key string,
+	fn func(context.Context) error,
+) error {
+	return ts.instrumentedOperation(
+		ctx,
+		fmt.Sprintf("cache.%s", operation),
+		trace.SpanKindClient,
+		[]attribute.KeyValue{
+			attribute.String("cache.system", "redis"),
+			attribute.String("cache.operation", operation),
+			attribute.String("cache.key", key),
+		},
+		"cache",
+		fn,
+	)
 }
 
 // MessageQueueOperation wrapper for message queue operations
@@ -231,36 +249,18 @@ func (ts *TelemetryService) MessageQueueOperation(
 	subject string,
 	fn func(context.Context) error,
 ) error {
-	if !ts.config.Enabled {
-		return fn(ctx)
-	}
-
-	spanName := fmt.Sprintf("messaging.%s", operation)
-	ctx, span := ts.StartSpan(ctx, spanName,
-		trace.WithSpanKind(trace.SpanKindProducer),
-		trace.WithAttributes(
+	return ts.instrumentedOperation(
+		ctx,
+		fmt.Sprintf("messaging.%s", operation),
+		trace.SpanKindProducer,
+		[]attribute.KeyValue{
 			attribute.String("messaging.system", "nats"),
 			attribute.String("messaging.operation", operation),
 			attribute.String("messaging.destination", subject),
-		),
+		},
+		"messaging",
+		fn,
 	)
-	defer span.End()
-
-	start := time.Now()
-	err := fn(ctx)
-	duration := time.Since(start)
-
-	span.SetAttributes(attribute.Float64("messaging.duration_ms", float64(duration.Nanoseconds())/1000000))
-
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		ts.RecordError("messaging_error", "messaging")
-	} else {
-		span.SetStatus(codes.Ok, "")
-	}
-
-	return err
 }
 
 // BusinessOperation wrapper for general business operations

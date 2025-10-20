@@ -8,7 +8,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
@@ -16,6 +15,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 )
 
@@ -24,7 +24,7 @@ type TracingConfig struct {
 	ServiceName    string        `yaml:"service_name" envconfig:"SERVICE_NAME" default:"mcp-ultra"`
 	ServiceVersion string        `yaml:"service_version" envconfig:"SERVICE_VERSION" default:"v1.0.0"`
 	Environment    string        `yaml:"environment" envconfig:"ENVIRONMENT" default:"development"`
-	Exporter       string        `yaml:"exporter" envconfig:"TRACE_EXPORTER" default:"jaeger"`
+	Exporter       string        `yaml:"exporter" envconfig:"TRACE_EXPORTER" default:"otlp"`
 	SampleRate     float64       `yaml:"sample_rate" envconfig:"TRACING_SAMPLE_RATE" default:"0.1"`
 	BatchTimeout   time.Duration `yaml:"batch_timeout" envconfig:"TRACE_BATCH_TIMEOUT" default:"5s"`
 
@@ -129,8 +129,6 @@ func createSpanExporter(config *TracingConfig, logger *zap.Logger) (sdktrace.Spa
 	switch config.Exporter {
 	case "otlp", "otlp-http":
 		return createOTLPHTTPExporter(config)
-	case "jaeger":
-		return createJaegerExporter(config)
 	case "stdout":
 		return createStdoutExporter()
 	case "noop":
@@ -160,20 +158,6 @@ func createOTLPHTTPExporter(config *TracingConfig) (sdktrace.SpanExporter, error
 	return otlptracehttp.New(context.Background(), opts...)
 }
 
-func createJaegerExporter(config *TracingConfig) (sdktrace.SpanExporter, error) {
-	opts := []jaeger.CollectorEndpointOption{
-		jaeger.WithEndpoint(config.JaegerEndpoint),
-	}
-
-	// Add authentication if configured
-	if config.JaegerUser != "" && config.JaegerPassword != "" {
-		opts = append(opts, jaeger.WithUsername(config.JaegerUser))
-		opts = append(opts, jaeger.WithPassword(config.JaegerPassword))
-	}
-
-	return jaeger.New(jaeger.WithCollectorEndpoint(opts...))
-}
-
 func createStdoutExporter() (sdktrace.SpanExporter, error) {
 	return stdouttrace.New(
 		stdouttrace.WithPrettyPrint(),
@@ -184,7 +168,7 @@ func createStdoutExporter() (sdktrace.SpanExporter, error) {
 // GetTracer returns a tracer for the given name
 func (tp *TracingProvider) GetTracer(name string) trace.Tracer {
 	if tp.provider == nil {
-		return trace.NewNoopTracerProvider().Tracer(name)
+		return noop.NewTracerProvider().Tracer(name)
 	}
 	return tp.provider.Tracer(name)
 }

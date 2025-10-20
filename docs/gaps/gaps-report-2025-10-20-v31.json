@@ -1,0 +1,61 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 13:47:37",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Formatação (gofmt)",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "1 arquivo(s) mal formatado(s)",
+      "Suggestion": "Execute: gofmt -w . ou gofumpt -w .",
+      "Fixability": {
+        "Safe": true,
+        "RollbackEasy": true,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "gofmt -w . \u0026\u0026 goimports -w .",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": [
+        "internal\\security\\auth_test.go"
+      ],
+      "NonFixableReason": ""
+    },
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\middleware\\auth_test.go:30:82: unused-parameter: parameter 'r' seems to be unused, consider removing or renaming it as _ (revive)",
+        "\t\thandler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {",
+        "\t\t                                                                               ^",
+        "internal\\middleware\\auth_test.go:42:82: unused-parameter: parameter 'r' seems to be unused, consider removing or renaming it as _ (revive)",
+        "\t\thandler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {",
+        "\t\t                                                                               ^",
+        "internal\\middleware\\auth_test.go:75:82: unused-parameter: parameter 'r' seems to be unused, consider removing or renaming it as _ (revive)",
+        "\t\thandler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {",
+        "\t\t                                                                               ^",
+        "internal\\middleware\\auth.go:97:32: SA1029: should not use built-in type string as key for value; define your own type to avoid collisions (staticcheck)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 2,
+  "Score": 90,
+  "AutoFixable": 1,
+  "Manual": 1
+}

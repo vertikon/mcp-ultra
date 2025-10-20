@@ -353,7 +353,7 @@ func (al *AuditLogger) LogComplianceCheck(ctx context.Context, checkType string,
 }
 
 // QueryAuditLogs queries audit logs (simplified implementation)
-func (al *AuditLogger) QueryAuditLogs(ctx context.Context, filters map[string]interface{}, limit int) ([]AuditEvent, error) {
+func (al *AuditLogger) QueryAuditLogs(_ context.Context, _ map[string]interface{}, _ int) ([]AuditEvent, error) {
 	if !al.config.Enabled {
 		return nil, fmt.Errorf("audit logging is disabled")
 	}

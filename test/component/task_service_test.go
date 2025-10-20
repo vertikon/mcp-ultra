@@ -18,6 +18,10 @@ import (
 	"github.com/vertikon/mcp-ultra/test/mocks"
 )
 
+type contextKey string
+
+const userRoleKey contextKey = "user_role"
+
 var (
 	// ErrNotFound is returned when a requested resource is not found
 	ErrNotFound = errors.New("not found")
@@ -393,7 +397,7 @@ func (suite *TaskServiceTestSuite) TestDeleteTask_AdminSuccess() {
 	}
 
 	// Mock admin context
-	ctx = context.WithValue(ctx, "user_role", "admin")
+	ctx = context.WithValue(ctx, userRoleKey, "admin")
 
 	// Setup mocks
 	suite.taskRepo.On("GetByID", ctx, taskID).Return(task, nil)

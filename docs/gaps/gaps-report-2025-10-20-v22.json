@@ -1,0 +1,65 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 12:45:49",
+  "Critical": [
+    {
+      "Type": "Código compila",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "Não compila: # github.com/vertikon/mcp-ultra/internal/compliance\ninternal\\compliance\\data_mapper.go:13:12: undefined: ComplianceConfig\ninternal\\compliance\\data_mapper.go:120:27: undefined: ComplianceConfig\n",
+      "Suggestion": "Corrija os erros de compilação listados",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Corrija os erros de compilação manualmente, um por um",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "# github.com/vertikon/mcp-ultra/internal/compliance",
+        "internal\\compliance\\data_mapper.go:13:12: undefined: ComplianceConfig",
+        "internal\\compliance\\data_mapper.go:120:27: undefined: ComplianceConfig",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/compliance [github.com/vertikon/mcp-ultra/internal/compliance.test]\\ninternal\\\\compliance\\\\data_mapper.go:13:12: undefined: ComplianceConfig\\ninternal\\\\compliance\\\\data_mapper.go:120:27: undefined: ComplianceConfig\\ninternal\\\\compliance\\\\framework_test.go:20:12: undefined: ComplianceConfig\\ninternal\\\\compliance\\\\framework_test.go:397:19: undefined: ComplianceConfig\"",
+        "test\\component\\task_service_test.go:396:31: SA1029: should not use built-in type string as key for value; define your own type to avoid collisions (staticcheck)",
+        "\tctx = context.WithValue(ctx, \"user_role\", \"admin\")",
+        "\t                             ^",
+        "internal\\lifecycle\\deployment.go:270:52: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (da *DeploymentAutomation) validateDeployment(ctx context.Context, result *DeploymentResult) error {",
+        "                                                   ^",
+        "internal\\lifecycle\\deployment.go:569:49: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (da *DeploymentAutomation) executeHTTPHook(ctx context.Context, hook DeploymentHook, result *DeploymentResult) error {",
+        "                                                ^"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 2,
+  "Score": 90,
+  "AutoFixable": 0,
+  "Manual": 2
+}

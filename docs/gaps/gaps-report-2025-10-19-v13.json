@@ -1,0 +1,93 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-19 23:37:21",
+  "Critical": [
+    {
+      "Type": "Código compila",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "Não compila: E:\\go-workspace\\pkg\\mod\\github.com\\prometheus\\client_golang@v1.23.0\\prometheus\\process_collector_windows.go:20:2: missing go.sum entry for module providing package golang.org/x/sys/windows (imported b...",
+      "Suggestion": "Corrija os erros de compilação listados",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Corrija os erros de compilação manualmente, um por um",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "E:\\go-workspace\\pkg\\mod\\github.com\\prometheus\\client_golang@v1.23.0\\prometheus\\process_collector_windows.go:20:2: missing go.sum entry for module providing package golang.org/x/sys/windows (imported by github.com/prometheus/client_golang/prometheus); to add:",
+        "\tgo get github.com/prometheus/client_golang/prometheus@v1.23.0",
+        "E:\\go-workspace\\pkg\\mod\\golang.org\\x\\tools@v0.38.0\\go\\packages\\packages.go:28:2: missing go.sum entry for module providing package golang.org/x/sync/errgroup (imported by golang.org/x/tools/go/packages); to add:",
+        "\tgo get golang.org/x/tools/go/packages@v0.38.0",
+        "E:\\go-workspace\\pkg\\mod\\golang.org\\x\\tools@v0.38.0\\internal\\gocommand\\vendor.go:17:2: missing go.sum entry for module providing package golang.org/x/mod/semver (imported by golang.org/x/tools/internal/gocommand); to add:",
+        "\tgo get golang.org/x/tools/internal/gocommand@v0.38.0",
+        "E:\\go-workspace\\pkg\\mod\\go.opentelemetry.io\\otel\\sdk@v1.38.0\\resource\\host_id_windows.go:10:2: missing go.sum entry for module providing package golang.org/x/sys/windows/registry (imported by go.opentelemetry.io/otel/sdk/resource); to add:",
+        "\tgo get go.opentelemetry.io/otel/sdk/resource@v1.38.0",
+        "E:\\go-workspace\\pkg\\mod\\golang.org\\x\\crypto@v0.43.0\\blake2b\\blake2bAVX2_amd64.go:9:8: missing go.sum entry for module providing package golang.org/x/sys/cpu (imported by golang.org/x/crypto/blake2b); to add:",
+        "\tgo get golang.org/x/crypto/blake2b@v0.43.0"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Formatação (gofmt)",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "3 arquivo(s) mal formatado(s)",
+      "Suggestion": "Execute: gofmt -w . ou gofumpt -w .",
+      "Fixability": {
+        "Safe": true,
+        "RollbackEasy": true,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "gofmt -w . \u0026\u0026 goimports -w .",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": [
+        "cmd\\depguard-lite\\main.go",
+        "internal\\analyzers\\depguardlite\\analyzer.go",
+        "internal\\tools\\vettools.go"
+      ],
+      "NonFixableReason": ""
+    },
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\slo\\alerting.go:657:7: string `warning` has 3 occurrences, but such constant `SeverityWarning` already exists (goconst)",
+        "\tcase \"warning\":",
+        "\t     ^",
+        "internal\\slo\\alerting.go:655:7: string `critical` has 3 occurrences, but such constant `SLOStatusCritical` already exists (goconst)",
+        "\tcase \"critical\":",
+        "\t     ^",
+        "internal\\slo\\alerting.go:230:1: cyclomatic complexity 21 of func `(*AlertManager).shouldSilence` is high (\u003e 18) (gocyclo)",
+        "func (am *AlertManager) shouldSilence(alert AlertEvent) bool {",
+        "^",
+        "internal\\slo\\monitor.go:16:6: exported: type name will be used as slo.SLOType by other packages, and that stutters; consider calling this Type (revive)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 3,
+  "Score": 85,
+  "AutoFixable": 1,
+  "Manual": 2
+}

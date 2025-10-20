@@ -1,0 +1,41 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 08:30:39",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\dashboard\\models.go:286:6: exported: type name will be used as dashboard.DashboardWidget by other packages, and that stutters; consider calling this Widget (revive)",
+        "type DashboardWidget struct {",
+        "     ^",
+        "basic_test.go:18:5: SA4000: identical expressions on the left and right side of the '!=' operator (staticcheck)",
+        "\tif true != true {",
+        "\t   ^",
+        "internal\\compliance\\framework.go:14:6: exported: type name will be used as compliance.ComplianceFramework by other packages, and that stutters; consider calling this Framework (revive)",
+        "type ComplianceFramework struct {",
+        "     ^",
+        "internal\\compliance\\data_mapper.go:347:6: exported: type name will be used as compliance.ComplianceViolation by other packages, and that stutters; consider calling this Violation (revive)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

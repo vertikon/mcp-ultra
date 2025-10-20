@@ -11,7 +11,7 @@ func DefaultSLOs() []*SLO {
 		{
 			Name:        "api_availability",
 			Description: "API availability - percentage of successful requests",
-			Type:        SLOTypeAvailability,
+			Type:        TypeAvailability,
 			Service:     "mcp-ultra",
 			Component:   "api",
 
@@ -91,7 +91,7 @@ func DefaultSLOs() []*SLO {
 		{
 			Name:        "api_latency_p95",
 			Description: "API latency - 95th percentile under 500ms",
-			Type:        SLOTypeLatency,
+			Type:        TypeLatency,
 			Service:     "mcp-ultra",
 			Component:   "api",
 
@@ -141,7 +141,7 @@ func DefaultSLOs() []*SLO {
 		{
 			Name:        "grpc_availability",
 			Description: "gRPC service availability - percentage of successful requests",
-			Type:        SLOTypeAvailability,
+			Type:        TypeAvailability,
 			Service:     "mcp-ultra",
 			Component:   "grpc",
 
@@ -190,7 +190,7 @@ func DefaultSLOs() []*SLO {
 		{
 			Name:        "database_availability",
 			Description: "Database connection availability - percentage of successful connections",
-			Type:        SLOTypeAvailability,
+			Type:        TypeAvailability,
 			Service:     "mcp-ultra",
 			Component:   "database",
 
@@ -239,7 +239,7 @@ func DefaultSLOs() []*SLO {
 		{
 			Name:        "cache_hit_rate",
 			Description: "Redis cache hit rate - percentage of cache hits",
-			Type:        SLOTypeAccuracy,
+			Type:        TypeAccuracy,
 			Service:     "mcp-ultra",
 			Component:   "cache",
 
@@ -289,7 +289,7 @@ func DefaultSLOs() []*SLO {
 		{
 			Name:        "task_processing_throughput",
 			Description: "Task processing throughput - tasks processed per minute",
-			Type:        SLOTypeThroughput,
+			Type:        TypeThroughput,
 			Service:     "mcp-ultra",
 			Component:   "task_processor",
 
@@ -337,7 +337,7 @@ func DefaultSLOs() []*SLO {
 		{
 			Name:        "compliance_accuracy",
 			Description: "Compliance data processing accuracy - percentage of correctly processed compliance events",
-			Type:        SLOTypeAccuracy,
+			Type:        TypeAccuracy,
 			Service:     "mcp-ultra",
 			Component:   "compliance",
 
@@ -407,7 +407,7 @@ func GetSLOsByComponent(slos []*SLO, component string) []*SLO {
 }
 
 // GetSLOsByType returns SLOs filtered by type
-func GetSLOsByType(slos []*SLO, sloType SLOType) []*SLO {
+func GetSLOsByType(slos []*SLO, sloType Type) []*SLO {
 	var filtered []*SLO
 	for _, slo := range slos {
 		if slo.Type == sloType {

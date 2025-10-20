@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
 
 	"github.com/vertikon/mcp-ultra/internal/domain"
+	"github.com/vertikon/mcp-ultra/pkg/types"
 )
 
 // Mock repositories
@@ -24,7 +24,7 @@ func (m *mockTaskRepository) Create(ctx context.Context, task *domain.Task) erro
 	return args.Error(0)
 }
 
-func (m *mockTaskRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Task, error) {
+func (m *mockTaskRepository) GetByID(ctx context.Context, id types.UUID) (*domain.Task, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -37,7 +37,7 @@ func (m *mockTaskRepository) Update(ctx context.Context, task *domain.Task) erro
 	return args.Error(0)
 }
 
-func (m *mockTaskRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *mockTaskRepository) Delete(ctx context.Context, id types.UUID) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -58,7 +58,7 @@ func (m *mockTaskRepository) GetByStatus(ctx context.Context, status domain.Task
 	return args.Get(0).([]*domain.Task), args.Error(1)
 }
 
-func (m *mockTaskRepository) GetByAssignee(ctx context.Context, assigneeID uuid.UUID) ([]*domain.Task, error) {
+func (m *mockTaskRepository) GetByAssignee(ctx context.Context, assigneeID types.UUID) ([]*domain.Task, error) {
 	args := m.Called(ctx, assigneeID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -75,7 +75,7 @@ func (m *mockUserRepository) Create(ctx context.Context, user *domain.User) erro
 	return args.Error(0)
 }
 
-func (m *mockUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
+func (m *mockUserRepository) GetByID(ctx context.Context, id types.UUID) (*domain.User, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -96,7 +96,7 @@ func (m *mockUserRepository) Update(ctx context.Context, user *domain.User) erro
 	return args.Error(0)
 }
 
-func (m *mockUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *mockUserRepository) Delete(ctx context.Context, id types.UUID) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -118,7 +118,7 @@ func (m *mockEventRepository) Save(ctx context.Context, event *domain.Event) err
 	return args.Error(0)
 }
 
-func (m *mockEventRepository) GetByAggregateID(ctx context.Context, aggregateID uuid.UUID) ([]*domain.Event, error) {
+func (m *mockEventRepository) GetByAggregateID(ctx context.Context, aggregateID types.UUID) ([]*domain.Event, error) {
 	args := m.Called(ctx, aggregateID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -202,16 +202,16 @@ func createTestTaskService() (*TaskService, *mockTaskRepository, *mockUserReposi
 
 func createTestUser() *domain.User {
 	return &domain.User{
-		ID:    uuid.New(),
+		ID:    types.New(),
 		Email: "test@example.com",
 		Name:  "Test User",
 	}
 }
 
 func createTestTask() *domain.Task {
-	userID := uuid.New()
+	userID := types.New()
 	return &domain.Task{
-		ID:          uuid.New(),
+		ID:          types.New(),
 		Title:       "Test Task",
 		Description: "Test Description",
 		Status:      domain.TaskStatusPending,
@@ -273,7 +273,7 @@ func TestTaskService_CreateTask_ValidationError(t *testing.T) {
 
 	req := CreateTaskRequest{
 		Title:     "", // Empty title should cause validation error
-		CreatedBy: uuid.New(),
+		CreatedBy: types.New(),
 	}
 
 	ctx := context.Background()
@@ -290,7 +290,7 @@ func TestTaskService_CreateTask_ValidationError(t *testing.T) {
 func TestTaskService_CreateTask_CreatorNotFound(t *testing.T) {
 	service, _, userRepo, _, _, _ := createTestTaskService()
 
-	creatorID := uuid.New()
+	creatorID := types.New()
 	req := CreateTaskRequest{
 		Title:     "Test Task",
 		CreatedBy: creatorID,
@@ -316,7 +316,7 @@ func TestTaskService_CreateTask_AssigneeNotFound(t *testing.T) {
 	service, _, userRepo, _, _, _ := createTestTaskService()
 
 	creator := createTestUser()
-	assigneeID := uuid.New()
+	assigneeID := types.New()
 
 	req := CreateTaskRequest{
 		Title:      "Test Task",
@@ -384,7 +384,7 @@ func TestTaskService_UpdateTask_Success(t *testing.T) {
 func TestTaskService_UpdateTask_TaskNotFound(t *testing.T) {
 	service, taskRepo, _, _, _, _ := createTestTaskService()
 
-	taskID := uuid.New()
+	taskID := types.New()
 	req := UpdateTaskRequest{}
 
 	ctx := context.Background()
@@ -406,7 +406,7 @@ func TestTaskService_UpdateTask_TaskNotFound(t *testing.T) {
 func TestCreateTaskRequest_Validate_Success(t *testing.T) {
 	req := CreateTaskRequest{
 		Title:     "Valid Task",
-		CreatedBy: uuid.New(),
+		CreatedBy: types.New(),
 	}
 
 	err := req.Validate()
@@ -416,7 +416,7 @@ func TestCreateTaskRequest_Validate_Success(t *testing.T) {
 func TestCreateTaskRequest_Validate_EmptyTitle(t *testing.T) {
 	req := CreateTaskRequest{
 		Title:     "",
-		CreatedBy: uuid.New(),
+		CreatedBy: types.New(),
 	}
 
 	err := req.Validate()
@@ -427,7 +427,7 @@ func TestCreateTaskRequest_Validate_EmptyTitle(t *testing.T) {
 func TestCreateTaskRequest_Validate_EmptyCreatedBy(t *testing.T) {
 	req := CreateTaskRequest{
 		Title:     "Valid Task",
-		CreatedBy: uuid.Nil,
+		CreatedBy: types.Nil,
 	}
 
 	err := req.Validate()

@@ -11,6 +11,11 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	resourceTasks   = "tasks"
+	resourceUnknown = "unknown"
+)
+
 // OPAConfig holds OPA configuration
 type OPAConfig struct {
 	URL     string        `yaml:"url"`
@@ -196,20 +201,20 @@ func (opa *OPAService) extractResourceAction(method, path string) (string, strin
 	switch method {
 	case "GET":
 		if path == "/api/v1/tasks" {
-			return "tasks", "list"
+			return resourceTasks, "list"
 		}
 		if len(path) > 0 && path[len(path)-1] != '/' {
-			return "tasks", "read"
+			return resourceTasks, "read"
 		}
-		return "unknown", "read"
+		return resourceUnknown, "read"
 	case "POST":
-		return "tasks", "create"
+		return resourceTasks, "create"
 	case "PUT", "PATCH":
-		return "tasks", "update"
+		return resourceTasks, "update"
 	case "DELETE":
-		return "tasks", "delete"
+		return resourceTasks, "delete"
 	default:
-		return "unknown", "unknown"
+		return resourceUnknown, resourceUnknown
 	}
 }
 

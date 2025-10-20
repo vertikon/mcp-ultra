@@ -1,0 +1,41 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 14:42:16",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\middleware\\auth.go:97:32: SA1029: should not use built-in type string as key for value; define your own type to avoid collisions (staticcheck)",
+        "\t\tctx = context.WithValue(ctx, \"user_id\", claims.UserID)",
+        "\t\t                             ^",
+        "internal\\middleware\\auth.go:98:32: SA1029: should not use built-in type string as key for value; define your own type to avoid collisions (staticcheck)",
+        "\t\tctx = context.WithValue(ctx, \"username\", claims.Username)",
+        "\t\t                             ^",
+        "internal\\middleware\\auth.go:99:32: SA1029: should not use built-in type string as key for value; define your own type to avoid collisions (staticcheck)",
+        "\t\tctx = context.WithValue(ctx, \"user_roles\", claims.Roles)",
+        "\t\t                             ^",
+        "internal\\compliance\\framework.go:240:3: SA9003: empty branch (staticcheck)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

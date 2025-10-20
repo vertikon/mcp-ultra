@@ -13,7 +13,7 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/flags/evaluate", evaluateFlag)
 }
 
-func hello(w http.ResponseWriter, r *http.Request) {
+func hello(w http.ResponseWriter, _ *http.Request) {
 	resp := map[string]any{"message": "hello from mcp-model-ultra"}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {

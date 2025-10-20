@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/vertikon/mcp-ultra/internal/domain"
+	"github.com/vertikon/mcp-ultra/pkg/types"
 )
 
 // TaskService handles task business logic
@@ -80,7 +80,7 @@ func (s *TaskService) CreateTask(ctx context.Context, req CreateTaskRequest) (*d
 
 	// Publish event
 	event := &domain.Event{
-		ID:          uuid.New(),
+		ID:          types.New(),
 		Type:        "task.created",
 		AggregateID: task.ID,
 		Data: map[string]interface{}{
@@ -110,7 +110,7 @@ func (s *TaskService) CreateTask(ctx context.Context, req CreateTaskRequest) (*d
 }
 
 // UpdateTask updates an existing task
-func (s *TaskService) UpdateTask(ctx context.Context, id uuid.UUID, req UpdateTaskRequest) (*domain.Task, error) {
+func (s *TaskService) UpdateTask(ctx context.Context, id types.UUID, req UpdateTaskRequest) (*domain.Task, error) {
 	// Get existing task
 	task, err := s.taskRepo.GetByID(ctx, id)
 	if err != nil {
@@ -150,7 +150,7 @@ func (s *TaskService) UpdateTask(ctx context.Context, id uuid.UUID, req UpdateTa
 
 	// Publish event
 	event := &domain.Event{
-		ID:          uuid.New(),
+		ID:          types.New(),
 		Type:        "task.updated",
 		AggregateID: task.ID,
 		Data: map[string]interface{}{
@@ -174,7 +174,7 @@ func (s *TaskService) UpdateTask(ctx context.Context, id uuid.UUID, req UpdateTa
 }
 
 // CompleteTask marks a task as completed
-func (s *TaskService) CompleteTask(ctx context.Context, id uuid.UUID) (*domain.Task, error) {
+func (s *TaskService) CompleteTask(ctx context.Context, id types.UUID) (*domain.Task, error) {
 	task, err := s.taskRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("task not found: %w", err)
@@ -192,7 +192,7 @@ func (s *TaskService) CompleteTask(ctx context.Context, id uuid.UUID) (*domain.T
 
 	// Publish event
 	event := &domain.Event{
-		ID:          uuid.New(),
+		ID:          types.New(),
 		Type:        "task.completed",
 		AggregateID: task.ID,
 		Data: map[string]interface{}{
@@ -216,7 +216,7 @@ func (s *TaskService) CompleteTask(ctx context.Context, id uuid.UUID) (*domain.T
 }
 
 // GetTask retrieves a task by ID with caching
-func (s *TaskService) GetTask(ctx context.Context, id uuid.UUID) (*domain.Task, error) {
+func (s *TaskService) GetTask(ctx context.Context, id types.UUID) (*domain.Task, error) {
 	// Try cache first
 	cacheKey := fmt.Sprintf("task:%s", id.String())
 	cachedData, err := s.cacheRepo.Get(ctx, cacheKey)
@@ -247,7 +247,7 @@ func (s *TaskService) ListTasks(ctx context.Context, filter domain.TaskFilter) (
 }
 
 // DeleteTask deletes a task
-func (s *TaskService) DeleteTask(ctx context.Context, id uuid.UUID) error {
+func (s *TaskService) DeleteTask(ctx context.Context, id types.UUID) error {
 	// Verify task exists
 	if _, err := s.taskRepo.GetByID(ctx, id); err != nil {
 		return fmt.Errorf("task not found: %w", err)
@@ -259,7 +259,7 @@ func (s *TaskService) DeleteTask(ctx context.Context, id uuid.UUID) error {
 
 	// Publish event
 	event := &domain.Event{
-		ID:          uuid.New(),
+		ID:          types.New(),
 		Type:        "task.deleted",
 		AggregateID: id,
 		Data: map[string]interface{}{
@@ -287,7 +287,7 @@ func (s *TaskService) GetTasksByStatus(ctx context.Context, status domain.TaskSt
 }
 
 // GetTasksByAssignee retrieves tasks assigned to a user
-func (s *TaskService) GetTasksByAssignee(ctx context.Context, assigneeID uuid.UUID) ([]*domain.Task, error) {
+func (s *TaskService) GetTasksByAssignee(ctx context.Context, assigneeID types.UUID) ([]*domain.Task, error) {
 	return s.taskRepo.GetByAssignee(ctx, assigneeID)
 }
 
@@ -307,7 +307,7 @@ func (s *TaskService) publishEvent(ctx context.Context, event *domain.Event) err
 }
 
 // invalidateTaskCache clears task-related cache entries
-func (s *TaskService) invalidateTaskCache(ctx context.Context) {
+func (s *TaskService) invalidateTaskCache(_ context.Context) {
 	// Implementation would depend on cache invalidation strategy
 	// For now, we'll just log it
 	s.logger.Debug("Task cache invalidated")
@@ -318,8 +318,8 @@ type CreateTaskRequest struct {
 	Title       string          `json:"title"`
 	Description string          `json:"description"`
 	Priority    domain.Priority `json:"priority"`
-	AssigneeID  *uuid.UUID      `json:"assignee_id"`
-	CreatedBy   uuid.UUID       `json:"created_by"`
+	AssigneeID  *types.UUID     `json:"assignee_id"`
+	CreatedBy   types.UUID      `json:"created_by"`
 	DueDate     *time.Time      `json:"due_date"`
 	Tags        []string        `json:"tags"`
 }
@@ -328,7 +328,7 @@ func (r CreateTaskRequest) Validate() error {
 	if r.Title == "" {
 		return fmt.Errorf("title is required")
 	}
-	if r.CreatedBy == uuid.Nil {
+	if r.CreatedBy == types.Nil {
 		return fmt.Errorf("created_by is required")
 	}
 	return nil
@@ -338,7 +338,7 @@ type UpdateTaskRequest struct {
 	Title       *string          `json:"title"`
 	Description *string          `json:"description"`
 	Priority    *domain.Priority `json:"priority"`
-	AssigneeID  *uuid.UUID       `json:"assignee_id"`
+	AssigneeID  *types.UUID      `json:"assignee_id"`
 	DueDate     *time.Time       `json:"due_date"`
 	Tags        []string         `json:"tags"`
 }

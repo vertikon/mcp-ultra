@@ -16,7 +16,7 @@ type publishedEvent struct {
 	payload []byte
 }
 
-func (m *mockPublisher) PublishWithRetry(ctx context.Context, subject string, payload []byte) error {
+func (m *mockPublisher) PublishWithRetry(_ context.Context, subject string, payload []byte) error {
 	m.published = append(m.published, publishedEvent{
 		subject: subject,
 		payload: payload,

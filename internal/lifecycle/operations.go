@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // OperationType represents different types of operations
@@ -111,7 +111,7 @@ type OperationsManager struct {
 
 	// Configuration
 	config OperationsConfig
-	logger logger.Logger
+	logger *logger.Logger
 
 	// Background processing
 	workerPool chan *Operation
@@ -147,7 +147,7 @@ func DefaultOperationsConfig() OperationsConfig {
 }
 
 // NewOperationsManager creates a new operations manager
-func NewOperationsManager(config OperationsConfig, logger logger.Logger) *OperationsManager {
+func NewOperationsManager(config OperationsConfig, logger *logger.Logger) *OperationsManager {
 	return &OperationsManager{
 		operations: make(map[string]*Operation),
 		history:    make([]Operation, 0, config.MaxHistorySize),
@@ -583,10 +583,10 @@ func (om *OperationsManager) addError(operation *Operation, message string) {
 
 // MaintenanceExecutor handles maintenance operations
 type MaintenanceExecutor struct {
-	logger logger.Logger
+	logger *logger.Logger
 }
 
-func NewMaintenanceExecutor(logger logger.Logger) *MaintenanceExecutor {
+func NewMaintenanceExecutor(logger *logger.Logger) *MaintenanceExecutor {
 	return &MaintenanceExecutor{logger: logger}
 }
 
@@ -616,7 +616,7 @@ func (me *MaintenanceExecutor) Execute(ctx context.Context, operation *Operation
 	return nil
 }
 
-func (me *MaintenanceExecutor) Rollback(ctx context.Context, operation *Operation) error {
+func (me *MaintenanceExecutor) Rollback(_ context.Context, operation *Operation) error {
 	me.logger.Info("Rolling back maintenance operation", "id", operation.ID)
 	return nil
 }

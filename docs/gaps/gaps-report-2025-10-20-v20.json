@@ -1,0 +1,91 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 12:05:41",
+  "Critical": [
+    {
+      "Type": "Código compila",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "Não compila: # github.com/vertikon/mcp-ultra/internal/slo\ninternal\\slo\\config.go:14:17: undefined: SLOTypeAvailability\ninternal\\slo\\config.go:94:17: undefined: SLOTypeLatency\ninternal\\slo\\config.go:144:17: undefin...",
+      "Suggestion": "Corrija os erros de compilação listados",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Corrija os erros de compilação manualmente, um por um",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "# github.com/vertikon/mcp-ultra/internal/slo",
+        "internal\\slo\\config.go:14:17: undefined: SLOTypeAvailability",
+        "internal\\slo\\config.go:94:17: undefined: SLOTypeLatency",
+        "internal\\slo\\config.go:144:17: undefined: SLOTypeAvailability",
+        "internal\\slo\\config.go:193:17: undefined: SLOTypeAvailability",
+        "internal\\slo\\config.go:242:17: undefined: SLOTypeAccuracy",
+        "internal\\slo\\config.go:292:17: undefined: SLOTypeThroughput",
+        "internal\\slo\\config.go:340:17: undefined: SLOTypeAccuracy",
+        "internal\\slo\\config.go:410:41: undefined: SLOType",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Formatação (gofmt)",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "1 arquivo(s) mal formatado(s)",
+      "Suggestion": "Execute: gofmt -w . ou gofumpt -w .",
+      "Fixability": {
+        "Safe": true,
+        "RollbackEasy": true,
+        "AffectsBehavior": false,
+        "RequiresReview": false,
+        "AutoFixCommand": "gofmt -w . \u0026\u0026 goimports -w .",
+        "ManualSteps": "",
+        "NonFixableReason": ""
+      },
+      "Examples": [
+        "internal\\slo\\monitor.go"
+      ],
+      "NonFixableReason": ""
+    },
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/slo\\ninternal\\\\slo\\\\config.go:14:17: undefined: SLOTypeAvailability\\ninternal\\\\slo\\\\config.go:94:17: undefined: SLOTypeLatency\\ninternal\\\\slo\\\\config.go:144:17: undefined: SLOTypeAvailability\\ninternal\\\\slo\\\\config.go:193:17: undefined: SLOTypeAvailability\\ninternal\\\\slo\\\\config.go:242:17: undefined: SLOTypeAccuracy\\ninternal\\\\slo\\\\config.go:292:17: undefined: SLOTypeThroughput\\ninternal\\\\slo\\\\config.go:340:17: undefined: SLOTypeAccuracy\\ninternal\\\\slo\\\\config.go:410:41: undefined: SLOType\"",
+        "pkg\\httpx\\httpx.go:140:14: unused-parameter: parameter 'timeout' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func Timeout(timeout int) func(http.Handler) http.Handler {",
+        "             ^",
+        "pkg\\httpx\\httpx.go:179:51: unused-parameter: parameter 'protoMajor' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func NewWrapResponseWriter(w http.ResponseWriter, protoMajor int) ResponseWriter {",
+        "                                                  ^",
+        "internal\\metrics\\storage.go:186:47: unused-parameter: parameter 'groupKey' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (mms *MemoryMetricStorage) extractLabels(groupKey string, groupBy []string) map[string]string {",
+        "                                              ^"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 3,
+  "Score": 85,
+  "AutoFixable": 1,
+  "Manual": 2
+}

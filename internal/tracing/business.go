@@ -13,15 +13,15 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // BusinessTransactionTracer provides advanced tracing for critical business transactions
 type BusinessTransactionTracer struct {
 	tracer    trace.Tracer
-	config    TracingConfig
-	logger    logger.Logger
+	config    Config
+	logger    *logger.Logger
 	telemetry *observability.TelemetryService
 
 	// State
@@ -36,8 +36,8 @@ type BusinessTransactionTracer struct {
 	wg     sync.WaitGroup
 }
 
-// TracingConfig configures business transaction tracing
-type TracingConfig struct {
+// Config configures business transaction tracing
+type Config struct {
 	// General settings
 	Enabled        bool   `yaml:"enabled"`
 	ServiceName    string `yaml:"service_name"`
@@ -235,9 +235,9 @@ const (
 	EventLevelCritical EventLevel = "critical"
 )
 
-// DefaultTracingConfig returns default tracing configuration
-func DefaultTracingConfig() TracingConfig {
-	return TracingConfig{
+// DefaultConfig returns default tracing configuration
+func DefaultConfig() Config {
+	return Config{
 		Enabled:              true,
 		ServiceName:          "mcp-ultra",
 		ServiceVersion:       "1.0.0",
@@ -268,7 +268,7 @@ func DefaultTracingConfig() TracingConfig {
 }
 
 // NewBusinessTransactionTracer creates a new business transaction tracer
-func NewBusinessTransactionTracer(config TracingConfig, logger logger.Logger, telemetry *observability.TelemetryService) (*BusinessTransactionTracer, error) {
+func NewBusinessTransactionTracer(config Config, logger *logger.Logger, telemetry *observability.TelemetryService) (*BusinessTransactionTracer, error) {
 	tracer := otel.Tracer(config.ServiceName)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -732,7 +732,7 @@ func (btt *BusinessTransactionTracer) initializeDefaultTemplates() {
 	}
 }
 
-func (btt *BusinessTransactionTracer) shouldSample(template *TransactionTemplate, attributes map[string]interface{}) bool {
+func (btt *BusinessTransactionTracer) shouldSample(template *TransactionTemplate, _ map[string]interface{}) bool {
 	if template != nil && template.Critical {
 		return true // Always sample critical transactions
 	}

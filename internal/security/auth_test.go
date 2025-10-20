@@ -141,7 +141,7 @@ func TestJWTMiddleware_NoAuthHeader(t *testing.T) {
 
 	authService := NewAuthService(config, logger, opa)
 
-	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		t.Error("Handler should not be called")
 	})
 
@@ -164,7 +164,7 @@ func TestJWTMiddleware_InvalidToken(t *testing.T) {
 
 	authService := NewAuthService(config, logger, opa)
 
-	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		t.Error("Handler should not be called")
 	})
 
@@ -216,7 +216,7 @@ func TestJWTMiddleware_AuthorizationDenied(t *testing.T) {
 	// Mock OPA authorization - return false
 	opa.On("IsAuthorized", mock.Anything, mock.AnythingOfType("*security.Claims"), "GET", "/api/v1/tasks").Return(false)
 
-	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		t.Error("Handler should not be called")
 	})
 
@@ -241,7 +241,7 @@ func TestJWTMiddleware_HealthEndpoints(t *testing.T) {
 
 	authService := NewAuthService(config, logger, opa)
 
-	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		if _, writeErr := w.Write([]byte("healthy")); writeErr != nil {
 			t.Logf("Warning: failed to write response: %v", writeErr)
@@ -284,7 +284,7 @@ func TestJWKToRSA(t *testing.T) {
 }
 
 func TestRequireScope(t *testing.T) {
-	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		if _, writeErr := w.Write([]byte("authorized")); writeErr != nil {
 			t.Logf("Warning: failed to write response: %v", writeErr)
@@ -299,7 +299,7 @@ func TestRequireScope(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("GET", "/api/v1/tasks", nil)
-		ctx := context.WithValue(req.Context(), "user", claims)
+		ctx := context.WithValue(req.Context(), userKey, claims)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -320,7 +320,7 @@ func TestRequireScope(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("DELETE", "/api/v1/tasks/123", nil)
-		ctx := context.WithValue(req.Context(), "user", claims)
+		ctx := context.WithValue(req.Context(), userKey, claims)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -346,7 +346,7 @@ func TestRequireScope(t *testing.T) {
 }
 
 func TestRequireRole(t *testing.T) {
-	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		if _, writeErr := w.Write([]byte("authorized")); writeErr != nil {
 			t.Logf("Warning: failed to write response: %v", writeErr)
@@ -361,7 +361,7 @@ func TestRequireRole(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("GET", "/api/v1/users", nil)
-		ctx := context.WithValue(req.Context(), "user", claims)
+		ctx := context.WithValue(req.Context(), userKey, claims)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -382,7 +382,7 @@ func TestRequireRole(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("GET", "/api/v1/users", nil)
-		ctx := context.WithValue(req.Context(), "user", claims)
+		ctx := context.WithValue(req.Context(), userKey, claims)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -402,7 +402,7 @@ func TestRequireRole(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("GET", "/api/v1/manager", nil)
-		ctx := context.WithValue(req.Context(), "user", claims)
+		ctx := context.WithValue(req.Context(), userKey, claims)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -425,7 +425,7 @@ func TestGetUserFromContext(t *testing.T) {
 			Role:   "user",
 		}
 
-		ctx := context.WithValue(context.Background(), "user", claims)
+		ctx := context.WithValue(context.Background(), userKey, claims)
 
 		user, err := GetUserFromContext(ctx)
 		assert.NoError(t, err)
@@ -444,7 +444,7 @@ func TestGetUserFromContext(t *testing.T) {
 
 	// Test with invalid user context type
 	t.Run("InvalidUserContext", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), "user", "invalid")
+		ctx := context.WithValue(context.Background(), userKey, "invalid")
 
 		user, err := GetUserFromContext(ctx)
 		assert.Error(t, err)

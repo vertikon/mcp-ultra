@@ -652,10 +652,10 @@ func (am *AlertManager) renderTemplate(template string, alert AlertEvent) string
 
 func (am *AlertManager) getSeverityColor(severity string) string {
 	switch strings.ToLower(severity) {
-	case "critical":
+	case string(SeverityCritical):
 		return "danger"
-	case "warning":
-		return "warning"
+	case string(SeverityWarning):
+		return string(SeverityWarning)
 	case "info":
 		return "good"
 	default:
@@ -665,9 +665,9 @@ func (am *AlertManager) getSeverityColor(severity string) string {
 
 func (am *AlertManager) getSeverityColorInt(severity string) int {
 	switch strings.ToLower(severity) {
-	case "critical":
+	case string(SeverityCritical):
 		return 0xFF0000 // Red
-	case "warning":
+	case string(SeverityWarning):
 		return 0xFFA500 // Orange
 	case "info":
 		return 0x00FF00 // Green

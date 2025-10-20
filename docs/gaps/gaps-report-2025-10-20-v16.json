@@ -1,0 +1,41 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 11:50:55",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\lifecycle\\manager.go:15:6: exported: type name will be used as lifecycle.LifecycleState by other packages, and that stutters; consider calling this State (revive)",
+        "type LifecycleState int32",
+        "     ^",
+        "internal\\lifecycle\\manager.go:63:6: exported: type name will be used as lifecycle.LifecycleEvent by other packages, and that stutters; consider calling this Event (revive)",
+        "type LifecycleEvent struct {",
+        "     ^",
+        "internal\\lifecycle\\manager.go:74:6: exported: type name will be used as lifecycle.LifecycleManager by other packages, and that stutters; consider calling this Manager (revive)",
+        "type LifecycleManager struct {",
+        "     ^",
+        "internal\\lifecycle\\manager.go:387:6: exported: type name will be used as lifecycle.LifecycleMetrics by other packages, and that stutters; consider calling this Metrics (revive)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

@@ -7,17 +7,17 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/vertikon/mcp-ultra-fix/pkg/types"
+	"github.com/vertikon/mcp-ultra/pkg/types"
 	"go.uber.org/zap/zaptest"
 )
 
-func createTestComplianceFramework(t *testing.T) *ComplianceFramework {
+func createTestFramework(t *testing.T) *Framework {
 	t.Helper()
 
 	// Set encryption key for audit logging (AES-256 requires 32 bytes = 64 hex chars)
 	t.Setenv("AUDIT_ENCRYPTION_KEY", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
 
-	config := ComplianceConfig{
+	config := Config{
 		Enabled:       true,
 		DefaultRegion: "BR",
 		PIIDetection: PIIDetectionConfig{
@@ -87,22 +87,22 @@ func createTestComplianceFramework(t *testing.T) *ComplianceFramework {
 	}
 
 	logger := zaptest.NewLogger(t)
-	framework, err := NewComplianceFramework(config, logger)
+	framework, err := NewFramework(config, logger)
 	require.NoError(t, err)
 	require.NotNil(t, framework)
 
 	return framework
 }
 
-func TestComplianceFramework_Creation(t *testing.T) {
-	framework := createTestComplianceFramework(t)
+func TestFramework_Creation(t *testing.T) {
+	framework := createTestFramework(t)
 	assert.NotNil(t, framework)
 	assert.True(t, framework.config.Enabled)
 	assert.Equal(t, "BR", framework.config.DefaultRegion)
 }
 
-func TestComplianceFramework_PIIDetection(t *testing.T) {
-	framework := createTestComplianceFramework(t)
+func TestFramework_PIIDetection(t *testing.T) {
+	framework := createTestFramework(t)
 	ctx := context.Background()
 
 	testData := map[string]interface{}{
@@ -127,11 +127,11 @@ func TestComplianceFramework_PIIDetection(t *testing.T) {
 	assert.NotContains(t, result.DetectedFields, "age")
 }
 
-func TestComplianceFramework_ConsentManagement(t *testing.T) {
-	framework := createTestComplianceFramework(t)
+func TestFramework_ConsentManagement(t *testing.T) {
+	framework := createTestFramework(t)
 	ctx := context.Background()
 
-	userID := types.NewUUID()
+	userID := types.New()
 	purposes := []string{"processing", "analytics"}
 
 	// Record consent
@@ -163,11 +163,11 @@ func TestComplianceFramework_ConsentManagement(t *testing.T) {
 	assert.True(t, hasConsent)
 }
 
-func TestComplianceFramework_DataRetention(t *testing.T) {
-	framework := createTestComplianceFramework(t)
+func TestFramework_DataRetention(t *testing.T) {
+	framework := createTestFramework(t)
 	ctx := context.Background()
 
-	userID := types.NewUUID()
+	userID := types.New()
 	dataCategory := "personal"
 
 	// Record data creation
@@ -189,11 +189,11 @@ func TestComplianceFramework_DataRetention(t *testing.T) {
 	assert.False(t, shouldDelete)
 }
 
-func TestComplianceFramework_DataRights_Access(t *testing.T) {
-	framework := createTestComplianceFramework(t)
+func TestFramework_DataRights_Access(t *testing.T) {
+	framework := createTestFramework(t)
 	ctx := context.Background()
 
-	userID := types.NewUUID()
+	userID := types.New()
 
 	// Record some data
 	err := framework.RecordDataCreation(ctx, userID, "personal", map[string]interface{}{
@@ -205,7 +205,7 @@ func TestComplianceFramework_DataRights_Access(t *testing.T) {
 	// Process data access request
 	request := DataAccessRequest{
 		SubjectID: userID.String(),
-		RequestID: types.NewUUID().String(),
+		RequestID: types.New().String(),
 		Scope:     "all",
 		Category:  "personal",
 		Format:    "json",
@@ -216,11 +216,11 @@ func TestComplianceFramework_DataRights_Access(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestComplianceFramework_DataRights_Deletion(t *testing.T) {
-	framework := createTestComplianceFramework(t)
+func TestFramework_DataRights_Deletion(t *testing.T) {
+	framework := createTestFramework(t)
 	ctx := context.Background()
 
-	userID := types.NewUUID()
+	userID := types.New()
 
 	// Record some data
 	err := framework.RecordDataCreation(ctx, userID, "personal", map[string]interface{}{
@@ -232,7 +232,7 @@ func TestComplianceFramework_DataRights_Deletion(t *testing.T) {
 	// Process deletion request
 	request := DataDeletionRequest{
 		SubjectID: userID.String(),
-		RequestID: types.NewUUID().String(),
+		RequestID: types.New().String(),
 		Scope:     "all",
 		Category:  "personal",
 		Reason:    "user_request",
@@ -243,11 +243,11 @@ func TestComplianceFramework_DataRights_Deletion(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestComplianceFramework_Anonymization(t *testing.T) {
-	framework := createTestComplianceFramework(t)
+func TestFramework_Anonymization(t *testing.T) {
+	framework := createTestFramework(t)
 	ctx := context.Background()
 
-	userID := types.NewUUID()
+	userID := types.New()
 
 	// Record some data first
 	err := framework.RecordDataCreation(ctx, userID, "personal", map[string]interface{}{
@@ -263,11 +263,11 @@ func TestComplianceFramework_Anonymization(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestComplianceFramework_AuditLogging(t *testing.T) {
-	framework := createTestComplianceFramework(t)
+func TestFramework_AuditLogging(t *testing.T) {
+	framework := createTestFramework(t)
 	ctx := context.Background()
 
-	userID := types.NewUUID()
+	userID := types.New()
 	eventType := "data_access"
 	details := map[string]interface{}{
 		"requested_fields": []string{"name", "email"},
@@ -276,7 +276,7 @@ func TestComplianceFramework_AuditLogging(t *testing.T) {
 
 	// Log audit event
 	event := AuditEvent{
-		ID:             types.NewUUID().String(),
+		ID:             types.New().String(),
 		SubjectID:      userID.String(),
 		EventType:      AuditEventType(eventType),
 		ProcessingType: "data_access",
@@ -304,8 +304,8 @@ func TestComplianceFramework_AuditLogging(t *testing.T) {
 	}
 }
 
-func TestComplianceFramework_GetComplianceStatus(t *testing.T) {
-	framework := createTestComplianceFramework(t)
+func TestFramework_GetComplianceStatus(t *testing.T) {
+	framework := createTestFramework(t)
 	ctx := context.Background()
 
 	status, err := framework.GetComplianceStatus(ctx)
@@ -325,18 +325,18 @@ func TestComplianceFramework_GetComplianceStatus(t *testing.T) {
 	assert.True(t, status["gdpr_enabled"].(bool))
 }
 
-func TestComplianceFramework_ValidateCompliance(t *testing.T) {
-	framework := createTestComplianceFramework(t)
+func TestFramework_ValidateCompliance(t *testing.T) {
+	framework := createTestFramework(t)
 	ctx := context.Background()
 
-	userID := types.NewUUID()
+	userID := types.New()
 
 	// Record consent first
 	err := framework.RecordConsent(ctx, userID, []string{"processing"}, "web")
 	assert.NoError(t, err)
 
 	// Validate compliance for data processing
-	isValid, err := framework.ValidateCompliance(ctx, ComplianceValidationRequest{
+	isValid, err := framework.ValidateCompliance(ctx, ValidationRequest{
 		SubjectID:    userID.String(),
 		DataCategory: "personal",
 		Purpose:      "processing",
@@ -346,8 +346,8 @@ func TestComplianceFramework_ValidateCompliance(t *testing.T) {
 	assert.True(t, isValid)
 
 	// Test validation without consent
-	isValid, err = framework.ValidateCompliance(ctx, ComplianceValidationRequest{
-		SubjectID:    types.NewUUID().String(), // Different user without consent
+	isValid, err = framework.ValidateCompliance(ctx, ValidationRequest{
+		SubjectID:    types.New().String(), // Different user without consent
 		DataCategory: "personal",
 		Purpose:      "processing",
 		Metadata:     map[string]interface{}{},
@@ -356,10 +356,10 @@ func TestComplianceFramework_ValidateCompliance(t *testing.T) {
 	assert.False(t, isValid)
 }
 
-func TestComplianceFramework_ConcurrentOperations(t *testing.T) {
+func TestFramework_ConcurrentOperations(t *testing.T) {
 	t.Skip("Skipping: InMemoryConsentRepository has race condition - requires mutex protection")
 
-	framework := createTestComplianceFramework(t)
+	framework := createTestFramework(t)
 	ctx := context.Background()
 
 	numOperations := 50
@@ -367,8 +367,8 @@ func TestComplianceFramework_ConcurrentOperations(t *testing.T) {
 
 	// Run concurrent consent operations
 	for i := 0; i < numOperations; i++ {
-		go func(i int) {
-			userID := types.NewUUID()
+		go func(_ int) {
+			userID := types.New()
 			purposes := []string{"processing", "analytics"}
 
 			err := framework.RecordConsent(ctx, userID, purposes, "web")
@@ -388,13 +388,13 @@ func TestComplianceFramework_ConcurrentOperations(t *testing.T) {
 	}
 }
 
-func TestComplianceFramework_ConfigValidation(t *testing.T) {
+func TestFramework_ConfigValidation(t *testing.T) {
 	t.Skip("Skipping: Config validation needs enhancement - framework currently accepts invalid configs")
 
 	logger := zaptest.NewLogger(t)
 
 	// Test with invalid config (disabled PIIDetection but AutoMask enabled)
-	invalidConfig := ComplianceConfig{
+	invalidConfig := Config{
 		Enabled: true,
 		PIIDetection: PIIDetectionConfig{
 			Enabled:  false,
@@ -402,7 +402,7 @@ func TestComplianceFramework_ConfigValidation(t *testing.T) {
 		},
 	}
 
-	framework, err := NewComplianceFramework(invalidConfig, logger)
+	framework, err := NewFramework(invalidConfig, logger)
 	// Should handle gracefully or return meaningful error
 	if err != nil {
 		assert.Contains(t, err.Error(), "invalid configuration")

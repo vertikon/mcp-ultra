@@ -1,0 +1,41 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 08:48:57",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\repository\\redis\\cache_repository.go:9:2: import 'github.com/redis/go-redis/v9' is not allowed from list 'main': Use pkg/redisx facade (depguard)",
+        "\t\"github.com/redis/go-redis/v9\"",
+        "\t^",
+        "internal\\repository\\redis\\connection.go:7:2: import 'github.com/redis/go-redis/v9' is not allowed from list 'main': Use pkg/redisx facade (depguard)",
+        "\t\"github.com/redis/go-redis/v9\"",
+        "\t^",
+        "internal\\cache\\distributed.go:18:6: exported: type name will be used as cache.CacheStrategy by other packages, and that stutters; consider calling this Strategy (revive)",
+        "type CacheStrategy string",
+        "     ^",
+        "internal\\cache\\distributed.go:38:6: exported: type name will be used as cache.CacheConfig by other packages, and that stutters; consider calling this Config (revive)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

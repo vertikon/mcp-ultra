@@ -1,0 +1,97 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-19 22:53:52",
+  "Critical": [
+    {
+      "Type": "Código compila",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "Não compila: # github.com/vertikon/mcp-ultra/internal/handlers/http\ninternal\\handlers\\http\\router.go:41:4: undefined: chi\ninternal\\handlers\\http\\router.go:45:8: undefined: middleware\ninternal\\handlers\\http\\router....",
+      "Suggestion": "Corrija os erros de compilação listados",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Corrija os erros de compilação manualmente, um por um",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "# github.com/vertikon/mcp-ultra/internal/handlers/http",
+        "internal\\handlers\\http\\router.go:41:4: undefined: chi",
+        "internal\\handlers\\http\\router.go:45:8: undefined: middleware",
+        "internal\\handlers\\http\\router.go:46:8: undefined: middleware",
+        "internal\\handlers\\http\\router.go:47:8: undefined: middleware",
+        "internal\\handlers\\http\\router.go:48:8: undefined: middleware",
+        "internal\\handlers\\http\\router.go:49:8: undefined: middleware",
+        "internal\\handlers\\http\\router.go:53:8: undefined: cors",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    },
+    {
+      "Type": "Erros não tratados",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "8 erro(s) não tratado(s)",
+      "Suggestion": "Adicione verificação de erro: if err != nil { ... }",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": true,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Para cada erro não tratado, decida:\n   a) Retornar o erro (wrap com context)\n   b) Logar e continuar\n   c) Logar e retornar\n2. Adicione if err != nil { } manualmente",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "error: failed to check packages: errors while loading package github.com/vertikon/mcp-ultra/internal/handlers/http: [-: # github.com/vertikon/mcp-ultra/internal/handlers/http",
+        "internal\\handlers\\http\\router.go:41:4: undefined: chi",
+        "internal\\handlers\\http\\router.go:45:8: undefined: middleware",
+        "internal\\handlers\\http\\router.go:46:8: undefined: middleware",
+        "internal\\handlers\\http\\router.go:47:8: undefined: middleware",
+        "internal\\handlers\\http\\router.go:48:8: undefined: middleware",
+        "internal\\handlers\\http\\router.go:49:8: undefined: middleware",
+        "internal\\handlers\\http\\router.go:53:8: undefined: cors E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\handlers\\http\\router.go:41:4: undefined: chi E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\handlers\\http\\router.go:45:8: undefined: middleware E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\handlers\\http\\router.go:46:8: undefined: middleware E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\handlers\\http\\router.go:47:8: undefined: middleware E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\handlers\\http\\router.go:48:8: undefined: middleware E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\handlers\\http\\router.go:49:8: undefined: middleware E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\handlers\\http\\router.go:53:8: undefined: cors E:\\vertikon\\business\\SaaS\\templates\\mcp-ultra\\internal\\handlers\\http\\router.go:53:21: undefined: cors]"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/handlers/http [github.com/vertikon/mcp-ultra/internal/handlers/http.test]\\ninternal\\\\handlers\\\\http\\\\router.go:41:4: undefined: chi\\ninternal\\\\handlers\\\\http\\\\router.go:45:8: undefined: middleware\\ninternal\\\\handlers\\\\http\\\\router.go:46:8: undefined: middleware\\ninternal\\\\handlers\\\\http\\\\router.go:47:8: undefined: middleware\\ninternal\\\\handlers\\\\http\\\\router.go:48:8: undefined: middleware\\ninternal\\\\handlers\\\\http\\\\router.go:49:8: undefined: middleware\\ninternal\\\\handlers\\\\http\\\\router.go:53:8: undefined: cors\\ninternal\\\\handlers\\\\http\\\\router_test.go:112:44: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)\\n\\t\\thave RegisterRoutes(chi.Router)\\n\\t\\twant RegisterRoutes(\\\"github.com/vertikon/mcp-ultra/pkg/httpx\\\".Router)\\ninternal\\\\handlers\\\\http\\\\router_test.go:191:46: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)\\n\\t\\thave RegisterRoutes(chi.Router)\\n\\t\\twant RegisterRoutes(\\\"github.com/vertikon/mcp-ultra/pkg/httpx\\\".Router)\\ninternal\\\\handlers\\\\http\\\\router_test.go:216:44: cannot use mockHealthService (variable of type *MockHealthService) as HealthServiceInterface value in argument to NewRouter: *MockHealthService does not implement HealthServiceInterface (wrong type for method RegisterRoutes)\\n\\t\\thave RegisterRoutes(chi.Router)\\n\\t\\twant RegisterRoutes(\\\"github.com/vertikon/mcp-ultra/pkg/httpx\\\".Router)\\ninternal\\\\handlers\\\\http\\\\router_test.go:216:44: too many errors\"",
+        "internal\\compliance\\framework_test.go:370:11: unused-parameter: parameter 'i' seems to be unused, consider removing or renaming it as _ (revive)",
+        "\t\tgo func(i int) {",
+        "\t\t        ^",
+        "internal\\compliance\\audit_logger.go:356:39: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (al *AuditLogger) QueryAuditLogs(ctx context.Context, filters map[string]interface{}, limit int) ([]AuditEvent, error) {",
+        "                                      ^",
+        "internal\\compliance\\consent_manager.go:318:39: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (cm *ConsentManager) HealthCheck(ctx context.Context) map[string]interface{} {",
+        "                                      ^"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 3,
+  "Score": 85,
+  "AutoFixable": 0,
+  "Manual": 3
+}

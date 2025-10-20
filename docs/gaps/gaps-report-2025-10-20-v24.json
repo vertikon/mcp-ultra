@@ -1,0 +1,41 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 13:03:23",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/config [github.com/vertikon/mcp-ultra/internal/config.test]\\ninternal\\\\config\\\\tls_test.go:14:7: initialization cycle: invalidValue refers to itself\"",
+        "test\\component\\task_service_test.go:396:31: SA1029: should not use built-in type string as key for value; define your own type to avoid collisions (staticcheck)",
+        "\tctx = context.WithValue(ctx, \"user_role\", \"admin\")",
+        "\t                             ^",
+        "internal\\handlers\\health.go:53:54: unused-parameter: parameter 'r' seems to be unused, consider removing or renaming it as _ (revive)",
+        "\treturn http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {",
+        "\t                                                    ^",
+        "internal\\slo\\alerting.go:230:1: cyclomatic complexity 21 of func `(*AlertManager).shouldSilence` is high (\u003e 18) (gocyclo)",
+        "func (am *AlertManager) shouldSilence(alert AlertEvent) bool {",
+        "^"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

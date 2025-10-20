@@ -158,3 +158,56 @@ func URLParamFromCtx(ctx interface{}, key string) string {
 	}
 	return ""
 }
+
+// ResponseWriter is an interface that wraps http.ResponseWriter and adds
+// methods to capture the status code and bytes written.
+type ResponseWriter interface {
+	http.ResponseWriter
+	Status() int
+	BytesWritten() int
+}
+
+// wrapResponseWriter is an implementation of ResponseWriter.
+type wrapResponseWriter struct {
+	http.ResponseWriter
+	status       int
+	bytesWritten int
+	wroteHeader  bool
+}
+
+// NewWrapResponseWriter creates a new wrapped response writer.
+func NewWrapResponseWriter(w http.ResponseWriter, protoMajor int) ResponseWriter {
+	return &wrapResponseWriter{
+		ResponseWriter: w,
+		status:         http.StatusOK,
+	}
+}
+
+// WriteHeader captures the status code and calls the underlying WriteHeader.
+func (w *wrapResponseWriter) WriteHeader(status int) {
+	if !w.wroteHeader {
+		w.status = status
+		w.wroteHeader = true
+		w.ResponseWriter.WriteHeader(status)
+	}
+}
+
+// Write captures bytes written and calls the underlying Write.
+func (w *wrapResponseWriter) Write(b []byte) (int, error) {
+	if !w.wroteHeader {
+		w.WriteHeader(http.StatusOK)
+	}
+	n, err := w.ResponseWriter.Write(b)
+	w.bytesWritten += n
+	return n, err
+}
+
+// Status returns the HTTP status code.
+func (w *wrapResponseWriter) Status() int {
+	return w.status
+}
+
+// BytesWritten returns the number of bytes written.
+func (w *wrapResponseWriter) BytesWritten() int {
+	return w.bytesWritten
+}

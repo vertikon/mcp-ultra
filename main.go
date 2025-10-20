@@ -10,17 +10,23 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/httpx"
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
-	"github.com/vertikon/mcp-ultra-fix/pkg/metrics"
-	"github.com/vertikon/mcp-ultra-fix/pkg/version"
+	"go.uber.org/zap"
+
 	"github.com/vertikon/mcp-ultra/internal/config"
 	"github.com/vertikon/mcp-ultra/internal/handlers"
+	"github.com/vertikon/mcp-ultra/pkg/httpx"
+	"github.com/vertikon/mcp-ultra/pkg/metrics"
+)
+
+var (
+	Version   = "dev"
+	BuildDate = "unknown"
+	GitCommit = "unknown"
 )
 
 func main() {
 	// Initialize logger
-	logger, err := logger.NewLogger()
+	logger, err := zap.NewProduction()
 	if err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
@@ -32,15 +38,15 @@ func main() {
 	}()
 
 	logger.Info("Starting MCP Ultra service",
-		"version", version.Version,
-		"build_date", version.BuildDate,
-		"commit", version.GitCommit,
+		zap.String("version", Version),
+		zap.String("build_date", BuildDate),
+		zap.String("commit", GitCommit),
 	)
 
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
-		logger.Fatal("Failed to load configuration", "error", err)
+		logger.Fatal("Failed to load configuration", zap.Error(err))
 	}
 
 	// Initialize HTTP router
@@ -51,17 +57,10 @@ func main() {
 	router.Use(httpx.RealIP)
 	router.Use(httpx.Logger)
 	router.Use(httpx.Recoverer)
-	router.Use(httpx.Timeout(60 * time.Second))
+	router.Use(httpx.Timeout(60)) // Timeout in seconds
 
 	// CORS configuration
-	router.Use(httpx.CORS(httpx.CORSOptions{
-		AllowedOrigins:   []string{"*"}, // Configure appropriately for production
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
-		MaxAge:           300,
-	}))
+	router.Use(httpx.DefaultCORS())
 
 	// Initialize health handler
 	healthHandler := handlers.NewHealthHandler()
@@ -70,7 +69,7 @@ func main() {
 	router.Get("/livez", healthHandler.Livez)
 	router.Get("/readyz", healthHandler.Readyz)
 	router.Get("/health", healthHandler.Health)
-	router.Get("/metrics", metrics.Handler().ServeHTTP)
+	router.Method("GET", "/metrics", metrics.Handler())
 
 	// Create HTTP server
 	server := &http.Server{
@@ -84,12 +83,12 @@ func main() {
 	// Start server in goroutine
 	go func() {
 		logger.Info("Starting HTTP server",
-			"address", server.Addr,
-			"port", cfg.Server.Port,
+			zap.String("address", server.Addr),
+			zap.Int("port", cfg.Server.Port),
 		)
 
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatal("Failed to start HTTP server", "error", err)
+			logger.Fatal("Failed to start HTTP server", zap.Error(err))
 		}
 	}()
 
@@ -106,7 +105,7 @@ func main() {
 
 	// Shutdown HTTP server
 	if err := server.Shutdown(ctx); err != nil {
-		logger.Error("Server forced to shutdown", "error", err)
+		logger.Error("Server forced to shutdown", zap.Error(err))
 	}
 
 	logger.Info("Server exited")

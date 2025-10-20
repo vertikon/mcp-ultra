@@ -1,0 +1,71 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 09:09:08",
+  "Critical": [
+    {
+      "Type": "Código compila",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "Não compila: # github.com/vertikon/mcp-ultra/internal/ratelimit\ninternal\\ratelimit\\distributed.go:166:9: undefined: redis\ninternal\\ratelimit\\distributed.go:172:9: undefined: redis\ninternal\\ratelimit\\distributed.go...",
+      "Suggestion": "Corrija os erros de compilação listados",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Corrija os erros de compilação manualmente, um por um",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "# github.com/vertikon/mcp-ultra/internal/ratelimit",
+        "internal\\ratelimit\\distributed.go:166:9: undefined: redis",
+        "internal\\ratelimit\\distributed.go:172:9: undefined: redis",
+        "internal\\ratelimit\\distributed.go:178:9: undefined: redis",
+        "internal\\ratelimit\\distributed.go:200:17: undefined: redis",
+        "internal\\ratelimit\\distributed.go:201:17: undefined: redis",
+        "internal\\ratelimit\\distributed.go:202:17: undefined: redis",
+        "internal\\ratelimit\\distributed.go:203:17: undefined: redis",
+        "internal\\ratelimit\\distributed.go:204:17: undefined: redis",
+        "internal\\ratelimit\\distributed.go:230:39: undefined: redis"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/ratelimit\\ninternal\\\\ratelimit\\\\distributed.go:166:9: undefined: redis\\ninternal\\\\ratelimit\\\\distributed.go:172:9: undefined: redis\\ninternal\\\\ratelimit\\\\distributed.go:178:9: undefined: redis\\ninternal\\\\ratelimit\\\\distributed.go:200:17: undefined: redis\\ninternal\\\\ratelimit\\\\distributed.go:201:17: undefined: redis\\ninternal\\\\ratelimit\\\\distributed.go:202:17: undefined: redis\\ninternal\\\\ratelimit\\\\distributed.go:203:17: undefined: redis\\ninternal\\\\ratelimit\\\\distributed.go:204:17: undefined: redis\\ninternal\\\\ratelimit\\\\distributed.go:230:39: undefined: redis\\ninternal\\\\ratelimit\\\\distributed.go:234:18: undefined: redis\\ninternal\\\\ratelimit\\\\distributed.go:234:18: too many errors\"",
+        "internal\\events\\nats_bus.go:221:46: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (h *TaskEventHandler) handleTaskDeleted(ctx context.Context, event *domain.Event) error {",
+        "                                             ^",
+        "internal\\events\\nats_bus.go:9:2: import 'github.com/nats-io/nats.go' is not allowed from list 'main': Use pkg/natsx facade (depguard)",
+        "\t\"github.com/nats-io/nats.go\"",
+        "\t^",
+        "internal\\slo\\alerting.go:657:7: string `warning` has 3 occurrences, but such constant `SeverityWarning` already exists (goconst)",
+        "\tcase \"warning\":",
+        "\t     ^"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 2,
+  "Score": 90,
+  "AutoFixable": 0,
+  "Manual": 2
+}

@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/vertikon/mcp-ultra/internal/domain"
 	"github.com/vertikon/mcp-ultra/internal/services"
+	"github.com/vertikon/mcp-ultra/pkg/httpx"
+	"github.com/vertikon/mcp-ultra/pkg/types"
 )
 
 // TaskHandlers handles HTTP requests for tasks
@@ -48,8 +48,8 @@ func (h *TaskHandlers) CreateTask(w http.ResponseWriter, r *http.Request) {
 
 // GetTask handles task retrieval
 func (h *TaskHandlers) GetTask(w http.ResponseWriter, r *http.Request) {
-	taskIDStr := chi.URLParam(r, "id")
-	taskID, err := uuid.Parse(taskIDStr)
+	taskIDStr := httpx.URLParam(r, "id")
+	taskID, err := types.Parse(taskIDStr)
 	if err != nil {
 		h.writeErrorResponse(w, http.StatusBadRequest, "Invalid task ID", err)
 		return
@@ -67,8 +67,8 @@ func (h *TaskHandlers) GetTask(w http.ResponseWriter, r *http.Request) {
 
 // UpdateTask handles task updates
 func (h *TaskHandlers) UpdateTask(w http.ResponseWriter, r *http.Request) {
-	taskIDStr := chi.URLParam(r, "id")
-	taskID, err := uuid.Parse(taskIDStr)
+	taskIDStr := httpx.URLParam(r, "id")
+	taskID, err := types.Parse(taskIDStr)
 	if err != nil {
 		h.writeErrorResponse(w, http.StatusBadRequest, "Invalid task ID", err)
 		return
@@ -92,8 +92,8 @@ func (h *TaskHandlers) UpdateTask(w http.ResponseWriter, r *http.Request) {
 
 // CompleteTask handles task completion
 func (h *TaskHandlers) CompleteTask(w http.ResponseWriter, r *http.Request) {
-	taskIDStr := chi.URLParam(r, "id")
-	taskID, err := uuid.Parse(taskIDStr)
+	taskIDStr := httpx.URLParam(r, "id")
+	taskID, err := types.Parse(taskIDStr)
 	if err != nil {
 		h.writeErrorResponse(w, http.StatusBadRequest, "Invalid task ID", err)
 		return
@@ -111,8 +111,8 @@ func (h *TaskHandlers) CompleteTask(w http.ResponseWriter, r *http.Request) {
 
 // DeleteTask handles task deletion
 func (h *TaskHandlers) DeleteTask(w http.ResponseWriter, r *http.Request) {
-	taskIDStr := chi.URLParam(r, "id")
-	taskID, err := uuid.Parse(taskIDStr)
+	taskIDStr := httpx.URLParam(r, "id")
+	taskID, err := types.Parse(taskIDStr)
 	if err != nil {
 		h.writeErrorResponse(w, http.StatusBadRequest, "Invalid task ID", err)
 		return
@@ -150,7 +150,7 @@ func (h *TaskHandlers) ListTasks(w http.ResponseWriter, r *http.Request) {
 
 // GetTasksByStatus handles retrieving tasks by status
 func (h *TaskHandlers) GetTasksByStatus(w http.ResponseWriter, r *http.Request) {
-	statusStr := chi.URLParam(r, "status")
+	statusStr := httpx.URLParam(r, "status")
 	status := domain.TaskStatus(statusStr)
 
 	tasks, err := h.taskService.GetTasksByStatus(r.Context(), status)
@@ -165,8 +165,8 @@ func (h *TaskHandlers) GetTasksByStatus(w http.ResponseWriter, r *http.Request) 
 
 // GetTasksByAssignee handles retrieving tasks by assignee
 func (h *TaskHandlers) GetTasksByAssignee(w http.ResponseWriter, r *http.Request) {
-	assigneeIDStr := chi.URLParam(r, "assigneeId")
-	assigneeID, err := uuid.Parse(assigneeIDStr)
+	assigneeIDStr := httpx.URLParam(r, "assigneeId")
+	assigneeID, err := types.Parse(assigneeIDStr)
 	if err != nil {
 		h.writeErrorResponse(w, http.StatusBadRequest, "Invalid assignee ID", err)
 		return
@@ -202,14 +202,14 @@ func (h *TaskHandlers) parseTaskFilter(r *http.Request) domain.TaskFilter {
 
 	// Assignee filter
 	if assigneeID := r.URL.Query().Get("assignee_id"); assigneeID != "" {
-		if id, err := uuid.Parse(assigneeID); err == nil {
+		if id, err := types.Parse(assigneeID); err == nil {
 			filter.AssigneeID = &id
 		}
 	}
 
 	// Creator filter
 	if createdBy := r.URL.Query().Get("created_by"); createdBy != "" {
-		if id, err := uuid.Parse(createdBy); err == nil {
+		if id, err := types.Parse(createdBy); err == nil {
 			filter.CreatedBy = &id
 		}
 	}

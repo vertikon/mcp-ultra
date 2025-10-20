@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -289,7 +290,8 @@ func loadFromFile(filename string, cfg *Config) error {
 	defer func() {
 		if err := file.Close(); err != nil {
 			// Log error but don't return - defer already happened
-			// Consider logging: logger.Warn("failed to close resource", zap.Error(err))
+			// File was already read successfully, so this is non-critical
+			log.Printf("Warning: failed to close config file %s: %v", filename, err)
 		}
 	}()
 

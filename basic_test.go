@@ -15,7 +15,5 @@ func TestBasic(t *testing.T) {
 func TestVersion(t *testing.T) {
 	// We'll need to import the version package once it's properly set up
 	// For now, this test ensures the test framework works
-	if true != true {
-		t.Error("Boolean logic failed")
-	}
+	t.Log("Test framework is working correctly")
 }

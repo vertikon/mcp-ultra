@@ -1,0 +1,63 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 14:40:31",
+  "Critical": [
+    {
+      "Type": "Código compila",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "Não compila: # github.com/vertikon/mcp-ultra/internal/config\ninternal\\config\\tls.go:14:2: initialization cycle: tlsVersion12 refers to itself\n",
+      "Suggestion": "Corrija os erros de compilação listados",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Corrija os erros de compilação manualmente, um por um",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "# github.com/vertikon/mcp-ultra/internal/config",
+        "internal\\config\\tls.go:14:2: initialization cycle: tlsVersion12 refers to itself",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: E:\\\\vertikon\\\\business\\\\SaaS\\\\templates\\\\mcp-ultra\\\\internal\\\\repository\\\\postgres\\\\connection.go:8:2: could not import github.com/vertikon/mcp-ultra/internal/config (-: # github.com/vertikon/mcp-ultra/internal/config\\ninternal\\\\config\\\\tls.go:14:2: initialization cycle: tlsVersion12 refers to itself)\"",
+        "level=error msg=\"[linters_context] typechecking error: E:\\\\vertikon\\\\business\\\\SaaS\\\\templates\\\\mcp-ultra\\\\internal\\\\repository\\\\redis\\\\connection.go:8:2: could not import github.com/vertikon/mcp-ultra/internal/config (-: # github.com/vertikon/mcp-ultra/internal/config\\ninternal\\\\config\\\\tls.go:14:2: initialization cycle: tlsVersion12 refers to itself)\"",
+        "level=error msg=\"[linters_context] typechecking error: E:\\\\vertikon\\\\business\\\\SaaS\\\\templates\\\\mcp-ultra\\\\main.go:15:2: could not import github.com/vertikon/mcp-ultra/internal/config (-: # github.com/vertikon/mcp-ultra/internal/config\\ninternal\\\\config\\\\tls.go:14:2: initialization cycle: tlsVersion12 refers to itself)\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/config [github.com/vertikon/mcp-ultra/internal/config.test]\\ninternal\\\\config\\\\tls.go:14:2: initialization cycle: tlsVersion12 refers to itself\"",
+        "level=error msg=\"[linters_context] typechecking error: E:\\\\vertikon\\\\business\\\\SaaS\\\\templates\\\\mcp-ultra\\\\internal\\\\observability\\\\integration.go:11:2: could not import github.com/vertikon/mcp-ultra/internal/config (-: # github.com/vertikon/mcp-ultra/internal/config\\ninternal\\\\config\\\\tls.go:14:2: initialization cycle: tlsVersion12 refers to itself)\"",
+        "level=error msg=\"[linters_context] typechecking error: E:\\\\vertikon\\\\business\\\\SaaS\\\\templates\\\\mcp-ultra\\\\internal\\\\telemetry\\\\telemetry.go:16:2: could not import github.com/vertikon/mcp-ultra/internal/config (-: # github.com/vertikon/mcp-ultra/internal/config\\ninternal\\\\config\\\\tls.go:14:2: initialization cycle: tlsVersion12 refers to itself)\"",
+        "level=warning msg=\"[runner] Can't run linter goanalysis_metalinter: buildir: failed to load package config: could not load export data: no export data for \\\"github.com/vertikon/mcp-ultra/internal/config\\\"\"",
+        "level=error msg=\"Running error: can't run linter goanalysis_metalinter\\nbuildir: failed to load package config: could not load export data: no export data for \\\"github.com/vertikon/mcp-ultra/internal/config\\\"\"",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 2,
+  "Score": 90,
+  "AutoFixable": 0,
+  "Manual": 2
+}

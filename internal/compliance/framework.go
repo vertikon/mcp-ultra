@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"go.uber.org/zap"
+
+	"github.com/vertikon/mcp-ultra/pkg/types"
 )
 
-// ComplianceFramework provides comprehensive data protection compliance
-type ComplianceFramework struct {
-	config       ComplianceConfig
+// Framework provides comprehensive data protection compliance
+type Framework struct {
+	config       Config
 	logger       *zap.Logger
 	piiManager   *PIIManager
 	consentMgr   *ConsentManager
@@ -20,8 +21,8 @@ type ComplianceFramework struct {
 	retentionMgr *RetentionManager
 }
 
-// ComplianceConfig holds all compliance-related configuration
-type ComplianceConfig struct {
+// Config holds all compliance-related configuration
+type Config struct {
 	Enabled       bool                `yaml:"enabled" envconfig:"COMPLIANCE_ENABLED" default:"true"`
 	DefaultRegion string              `yaml:"default_region" envconfig:"DEFAULT_REGION" default:"BR"`
 	PIIDetection  PIIDetectionConfig  `yaml:"pii_detection"`
@@ -166,10 +167,10 @@ const (
 	DataRightStatusPartial    DataRightStatus = "partial"
 )
 
-// NewComplianceFramework creates a new compliance framework instance
-func NewComplianceFramework(config ComplianceConfig, logger *zap.Logger) (*ComplianceFramework, error) {
+// NewFramework creates a new compliance framework instance
+func NewFramework(config Config, logger *zap.Logger) (*Framework, error) {
 	if !config.Enabled {
-		return &ComplianceFramework{
+		return &Framework{
 			config: config,
 			logger: logger,
 		}, nil
@@ -205,7 +206,7 @@ func NewComplianceFramework(config ComplianceConfig, logger *zap.Logger) (*Compl
 		return nil, fmt.Errorf("failed to initialize retention manager: %w", err)
 	}
 
-	return &ComplianceFramework{
+	return &Framework{
 		config:       config,
 		logger:       logger,
 		piiManager:   piiManager,
@@ -217,7 +218,7 @@ func NewComplianceFramework(config ComplianceConfig, logger *zap.Logger) (*Compl
 }
 
 // ProcessData processes data through the compliance pipeline
-func (cf *ComplianceFramework) ProcessData(ctx context.Context, subjectID string, data map[string]interface{}, purpose string) (map[string]interface{}, error) {
+func (cf *Framework) ProcessData(ctx context.Context, subjectID string, data map[string]interface{}, purpose string) (map[string]interface{}, error) {
 	if !cf.config.Enabled {
 		return data, nil
 	}
@@ -238,8 +239,11 @@ func (cf *ComplianceFramework) ProcessData(ctx context.Context, subjectID string
 		// Audit logging is critical - consider the impact
 		if err := cf.auditLogger.LogDataProcessing(ctx, subjectID, purpose, "consent_denied", nil); err != nil {
 			// Critical: audit log failed - this may be compliance issue
-			// Consider: return error or alert operations team
-			// For now, we'll log to standard logger as fallback
+			// Log to standard logger as fallback
+			cf.logger.Error("Failed to audit consent denial",
+				zap.String("subject_id", subjectID),
+				zap.String("purpose", purpose),
+				zap.Error(err))
 		}
 		return nil, fmt.Errorf("no valid consent for purpose: %s", purpose)
 	}
@@ -250,8 +254,10 @@ func (cf *ComplianceFramework) ProcessData(ctx context.Context, subjectID string
 		// Audit logging is critical - consider the impact
 		if err := cf.auditLogger.LogDataProcessing(ctx, subjectID, purpose, "pii_error", nil); err != nil {
 			// Critical: audit log failed - this may be compliance issue
-			// Consider: return error or alert operations team
-			// For now, we'll log to standard logger as fallback
+			cf.logger.Error("Failed to audit PII processing error",
+				zap.String("subject_id", subjectID),
+				zap.String("purpose", purpose),
+				zap.Error(err))
 		}
 		return nil, fmt.Errorf("PII processing failed: %w", err)
 	}
@@ -270,7 +276,7 @@ func (cf *ComplianceFramework) ProcessData(ctx context.Context, subjectID string
 }
 
 // HandleDataRightRequest processes a data subject rights request
-func (cf *ComplianceFramework) HandleDataRightRequest(ctx context.Context, subjectID string, request DataRightRequest) error {
+func (cf *Framework) HandleDataRightRequest(ctx context.Context, subjectID string, request DataRightRequest) error {
 	if !cf.config.Enabled {
 		return fmt.Errorf("compliance framework is disabled")
 	}
@@ -297,7 +303,7 @@ func (cf *ComplianceFramework) HandleDataRightRequest(ctx context.Context, subje
 }
 
 // GetComplianceStatus returns the current compliance status
-func (cf *ComplianceFramework) GetComplianceStatus(ctx context.Context) (map[string]interface{}, error) {
+func (cf *Framework) GetComplianceStatus(ctx context.Context) (map[string]interface{}, error) {
 	if !cf.config.Enabled {
 		return map[string]interface{}{
 			"enabled": false,
@@ -331,62 +337,62 @@ func (cf *ComplianceFramework) GetComplianceStatus(ctx context.Context) (map[str
 }
 
 // Helper methods for handling specific data rights requests
-func (cf *ComplianceFramework) handleAccessRequest(ctx context.Context, subjectID string, request DataRightRequest) error {
+func (cf *Framework) handleAccessRequest(_ context.Context, subjectID string, request DataRightRequest) error {
 	// Implementation for access request
 	cf.logger.Info("Processing access request", zap.String("subject_id", subjectID), zap.String("request_id", request.ID))
 	// TODO: Implement data extraction and anonymization
 	return nil
 }
 
-func (cf *ComplianceFramework) handleErasureRequest(ctx context.Context, subjectID string, request DataRightRequest) error {
+func (cf *Framework) handleErasureRequest(_ context.Context, subjectID string, request DataRightRequest) error {
 	// Implementation for erasure request (right to be forgotten)
 	cf.logger.Info("Processing erasure request", zap.String("subject_id", subjectID), zap.String("request_id", request.ID))
 	// TODO: Implement data deletion across all systems
 	return nil
 }
 
-func (cf *ComplianceFramework) handleRectificationRequest(ctx context.Context, subjectID string, request DataRightRequest) error {
+func (cf *Framework) handleRectificationRequest(_ context.Context, subjectID string, request DataRightRequest) error {
 	// Implementation for rectification request
 	cf.logger.Info("Processing rectification request", zap.String("subject_id", subjectID), zap.String("request_id", request.ID))
 	// TODO: Implement data correction
 	return nil
 }
 
-func (cf *ComplianceFramework) handlePortabilityRequest(ctx context.Context, subjectID string, request DataRightRequest) error {
+func (cf *Framework) handlePortabilityRequest(_ context.Context, subjectID string, request DataRightRequest) error {
 	// Implementation for portability request
 	cf.logger.Info("Processing portability request", zap.String("subject_id", subjectID), zap.String("request_id", request.ID))
 	// TODO: Implement data export in portable format
 	return nil
 }
 
-func (cf *ComplianceFramework) handleConsentWithdrawal(ctx context.Context, subjectID string, request DataRightRequest) error {
+func (cf *Framework) handleConsentWithdrawal(ctx context.Context, subjectID string, request DataRightRequest) error {
 	// Implementation for consent withdrawal
 	cf.logger.Info("Processing consent withdrawal", zap.String("subject_id", subjectID), zap.String("request_id", request.ID))
 	return cf.consentMgr.WithdrawConsent(ctx, subjectID, request.Data["purpose"].(string))
 }
 
 // GetConsentManager returns the consent manager for direct access
-func (cf *ComplianceFramework) GetConsentManager() *ConsentManager {
+func (cf *Framework) GetConsentManager() *ConsentManager {
 	return cf.consentMgr
 }
 
 // GetPIIManager returns the PII manager for direct access
-func (cf *ComplianceFramework) GetPIIManager() *PIIManager {
+func (cf *Framework) GetPIIManager() *PIIManager {
 	return cf.piiManager
 }
 
 // GetAuditLogger returns the audit logger for direct access
-func (cf *ComplianceFramework) GetAuditLogger() *AuditLogger {
+func (cf *Framework) GetAuditLogger() *AuditLogger {
 	return cf.auditLogger
 }
 
 // GetDataMapper returns the data mapper for direct access
-func (cf *ComplianceFramework) GetDataMapper() *DataMapper {
+func (cf *Framework) GetDataMapper() *DataMapper {
 	return cf.dataMapper
 }
 
 // GetRetentionManager returns the retention manager for direct access
-func (cf *ComplianceFramework) GetRetentionManager() *RetentionManager {
+func (cf *Framework) GetRetentionManager() *RetentionManager {
 	return cf.retentionMgr
 }
 
@@ -399,7 +405,7 @@ type PIIScanResult struct {
 }
 
 // ScanForPII scans data for Personally Identifiable Information
-func (cf *ComplianceFramework) ScanForPII(ctx context.Context, data interface{}) (*PIIScanResult, error) {
+func (cf *Framework) ScanForPII(_ context.Context, data interface{}) (*PIIScanResult, error) {
 	if !cf.config.Enabled || cf.piiManager == nil {
 		return &PIIScanResult{
 			DetectedFields:  []string{},
@@ -450,7 +456,7 @@ func (cf *ComplianceFramework) ScanForPII(ctx context.Context, data interface{})
 }
 
 // RecordConsent records user consent for specified purposes
-func (cf *ComplianceFramework) RecordConsent(ctx context.Context, userID uuid.UUID, purposes []string, source string) error {
+func (cf *Framework) RecordConsent(ctx context.Context, userID types.UUID, purposes []string, source string) error {
 	if !cf.config.Enabled || cf.consentMgr == nil {
 		return nil
 	}
@@ -472,7 +478,7 @@ func (cf *ComplianceFramework) RecordConsent(ctx context.Context, userID uuid.UU
 }
 
 // HasConsent checks if user has valid consent for a specific purpose
-func (cf *ComplianceFramework) HasConsent(ctx context.Context, userID uuid.UUID, purpose string) (bool, error) {
+func (cf *Framework) HasConsent(ctx context.Context, userID types.UUID, purpose string) (bool, error) {
 	if !cf.config.Enabled || cf.consentMgr == nil {
 		return true, nil // If compliance disabled, allow by default
 	}
@@ -481,7 +487,7 @@ func (cf *ComplianceFramework) HasConsent(ctx context.Context, userID uuid.UUID,
 }
 
 // WithdrawConsent withdraws user consent for specified purposes
-func (cf *ComplianceFramework) WithdrawConsent(ctx context.Context, userID uuid.UUID, purposes []string) error {
+func (cf *Framework) WithdrawConsent(ctx context.Context, userID types.UUID, purposes []string) error {
 	if !cf.config.Enabled || cf.consentMgr == nil {
 		return nil
 	}
@@ -503,7 +509,7 @@ func (cf *ComplianceFramework) WithdrawConsent(ctx context.Context, userID uuid.
 }
 
 // RecordDataCreation records data creation for retention tracking
-func (cf *ComplianceFramework) RecordDataCreation(ctx context.Context, userID uuid.UUID, dataCategory string, data map[string]interface{}) error {
+func (cf *Framework) RecordDataCreation(ctx context.Context, userID types.UUID, dataCategory string, data map[string]interface{}) error {
 	if !cf.config.Enabled || cf.retentionMgr == nil {
 		return nil
 	}
@@ -512,7 +518,7 @@ func (cf *ComplianceFramework) RecordDataCreation(ctx context.Context, userID uu
 }
 
 // GetRetentionPolicy gets retention policy for a data category
-func (cf *ComplianceFramework) GetRetentionPolicy(ctx context.Context, dataCategory string) (*RetentionPolicy, error) {
+func (cf *Framework) GetRetentionPolicy(ctx context.Context, dataCategory string) (*RetentionPolicy, error) {
 	if !cf.config.Enabled {
 		return nil, fmt.Errorf("compliance framework is disabled")
 	}
@@ -546,7 +552,7 @@ func (cf *ComplianceFramework) GetRetentionPolicy(ctx context.Context, dataCateg
 }
 
 // ShouldDeleteData checks if data should be deleted based on retention policy
-func (cf *ComplianceFramework) ShouldDeleteData(ctx context.Context, userID uuid.UUID, dataCategory string) (bool, error) {
+func (cf *Framework) ShouldDeleteData(ctx context.Context, userID types.UUID, dataCategory string) (bool, error) {
 	if !cf.config.Enabled || cf.retentionMgr == nil {
 		return false, nil
 	}
@@ -585,8 +591,8 @@ type AuditFilter struct {
 	Offset    int       `json:"offset,omitempty"`
 }
 
-// ComplianceValidationRequest represents a compliance validation request
-type ComplianceValidationRequest struct {
+// ValidationRequest represents a compliance validation request
+type ValidationRequest struct {
 	SubjectID    string                 `json:"subject_id"`
 	DataCategory string                 `json:"data_category"`
 	Purpose      string                 `json:"purpose"`
@@ -594,7 +600,7 @@ type ComplianceValidationRequest struct {
 }
 
 // ProcessDataAccessRequest processes a data access request (GDPR Art. 15 / LGPD Art. 18)
-func (cf *ComplianceFramework) ProcessDataAccessRequest(ctx context.Context, req DataAccessRequest) error {
+func (cf *Framework) ProcessDataAccessRequest(ctx context.Context, req DataAccessRequest) error {
 	if !cf.config.Enabled {
 		return fmt.Errorf("compliance framework is disabled")
 	}
@@ -614,7 +620,7 @@ func (cf *ComplianceFramework) ProcessDataAccessRequest(ctx context.Context, req
 }
 
 // ProcessDataDeletionRequest processes a data deletion request (Right to be forgotten)
-func (cf *ComplianceFramework) ProcessDataDeletionRequest(ctx context.Context, req DataDeletionRequest) error {
+func (cf *Framework) ProcessDataDeletionRequest(ctx context.Context, req DataDeletionRequest) error {
 	if !cf.config.Enabled {
 		return fmt.Errorf("compliance framework is disabled")
 	}
@@ -634,7 +640,7 @@ func (cf *ComplianceFramework) ProcessDataDeletionRequest(ctx context.Context, r
 }
 
 // AnonymizeData anonymizes personal data for a subject
-func (cf *ComplianceFramework) AnonymizeData(ctx context.Context, subjectID string) error {
+func (cf *Framework) AnonymizeData(ctx context.Context, subjectID string) error {
 	if !cf.config.Enabled {
 		return fmt.Errorf("compliance framework is disabled")
 	}
@@ -651,7 +657,7 @@ func (cf *ComplianceFramework) AnonymizeData(ctx context.Context, subjectID stri
 }
 
 // LogAuditEvent logs a compliance audit event
-func (cf *ComplianceFramework) LogAuditEvent(ctx context.Context, event AuditEvent) error {
+func (cf *Framework) LogAuditEvent(ctx context.Context, event AuditEvent) error {
 	if !cf.config.Enabled || cf.auditLogger == nil {
 		return nil
 	}
@@ -666,7 +672,7 @@ func (cf *ComplianceFramework) LogAuditEvent(ctx context.Context, event AuditEve
 }
 
 // GetAuditLogs retrieves audit logs based on filters
-func (cf *ComplianceFramework) GetAuditLogs(ctx context.Context, filter AuditFilter) ([]AuditEvent, error) {
+func (cf *Framework) GetAuditLogs(ctx context.Context, filter AuditFilter) ([]AuditEvent, error) {
 	if !cf.config.Enabled || cf.auditLogger == nil {
 		return []AuditEvent{}, nil
 	}
@@ -696,7 +702,7 @@ func (cf *ComplianceFramework) GetAuditLogs(ctx context.Context, filter AuditFil
 }
 
 // ValidateCompliance validates compliance requirements for an operation
-func (cf *ComplianceFramework) ValidateCompliance(ctx context.Context, req ComplianceValidationRequest) (bool, error) {
+func (cf *Framework) ValidateCompliance(ctx context.Context, req ValidationRequest) (bool, error) {
 	if !cf.config.Enabled {
 		return true, nil // Allow by default if compliance disabled
 	}

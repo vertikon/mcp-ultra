@@ -1,0 +1,41 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 13:55:06",
+  "Critical": [],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "internal\\compliance\\framework.go:356:47: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (cf *Framework) handlePortabilityRequest(ctx context.Context, subjectID string, request DataRightRequest) error {",
+        "                                              ^",
+        "internal\\compliance\\framework.go:403:33: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (cf *Framework) ScanForPII(ctx context.Context, data interface{}) (*PIIScanResult, error) {",
+        "                                ^",
+        "internal\\compliance\\framework.go:516:41: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (cf *Framework) GetRetentionPolicy(ctx context.Context, dataCategory string) (*RetentionPolicy, error) {",
+        "                                        ^",
+        "internal\\compliance\\pii_manager.go:378:31: unused-parameter: parameter 'field' seems to be unused, consider removing or renaming it as _ (revive)"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 1,
+  "Score": 95,
+  "AutoFixable": 0,
+  "Manual": 1
+}

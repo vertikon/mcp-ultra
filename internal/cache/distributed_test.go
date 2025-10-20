@@ -10,23 +10,22 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
+	"go.uber.org/zap/zaptest"
+
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 func newTestLogger(t *testing.T) *logger.Logger {
 	t.Helper()
-	l, err := logger.NewLogger()
-	if err != nil {
-		t.Fatalf("Failed to create logger: %v", err)
-	}
-	return l
+	zapLog := zaptest.NewLogger(t)
+	return logger.FromZap(zapLog)
 }
 
 func createTestDistributedCache(t *testing.T) (*DistributedCache, *miniredis.Miniredis) {
 	s, err := miniredis.Run()
 	require.NoError(t, err)
 
-	config := CacheConfig{
+	config := Config{
 		Addrs:                 []string{s.Addr()},
 		Password:              "",
 		DB:                    0,

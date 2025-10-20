@@ -14,13 +14,10 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/exporters/jaeger"
 	promexporter "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/propagation"
 	metricSDK "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -64,7 +61,6 @@ type EnhancedTelemetryService struct {
 
 	// Tracing
 	activeSpans map[string]oteltrace.Span
-	spanMutex   sync.RWMutex
 
 	// Alerting
 	alertRules         map[string]AlertRule
@@ -170,6 +166,13 @@ func NewEnhancedTelemetryService(config TelemetryConfig, logger *zap.Logger) (*E
 
 // initTracing initializes OpenTelemetry tracing
 func (ets *EnhancedTelemetryService) initTracing() error {
+	// Note: This service uses a simplified trace setup
+	// For production use, configure a proper OTLP exporter via the telemetry package
+	// This method is deprecated and should be replaced with proper telemetry.TracingProvider
+	ets.logger.Warn("EnhancedTelemetryService.initTracing is deprecated - use telemetry.TracingProvider instead")
+	return nil
+
+	/* Removed deprecated Jaeger support
 	var exporter trace.SpanExporter
 	var err error
 
@@ -185,7 +188,9 @@ func (ets *EnhancedTelemetryService) initTracing() error {
 	if err != nil {
 		return fmt.Errorf("creating trace exporter: %w", err)
 	}
+	*/
 
+	/* Deprecated code - commented out
 	// Create trace provider
 	tp := trace.NewTracerProvider(
 		trace.WithBatcher(exporter),
@@ -201,6 +206,7 @@ func (ets *EnhancedTelemetryService) initTracing() error {
 	ets.tracer = tp.Tracer("mcp-ultra")
 
 	return nil
+	*/
 }
 
 // initMetrics initializes OpenTelemetry metrics

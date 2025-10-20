@@ -1,0 +1,64 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 14:53:10",
+  "Critical": [
+    {
+      "Type": "Código compila",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "Não compila: # github.com/vertikon/mcp-ultra/internal/observability\ninternal\\observability\\enhanced_telemetry.go:19:2: \"go.opentelemetry.io/otel/propagation\" imported and not used\ninternal\\observability\\enhanced_t...",
+      "Suggestion": "Corrija os erros de compilação listados",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Corrija os erros de compilação manualmente, um por um",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "# github.com/vertikon/mcp-ultra/internal/observability",
+        "internal\\observability\\enhanced_telemetry.go:19:2: \"go.opentelemetry.io/otel/propagation\" imported and not used",
+        "internal\\observability\\enhanced_telemetry.go:22:2: \"go.opentelemetry.io/otel/sdk/trace\" imported and not used",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: E:\\\\vertikon\\\\business\\\\SaaS\\\\templates\\\\mcp-ultra\\\\internal\\\\lifecycle\\\\manager.go:10:2: could not import github.com/vertikon/mcp-ultra/internal/observability (-: # github.com/vertikon/mcp-ultra/internal/observability\\ninternal\\\\observability\\\\enhanced_telemetry.go:19:2: \\\"go.opentelemetry.io/otel/propagation\\\" imported and not used\\ninternal\\\\observability\\\\enhanced_telemetry.go:22:2: \\\"go.opentelemetry.io/otel/sdk/trace\\\" imported and not used)\"",
+        "level=error msg=\"[linters_context] typechecking error: E:\\\\vertikon\\\\business\\\\SaaS\\\\templates\\\\mcp-ultra\\\\internal\\\\metrics\\\\business.go:9:2: could not import github.com/vertikon/mcp-ultra/internal/observability (-: # github.com/vertikon/mcp-ultra/internal/observability\\ninternal\\\\observability\\\\enhanced_telemetry.go:19:2: \\\"go.opentelemetry.io/otel/propagation\\\" imported and not used\\ninternal\\\\observability\\\\enhanced_telemetry.go:22:2: \\\"go.opentelemetry.io/otel/sdk/trace\\\" imported and not used)\"",
+        "level=error msg=\"[linters_context] typechecking error: E:\\\\vertikon\\\\business\\\\SaaS\\\\templates\\\\mcp-ultra\\\\internal\\\\ratelimit\\\\distributed.go:12:2: could not import github.com/vertikon/mcp-ultra/internal/observability (-: # github.com/vertikon/mcp-ultra/internal/observability\\ninternal\\\\observability\\\\enhanced_telemetry.go:19:2: \\\"go.opentelemetry.io/otel/propagation\\\" imported and not used\\ninternal\\\\observability\\\\enhanced_telemetry.go:22:2: \\\"go.opentelemetry.io/otel/sdk/trace\\\" imported and not used)\"",
+        "level=error msg=\"[linters_context] typechecking error: E:\\\\vertikon\\\\business\\\\SaaS\\\\templates\\\\mcp-ultra\\\\internal\\\\tracing\\\\business.go:16:2: could not import github.com/vertikon/mcp-ultra/internal/observability (-: # github.com/vertikon/mcp-ultra/internal/observability\\ninternal\\\\observability\\\\enhanced_telemetry.go:19:2: \\\"go.opentelemetry.io/otel/propagation\\\" imported and not used\\ninternal\\\\observability\\\\enhanced_telemetry.go:22:2: \\\"go.opentelemetry.io/otel/sdk/trace\\\" imported and not used)\"",
+        "level=error msg=\"[linters_context] typechecking error: E:\\\\vertikon\\\\business\\\\SaaS\\\\templates\\\\mcp-ultra\\\\internal\\\\cache\\\\distributed.go:13:2: could not import github.com/vertikon/mcp-ultra/internal/observability (-: # github.com/vertikon/mcp-ultra/internal/observability\\ninternal\\\\observability\\\\enhanced_telemetry.go:19:2: \\\"go.opentelemetry.io/otel/propagation\\\" imported and not used\\ninternal\\\\observability\\\\enhanced_telemetry.go:22:2: \\\"go.opentelemetry.io/otel/sdk/trace\\\" imported and not used)\"",
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/observability [github.com/vertikon/mcp-ultra/internal/observability.test]\\ninternal\\\\observability\\\\enhanced_telemetry.go:19:2: \\\"go.opentelemetry.io/otel/propagation\\\" imported and not used\\ninternal\\\\observability\\\\enhanced_telemetry.go:22:2: \\\"go.opentelemetry.io/otel/sdk/trace\\\" imported and not used\"",
+        "level=warning msg=\"[runner] Can't run linter goanalysis_metalinter: buildir: failed to load package observability: could not load export data: no export data for \\\"github.com/vertikon/mcp-ultra/internal/observability\\\"\"",
+        "level=error msg=\"Running error: can't run linter goanalysis_metalinter\\nbuildir: failed to load package observability: could not load export data: no export data for \\\"github.com/vertikon/mcp-ultra/internal/observability\\\"\"",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 2,
+  "Score": 90,
+  "AutoFixable": 0,
+  "Manual": 2
+}

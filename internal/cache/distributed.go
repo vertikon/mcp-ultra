@@ -10,18 +10,18 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
+	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
-// CacheStrategy represents different caching strategies
-type CacheStrategy string
+// Strategy represents different caching strategies
+type Strategy string
 
 const (
-	StrategyWriteThrough CacheStrategy = "write_through"
-	StrategyWriteBehind  CacheStrategy = "write_behind"
-	StrategyWriteAround  CacheStrategy = "write_around"
-	StrategyReadThrough  CacheStrategy = "read_through"
+	StrategyWriteThrough Strategy = "write_through"
+	StrategyWriteBehind  Strategy = "write_behind"
+	StrategyWriteAround  Strategy = "write_around"
+	StrategyReadThrough  Strategy = "read_through"
 )
 
 // EvictionPolicy represents cache eviction policies
@@ -34,8 +34,8 @@ const (
 	EvictionRandom EvictionPolicy = "random"
 )
 
-// CacheConfig configures the distributed cache system
-type CacheConfig struct {
+// Config configures the distributed cache system
+type Config struct {
 	// Redis Cluster Configuration
 	Addrs              []string      `yaml:"addrs"`
 	Password           string        `yaml:"password"`
@@ -50,7 +50,7 @@ type CacheConfig struct {
 	// Cache Settings
 	DefaultTTL     time.Duration  `yaml:"default_ttl"`
 	MaxMemory      int64          `yaml:"max_memory"`
-	Strategy       CacheStrategy  `yaml:"strategy"`
+	Strategy       Strategy       `yaml:"strategy"`
 	EvictionPolicy EvictionPolicy `yaml:"eviction_policy"`
 
 	// Consistency Settings
@@ -80,9 +80,9 @@ type CacheConfig struct {
 	HalfOpenMaxRequests   int           `yaml:"half_open_max_requests"`
 }
 
-// DefaultCacheConfig returns default cache configuration
-func DefaultCacheConfig() CacheConfig {
-	return CacheConfig{
+// DefaultConfig returns default cache configuration
+func DefaultConfig() Config {
+	return Config{
 		Addrs:                 []string{"localhost:6379"},
 		PoolSize:              10,
 		MinIdleConns:          5,
@@ -116,16 +116,16 @@ func DefaultCacheConfig() CacheConfig {
 // DistributedCache provides distributed caching capabilities
 type DistributedCache struct {
 	client    *redis.ClusterClient
-	config    CacheConfig
+	config    Config
 	logger    *logger.Logger
 	telemetry *observability.TelemetryService
 
 	// State tracking
 	mu         sync.RWMutex
-	shards     []CacheShard
+	shards     []Shard
 	consistent *ConsistentHash
 	breaker    *CircuitBreaker
-	stats      CacheStats
+	stats      Stats
 
 	// Background tasks
 	ctx    context.Context
@@ -136,8 +136,8 @@ type DistributedCache struct {
 	writeBuffer chan WriteOperation
 }
 
-// CacheShard represents a cache shard
-type CacheShard struct {
+// Shard represents a cache shard
+type Shard struct {
 	ID       string
 	Node     string
 	Weight   int
@@ -154,8 +154,8 @@ type WriteOperation struct {
 	Timestamp time.Time
 }
 
-// CacheStats tracks cache performance metrics
-type CacheStats struct {
+// Stats tracks cache performance metrics
+type Stats struct {
 	Hits            int64         `json:"hits"`
 	Misses          int64         `json:"misses"`
 	Sets            int64         `json:"sets"`
@@ -171,8 +171,8 @@ type CacheStats struct {
 	ConnectionCount int           `json:"connection_count"`
 }
 
-// CacheEntry represents a cached item with metadata
-type CacheEntry struct {
+// Entry represents a cached item with metadata
+type Entry struct {
 	Key         string        `json:"key"`
 	Value       interface{}   `json:"value"`
 	TTL         time.Duration `json:"ttl"`
@@ -185,7 +185,7 @@ type CacheEntry struct {
 }
 
 // NewDistributedCache creates a new distributed cache instance
-func NewDistributedCache(config CacheConfig, log *logger.Logger, telemetry *observability.TelemetryService) (*DistributedCache, error) {
+func NewDistributedCache(config Config, log *logger.Logger, telemetry *observability.TelemetryService) (*DistributedCache, error) {
 	// Validate configuration
 	if len(config.Addrs) == 0 {
 		return nil, fmt.Errorf("at least one Redis address is required")
@@ -220,10 +220,10 @@ func NewDistributedCache(config CacheConfig, log *logger.Logger, telemetry *obse
 		config:      config,
 		logger:      log,
 		telemetry:   telemetry,
-		shards:      make([]CacheShard, 0),
+		shards:      make([]Shard, 0),
 		consistent:  NewConsistentHash(config.VirtualNodes),
 		breaker:     NewCircuitBreaker(config.FailureThreshold, config.RecoveryTimeout, config.HalfOpenMaxRequests),
-		stats:       CacheStats{LastReset: time.Now()},
+		stats:       Stats{LastReset: time.Now()},
 		ctx:         ctx,
 		cancel:      cancel,
 		writeBuffer: make(chan WriteOperation, 1000),
@@ -497,7 +497,7 @@ func (dc *DistributedCache) Clear(ctx context.Context, pattern string) error {
 }
 
 // GetStats returns cache performance statistics
-func (dc *DistributedCache) GetStats() CacheStats {
+func (dc *DistributedCache) GetStats() Stats {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 
@@ -531,7 +531,7 @@ func (dc *DistributedCache) ResetStats() {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 
-	dc.stats = CacheStats{LastReset: time.Now()}
+	dc.stats = Stats{LastReset: time.Now()}
 }
 
 // Close gracefully shuts down the cache
@@ -632,7 +632,7 @@ func (dc *DistributedCache) getDirect(ctx context.Context, key string) ([]byte, 
 	return []byte(val), true, nil
 }
 
-func (dc *DistributedCache) getReadThrough(ctx context.Context, key string) (interface{}, bool, error) {
+func (dc *DistributedCache) getReadThrough(_ context.Context, _ string) (interface{}, bool, error) {
 	// In read-through, if cache miss, we load from backing store
 	// For this example, we'll return cache miss
 	return nil, false, nil
@@ -690,7 +690,7 @@ func (dc *DistributedCache) initializeSharding(ctx context.Context) error {
 		nodeID := parts[0]
 		nodeAddr := parts[1]
 
-		shard := CacheShard{
+		shard := Shard{
 			ID:       nodeID,
 			Node:     nodeAddr,
 			Weight:   1,

@@ -5,33 +5,31 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/vertikon/mcp-ultra/internal/domain"
 	"github.com/vertikon/mcp-ultra/internal/features"
 	"github.com/vertikon/mcp-ultra/internal/services"
 	"github.com/vertikon/mcp-ultra/internal/telemetry"
+	"github.com/vertikon/mcp-ultra/pkg/httpx"
+	"github.com/vertikon/mcp-ultra/pkg/types"
 )
 
 // TaskService interface defines methods for task operations
 type TaskService interface {
 	CreateTask(ctx context.Context, req services.CreateTaskRequest) (*domain.Task, error)
-	GetTask(ctx context.Context, taskID uuid.UUID) (*domain.Task, error)
-	UpdateTask(ctx context.Context, taskID uuid.UUID, req services.UpdateTaskRequest) (*domain.Task, error)
-	DeleteTask(ctx context.Context, taskID uuid.UUID) error
+	GetTask(ctx context.Context, taskID types.UUID) (*domain.Task, error)
+	UpdateTask(ctx context.Context, taskID types.UUID, req services.UpdateTaskRequest) (*domain.Task, error)
+	DeleteTask(ctx context.Context, taskID types.UUID) error
 	ListTasks(ctx context.Context, filters domain.TaskFilter) (*domain.TaskList, error)
-	CompleteTask(ctx context.Context, taskID uuid.UUID) (*domain.Task, error)
+	CompleteTask(ctx context.Context, taskID types.UUID) (*domain.Task, error)
 	GetTasksByStatus(ctx context.Context, status domain.TaskStatus) ([]*domain.Task, error)
-	GetTasksByAssignee(ctx context.Context, assigneeID uuid.UUID) ([]*domain.Task, error)
+	GetTasksByAssignee(ctx context.Context, assigneeID types.UUID) ([]*domain.Task, error)
 }
 
 // HealthServiceInterface defines the interface for health service
 type HealthServiceInterface interface {
-	RegisterRoutes(r chi.Router)
+	RegisterRoutes(r httpx.Router)
 }
 
 // Router creates and configures the HTTP router
@@ -40,26 +38,19 @@ func NewRouter(
 	flagManager *features.FlagManager,
 	healthService HealthServiceInterface,
 	logger *zap.Logger,
-) *chi.Mux {
-	r := chi.NewRouter()
+) httpx.Router {
+	r := httpx.NewRouter()
 
 	// Middleware stack
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(60 * time.Second))
+	r.Use(httpx.RequestID)
+	r.Use(httpx.RealIP)
+	r.Use(httpx.Logger)
+	r.Use(httpx.Recoverer)
+	r.Use(httpx.Timeout(60))
 	r.Use(telemetry.HTTPMetrics)
 
 	// CORS configuration
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"}, // Configure for production
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           300,
-	}))
+	r.Use(httpx.DefaultCORS())
 
 	// Health endpoints using comprehensive health service
 	if healthService != nil {
@@ -71,7 +62,7 @@ func NewRouter(
 	}
 
 	// API routes
-	r.Route("/api/v1", func(r chi.Router) {
+	r.Route("/api/v1", func(r httpx.Router) {
 		// Task routes
 		r.Mount("/tasks", TaskRoutes(taskService, logger))
 
@@ -83,8 +74,8 @@ func NewRouter(
 }
 
 // TaskRoutes creates task-related routes
-func TaskRoutes(taskService TaskService, logger *zap.Logger) chi.Router {
-	r := chi.NewRouter()
+func TaskRoutes(taskService TaskService, logger *zap.Logger) httpx.Router {
+	r := httpx.NewRouter()
 	handlers := NewTaskHandlers(taskService, logger)
 
 	r.Post("/", handlers.CreateTask)
@@ -100,8 +91,8 @@ func TaskRoutes(taskService TaskService, logger *zap.Logger) chi.Router {
 }
 
 // FeatureFlagRoutes creates feature flag routes
-func FeatureFlagRoutes(flagManager *features.FlagManager, logger *zap.Logger) chi.Router {
-	r := chi.NewRouter()
+func FeatureFlagRoutes(flagManager *features.FlagManager, logger *zap.Logger) httpx.Router {
+	r := httpx.NewRouter()
 	handlers := NewFeatureFlagHandlers(flagManager, logger)
 
 	r.Get("/", handlers.ListFlags)
@@ -115,14 +106,14 @@ func FeatureFlagRoutes(flagManager *features.FlagManager, logger *zap.Logger) ch
 }
 
 // Health check endpoint
-func healthCheck(w http.ResponseWriter, r *http.Request) {
+func healthCheck(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(`{"status": "healthy", "timestamp": "` + time.Now().Format(time.RFC3339) + `"}`))
 }
 
 // Readiness check endpoint
-func readinessCheck(w http.ResponseWriter, r *http.Request) {
+func readinessCheck(w http.ResponseWriter, _ *http.Request) {
 	// Add checks for dependencies (database, cache, etc.)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

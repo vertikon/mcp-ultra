@@ -1,0 +1,66 @@
+{
+  "ProjectName": "mcp-ultra",
+  "Timestamp": "2025-10-20 10:05:37",
+  "Critical": [
+    {
+      "Type": "Código compila",
+      "Severity": "crítico",
+      "Location": "múltiplos arquivos",
+      "Description": "Não compila: # github.com/vertikon/mcp-ultra/cmd/depguard-lite\nE:\\go1.25.0\\go\\pkg\\tool\\windows_amd64\\link.exe: resize output file failed: truncate $WORK\\b382\\exe\\a.out.exe: There is not enough space on the disk.\n#...",
+      "Suggestion": "Corrija os erros de compilação listados",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "Corrija os erros de compilação manualmente, um por um",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "# github.com/vertikon/mcp-ultra/cmd/depguard-lite",
+        "E:\\go1.25.0\\go\\pkg\\tool\\windows_amd64\\link.exe: resize output file failed: truncate $WORK\\b382\\exe\\a.out.exe: There is not enough space on the disk.",
+        "# github.com/vertikon/mcp-ultra",
+        "E:\\go1.25.0\\go\\pkg\\tool\\windows_amd64\\link.exe: resize output file failed: truncate $WORK\\b001\\exe\\a.out.exe: There is not enough space on the disk.",
+        ""
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "Medium": [],
+  "Low": [
+    {
+      "Type": "Linter limpo",
+      "Severity": "baixo",
+      "Location": "múltiplos arquivos",
+      "Description": "Linter encontrou problemas",
+      "Suggestion": "Corrija os problemas manualmente (NÃO use --fix)",
+      "Fixability": {
+        "Safe": false,
+        "RollbackEasy": false,
+        "AffectsBehavior": true,
+        "RequiresReview": true,
+        "AutoFixCommand": "",
+        "ManualSteps": "1. Analise cada issue do linter\n2. Corrija manualmente, entendendo o contexto\n3. NÃO use golangci-lint run --fix (pode quebrar código)\n4. Execute testes após cada correção",
+        "NonFixableReason": "BUSINESS_LOGIC"
+      },
+      "Examples": [
+        "level=error msg=\"[linters_context] typechecking error: : # github.com/vertikon/mcp-ultra/internal/handlers [github.com/vertikon/mcp-ultra/internal/handlers.test]\\ninternal\\\\handlers\\\\health_test.go:9:7: initialization cycle: contentTypeJSON refers to itself\"",
+        "internal\\metrics\\storage.go:186:47: unused-parameter: parameter 'groupKey' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func (mms *MemoryMetricStorage) extractLabels(groupKey string, groupBy []string) map[string]string {",
+        "                                              ^",
+        "internal\\metrics\\business.go:900:39: unused-parameter: parameter 'config' seems to be unused, consider removing or renaming it as _ (revive)",
+        "func NewMetricStorage(backend string, config map[string]interface{}) (MetricStorage, error) {",
+        "                                      ^",
+        "internal\\handlers\\http\\health_test.go:184:55: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)",
+        "\t\tchecker := NewDatabaseHealthChecker(\"test-db\", func(ctx context.Context) error {",
+        "\t\t                                                    ^"
+      ],
+      "NonFixableReason": "BUSINESS_LOGIC"
+    }
+  ],
+  "TotalGAPs": 2,
+  "Score": 90,
+  "AutoFixable": 0,
+  "Manual": 2
+}
