@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -27,7 +26,7 @@ func TestAuthMiddleware_JWTAuth(t *testing.T) {
 	authMiddleware := NewAuthMiddleware(config, logger)
 
 	t.Run("should skip authentication for configured paths", func(t *testing.T) {
-		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
 
@@ -39,7 +38,7 @@ func TestAuthMiddleware_JWTAuth(t *testing.T) {
 	})
 
 	t.Run("should return 401 for missing token", func(t *testing.T) {
-		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
 
@@ -72,7 +71,7 @@ func TestAuthMiddleware_JWTAuth(t *testing.T) {
 	})
 
 	t.Run("should reject invalid JWT token", func(t *testing.T) {
-		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		handler := authMiddleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
 
@@ -93,16 +92,17 @@ func TestAuthMiddleware_APIKeyAuth(t *testing.T) {
 	}
 
 	authMiddleware := NewAuthMiddleware(config, logger)
-	publicKey, privateKey := testhelpers.GetTestAPIKeys(t)
-	validAPIKeys := map[string]string{publicKey: privateKey}
+	validAPIKeys := testhelpers.GetTestAPIKeys()
 
 	t.Run("should validate valid API key", func(t *testing.T) {
 		handler := authMiddleware.APIKeyAuth(validAPIKeys)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			clientName := r.Context().Value("client_name")
+			assert.Equal(t, "test-client", clientName)
 			w.WriteHeader(http.StatusOK)
 		}))
 
 		req := httptest.NewRequest("GET", "/api/data", nil)
-		req.Header.Set("X-API-Key", publicKey)
+		req.Header.Set("X-API-Key", "test-api-key-123")
 		w := httptest.NewRecorder()
 
 		handler.ServeHTTP(w, req)
@@ -155,7 +155,7 @@ func TestAuthMiddleware_RequireRole(t *testing.T) {
 		}))
 
 		req := httptest.NewRequest("GET", "/admin", nil)
-		ctx := context.WithValue(req.Context(), authClaimsKey, claims)
+		ctx := context.WithValue(req.Context(), "auth_claims", claims)
 		req = req.WithContext(ctx)
 		w := httptest.NewRecorder()
 
@@ -174,7 +174,7 @@ func TestAuthMiddleware_RequireRole(t *testing.T) {
 		}))
 
 		req := httptest.NewRequest("GET", "/admin", nil)
-		ctx := context.WithValue(req.Context(), authClaimsKey, claims)
+		ctx := context.WithValue(req.Context(), "auth_claims", claims)
 		req = req.WithContext(ctx)
 		w := httptest.NewRecorder()
 
@@ -300,7 +300,7 @@ func TestAuthMiddleware_RateLimitByUser(t *testing.T) {
 	// Test with user context
 	t.Run("should allow requests within rate limit", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/test", nil)
-		ctx := context.WithValue(req.Context(), userIDKey, "user123")
+		ctx := context.WithValue(req.Context(), "user_id", "user123")
 		req = req.WithContext(ctx)
 		w := httptest.NewRecorder()
 
@@ -315,7 +315,7 @@ func TestAuthMiddleware_RateLimitByUser(t *testing.T) {
 
 	t.Run("should rate limit after exceeding limit", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/test", nil)
-		ctx := context.WithValue(req.Context(), userIDKey, "user456")
+		ctx := context.WithValue(req.Context(), "user_id", "user456")
 		req = req.WithContext(ctx)
 
 		// Make requests up to the limit

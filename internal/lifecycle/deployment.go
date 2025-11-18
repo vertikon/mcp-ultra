@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vertikon/mcp-ultra/pkg/logger"
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 )
 
 // DeploymentStrategy represents deployment strategies
@@ -122,7 +122,7 @@ type DeploymentResult struct {
 // DeploymentAutomation manages automated deployments
 type DeploymentAutomation struct {
 	config DeploymentConfig
-	logger *logger.Logger
+	logger logger.Logger
 
 	// State tracking
 	currentDeployment *DeploymentResult
@@ -131,10 +131,10 @@ type DeploymentAutomation struct {
 }
 
 // NewDeploymentAutomation creates a new deployment automation system
-func NewDeploymentAutomation(config DeploymentConfig, log *logger.Logger) *DeploymentAutomation {
+func NewDeploymentAutomation(config DeploymentConfig, logger logger.Logger) *DeploymentAutomation {
 	return &DeploymentAutomation{
 		config:            config,
-		logger:            log,
+		logger:            logger,
 		deploymentHistory: make([]DeploymentResult, 0),
 		maxHistorySize:    50,
 	}
@@ -267,7 +267,7 @@ func (da *DeploymentAutomation) executeDeploymentPipeline(ctx context.Context, r
 	return nil
 }
 
-func (da *DeploymentAutomation) validateDeployment(_ context.Context, result *DeploymentResult) error {
+func (da *DeploymentAutomation) validateDeployment(ctx context.Context, result *DeploymentResult) error {
 	da.addLog(result, "Validating deployment configuration")
 
 	// Validate configuration
@@ -404,9 +404,7 @@ func (da *DeploymentAutomation) executeCanaryDeployment(ctx context.Context, res
 	if err := da.validateCanaryMetrics(ctx, result); err != nil {
 		// Rollback canary
 		da.addLog(result, "Canary validation failed, rolling back")
-		if rollbackErr := da.executeCommand(ctx, fmt.Sprintf("kubectl delete deployment mcp-ultra-canary --namespace=%s", da.config.Namespace), result); rollbackErr != nil {
-			da.addLog(result, fmt.Sprintf("Warning: failed to delete canary deployment: %v", rollbackErr))
-		}
+		da.executeCommand(ctx, fmt.Sprintf("kubectl delete deployment mcp-ultra-canary --namespace=%s", da.config.Namespace), result)
 		return fmt.Errorf("canary validation failed: %w", err)
 	}
 
@@ -419,7 +417,7 @@ func (da *DeploymentAutomation) executeCanaryDeployment(ctx context.Context, res
 	}
 
 	// Cleanup canary deployment
-	_ = da.executeCommand(ctx, fmt.Sprintf("kubectl delete deployment mcp-ultra-canary --namespace=%s", da.config.Namespace), result)
+	da.executeCommand(ctx, fmt.Sprintf("kubectl delete deployment mcp-ultra-canary --namespace=%s", da.config.Namespace), result)
 
 	da.addLog(result, "Canary deployment completed successfully")
 	return nil
@@ -562,11 +560,11 @@ func (da *DeploymentAutomation) executeScript(ctx context.Context, script string
 		return err
 	}
 
-	da.addLog(result, "Script executed successfully")
+	da.addLog(result, fmt.Sprintf("Script executed successfully"))
 	return nil
 }
 
-func (da *DeploymentAutomation) executeHTTPHook(_ context.Context, hook DeploymentHook, result *DeploymentResult) error {
+func (da *DeploymentAutomation) executeHTTPHook(ctx context.Context, hook DeploymentHook, result *DeploymentResult) error {
 	// Implementation for HTTP hook execution
 	da.addLog(result, fmt.Sprintf("Executing HTTP hook: %s", hook.URL))
 	// This would implement HTTP request logic

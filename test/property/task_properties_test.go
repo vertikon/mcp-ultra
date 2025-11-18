@@ -8,6 +8,7 @@ import (
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"
 	"github.com/leanovate/gopter/prop"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/vertikon/mcp-ultra/internal/domain"
 )
@@ -228,6 +229,7 @@ func TestTaskBusinessRuleProperties(t *testing.T) {
 			}
 
 			task := createTestTask()
+			originalTitle := task.Title
 
 			// Simulate title normalization (trim spaces, etc.)
 			normalizedTitle := normalizeTitle(title)

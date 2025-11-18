@@ -181,20 +181,6 @@ func (cm *ConsentManager) GrantConsent(ctx context.Context, request ConsentReque
 	return &consent, nil
 }
 
-// RecordConsent is a convenience method to record consent with minimal parameters
-func (cm *ConsentManager) RecordConsent(ctx context.Context, subjectID, purpose, source string) error {
-	request := ConsentRequest{
-		SubjectID:     subjectID,
-		Purpose:       purpose,
-		Granted:       true,
-		LegalBasis:    string(LegalBasisConsent),
-		ConsentSource: ConsentSource(source),
-	}
-
-	_, err := cm.GrantConsent(ctx, request)
-	return err
-}
-
 // HasValidConsent checks if valid consent exists for a specific purpose
 func (cm *ConsentManager) HasValidConsent(ctx context.Context, subjectID, purpose string) (bool, error) {
 	if !cm.config.Enabled {
@@ -315,7 +301,7 @@ func (cm *ConsentManager) GetAllConsents(ctx context.Context, subjectID string) 
 }
 
 // HealthCheck returns the health status of the consent manager
-func (cm *ConsentManager) HealthCheck(_ context.Context) map[string]interface{} {
+func (cm *ConsentManager) HealthCheck(ctx context.Context) map[string]interface{} {
 	return map[string]interface{}{
 		"enabled":          cm.config.Enabled,
 		"default_purposes": cm.config.DefaultPurposes,

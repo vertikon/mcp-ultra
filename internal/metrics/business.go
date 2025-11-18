@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
-	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // MetricType represents different types of business metrics
@@ -24,22 +24,13 @@ const (
 type AggregationType string
 
 const (
-	AggregationSum AggregationType = "sum"
-	AggregationAvg AggregationType = "avg"
-	AggregationMax AggregationType = "max"
-	AggregationMin AggregationType = "min"
-)
-
-// AlertStateType represents the state of an alert
-type AlertStateType string
-
-const (
-	AlertStateFiring   AlertStateType  = "firing"
-	AlertStatePending  AlertStateType  = "pending"
-	AlertStateResolved AlertStateType  = "resolved"
-	AggregationCount   AggregationType = "count"
-	AggregationP95     AggregationType = "p95"
-	AggregationP99     AggregationType = "p99"
+	AggregationSum   AggregationType = "sum"
+	AggregationAvg   AggregationType = "avg"
+	AggregationMax   AggregationType = "max"
+	AggregationMin   AggregationType = "min"
+	AggregationCount AggregationType = "count"
+	AggregationP95   AggregationType = "p95"
+	AggregationP99   AggregationType = "p99"
 )
 
 // BusinessMetric defines a business metric configuration
@@ -113,7 +104,7 @@ type AggregatedMetric struct {
 // BusinessMetricsCollector collects and manages business metrics
 type BusinessMetricsCollector struct {
 	config    BusinessMetricsConfig
-	logger    *logger.Logger
+	logger    logger.Logger
 	telemetry *observability.TelemetryService
 
 	// State
@@ -372,7 +363,7 @@ func DefaultAlertRules() []MetricAlertRule {
 // NewBusinessMetricsCollector creates a new business metrics collector
 func NewBusinessMetricsCollector(
 	config BusinessMetricsConfig,
-	logger *logger.Logger,
+	logger logger.Logger,
 	telemetry *observability.TelemetryService,
 ) (*BusinessMetricsCollector, error) {
 
@@ -764,7 +755,7 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 	bmc.mu.Unlock()
 
 	if conditionMet {
-		if !exists || existingState.State == string(AlertStateResolved) {
+		if !exists || existingState.State == "resolved" {
 			// New alert or previously resolved
 			newState := AlertState{
 				MetricName:  rule.MetricName,
@@ -797,9 +788,9 @@ func (bmc *BusinessMetricsCollector) evaluateAlertRule(rule MetricAlertRule) {
 				"severity", rule.Severity,
 			)
 		}
-	} else if exists && existingState.State != string(AlertStateResolved) {
+	} else if exists && existingState.State != "resolved" {
 		// Resolve alert
-		existingState.State = string(AlertStateResolved)
+		existingState.State = "resolved"
 		existingState.Value = currentValue
 
 		bmc.mu.Lock()
@@ -897,7 +888,7 @@ func (bmc *BusinessMetricsCollector) matchesQuery(value MetricValue, query Metri
 }
 
 // NewMetricStorage creates a new metric storage backend
-func NewMetricStorage(backend string, _ map[string]interface{}) (MetricStorage, error) {
+func NewMetricStorage(backend string, config map[string]interface{}) (MetricStorage, error) {
 	switch backend {
 	case "memory":
 		return NewMemoryMetricStorage(), nil

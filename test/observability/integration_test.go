@@ -1,12 +1,11 @@
-//go:build integration
-// +build integration
-
 package observability_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"testing"
@@ -169,11 +168,7 @@ func TestObservabilityIntegration(t *testing.T) {
 			time.Sleep(10 * time.Millisecond)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
-				// Handle encoding error
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
+			json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 		})
 
 		// Apply observability middleware

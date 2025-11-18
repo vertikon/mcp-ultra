@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/redis/go-redis/v9"
+	"github.com/go-redis/redis/v8"
 
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
-	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
 // Algorithm represents different rate limiting algorithms
@@ -29,10 +29,11 @@ const (
 type DistributedRateLimiter struct {
 	client    redis.Cmdable
 	config    Config
-	logger    *logger.Logger
+	logger    logger.Logger
 	telemetry *observability.TelemetryService
 
 	// State
+	mu       sync.RWMutex
 	limiters map[string]Limiter
 	scripts  *LuaScripts
 
@@ -168,7 +169,7 @@ type SlidingWindowLimiter struct {
 type AdaptiveLimiter struct {
 	client redis.Cmdable
 	config Config
-	logger *logger.Logger
+	logger logger.Logger
 
 	mu            sync.RWMutex
 	adaptiveState map[string]*AdaptiveState
@@ -218,7 +219,7 @@ func DefaultConfig() Config {
 }
 
 // NewDistributedRateLimiter creates a new distributed rate limiter
-func NewDistributedRateLimiter(client redis.Cmdable, config Config, logger *logger.Logger, telemetry *observability.TelemetryService) (*DistributedRateLimiter, error) {
+func NewDistributedRateLimiter(client redis.Cmdable, config Config, logger logger.Logger, telemetry *observability.TelemetryService) (*DistributedRateLimiter, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	scripts := &LuaScripts{
@@ -522,7 +523,7 @@ func (drl *DistributedRateLimiter) updateAdaptiveState(key string, rule Rule, al
 	}
 }
 
-func (drl *DistributedRateLimiter) recordMetrics(status string, algorithm Algorithm, _ string, remaining int64) {
+func (drl *DistributedRateLimiter) recordMetrics(status string, algorithm Algorithm, key string, remaining int64) {
 	if drl.telemetry != nil && drl.config.EnableMetrics {
 		drl.telemetry.RecordCounter("rate_limit_requests_total", 1, map[string]string{
 			"status":    status,
@@ -729,7 +730,7 @@ func (al *AdaptiveLimiter) getAdaptiveLimit(key string, rule Rule) int64 {
 	return state.CurrentLimit
 }
 
-func (al *AdaptiveLimiter) updateState(key string, _ Rule, allowed bool) {
+func (al *AdaptiveLimiter) updateState(key string, rule Rule, allowed bool) {
 	al.mu.Lock()
 	defer al.mu.Unlock()
 

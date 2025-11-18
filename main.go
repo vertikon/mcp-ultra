@@ -10,37 +10,29 @@ import (
 	"syscall"
 	"time"
 
-	"go.uber.org/zap"
-
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
+	"github.com/vertikon/mcp-ultra-fix/pkg/version"
 	"github.com/vertikon/mcp-ultra/internal/config"
 	"github.com/vertikon/mcp-ultra/internal/handlers"
-	"github.com/vertikon/mcp-ultra/pkg/httpx"
-	"github.com/vertikon/mcp-ultra/pkg/metrics"
-)
-
-var (
-	Version   = "dev"
-	BuildDate = "unknown"
-	GitCommit = "unknown"
+	"go.uber.org/zap"
 )
 
 func main() {
 	// Initialize logger
-	logger, err := zap.NewProduction()
+	logger, err := logger.NewLogger()
 	if err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
-	defer func() {
-		if syncErr := logger.Sync(); syncErr != nil {
-			// Ignore sync errors on shutdown (common on Windows)
-			log.Printf("Warning: failed to sync logger: %v", syncErr)
-		}
-	}()
+	defer logger.Sync()
 
 	logger.Info("Starting MCP Ultra service",
-		zap.String("version", Version),
-		zap.String("build_date", BuildDate),
-		zap.String("commit", GitCommit),
+		zap.String("version", version.Version),
+		zap.String("build_date", version.BuildDate),
+		zap.String("commit", version.GitCommit),
 	)
 
 	// Load configuration
@@ -50,17 +42,24 @@ func main() {
 	}
 
 	// Initialize HTTP router
-	router := httpx.NewRouter()
+	router := chi.NewRouter()
 
 	// Add middleware
-	router.Use(httpx.RequestID)
-	router.Use(httpx.RealIP)
-	router.Use(httpx.Logger)
-	router.Use(httpx.Recoverer)
-	router.Use(httpx.Timeout(60)) // Timeout in seconds
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.Timeout(60 * time.Second))
 
 	// CORS configuration
-	router.Use(httpx.DefaultCORS())
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"}, // Configure appropriately for production
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 
 	// Initialize health handler
 	healthHandler := handlers.NewHealthHandler()
@@ -69,7 +68,7 @@ func main() {
 	router.Get("/livez", healthHandler.Livez)
 	router.Get("/readyz", healthHandler.Readyz)
 	router.Get("/health", healthHandler.Health)
-	router.Method("GET", "/metrics", metrics.Handler())
+	router.Get("/metrics", promhttp.Handler().ServeHTTP)
 
 	// Create HTTP server
 	server := &http.Server{

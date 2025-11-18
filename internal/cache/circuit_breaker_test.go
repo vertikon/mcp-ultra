@@ -1,6 +1,8 @@
 package cache
 
 import (
+	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -8,298 +10,289 @@ import (
 )
 
 func TestCircuitBreaker_ClosedState(t *testing.T) {
-	cb := NewCircuitBreaker(3, time.Second, 2)
+	config := CircuitBreakerConfig{
+		MaxRequests: 3,
+		Interval:    time.Second,
+		Timeout:     time.Second,
+	}
+
+	cb := NewCircuitBreaker("test", config)
 
 	// Circuit breaker should start in closed state
-	assert.Equal(t, CircuitBreakerClosed, cb.State())
+	assert.Equal(t, StateClosed, cb.State())
 
 	// Successful calls should keep circuit closed
 	for i := 0; i < 5; i++ {
-		allowed := cb.Allow()
-		assert.True(t, allowed, "Request should be allowed in closed state")
-		cb.RecordSuccess()
-		assert.Equal(t, CircuitBreakerClosed, cb.State())
+		result, err := cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
+			return "success", nil
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, "success", result)
+		assert.Equal(t, StateClosed, cb.State())
 	}
 }
 
 func TestCircuitBreaker_OpenState(t *testing.T) {
-	cb := NewCircuitBreaker(3, 100*time.Millisecond, 2)
+	config := CircuitBreakerConfig{
+		MaxRequests: 3,
+		Interval:    time.Second,
+		Timeout:     100 * time.Millisecond,
+	}
+
+	cb := NewCircuitBreaker("test", config)
 
 	// Generate failures to open the circuit
 	for i := 0; i < 3; i++ {
-		allowed := cb.Allow()
-		assert.True(t, allowed, "Request should be allowed before circuit opens")
-		cb.RecordFailure()
+		result, err := cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
+			return nil, errors.New("test failure")
+		})
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
 	}
 
 	// Circuit should now be open
-	assert.Equal(t, CircuitBreakerOpen, cb.State())
+	assert.Equal(t, StateOpen, cb.State())
 
 	// Calls should fail immediately without executing the function
-	allowed := cb.Allow()
-	assert.False(t, allowed, "Request should be denied when circuit is open")
+	result, err := cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
+		t.Fatal("Function should not be called when circuit is open")
+		return nil, nil
+	})
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	assert.Contains(t, err.Error(), "circuit breaker is open")
 }
 
 func TestCircuitBreaker_HalfOpenState(t *testing.T) {
-	cb := NewCircuitBreaker(2, 50*time.Millisecond, 2)
+	config := CircuitBreakerConfig{
+		MaxRequests: 2,
+		Interval:    time.Second,
+		Timeout:     50 * time.Millisecond,
+	}
+
+	cb := NewCircuitBreaker("test", config)
 
 	// Open the circuit
 	for i := 0; i < 2; i++ {
-		cb.Allow()
-		cb.RecordFailure()
+		cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
+			return nil, errors.New("failure")
+		})
 	}
 
-	assert.Equal(t, CircuitBreakerOpen, cb.State())
+	assert.Equal(t, StateOpen, cb.State())
 
 	// Wait for timeout to transition to half-open
 	time.Sleep(60 * time.Millisecond)
 
-	// Next call should transition to half-open and be allowed
-	allowed := cb.Allow()
-	assert.True(t, allowed, "First request after timeout should be allowed")
-	assert.Equal(t, CircuitBreakerHalfOpen, cb.State())
+	// Next call should transition to half-open
+	result, err := cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
+		return "success", nil
+	})
 
-	// Record success to transition back to closed
-	cb.RecordSuccess()
-	cb.Allow()
-	cb.RecordSuccess()
-	cb.Allow()
-	cb.RecordSuccess()
-
-	// Should transition back to closed after success threshold
-	assert.Equal(t, CircuitBreakerClosed, cb.State())
+	assert.NoError(t, err)
+	assert.Equal(t, "success", result)
+	assert.Equal(t, StateClosed, cb.State()) // Should transition back to closed on success
 }
 
 func TestCircuitBreaker_HalfOpenToOpen(t *testing.T) {
-	cb := NewCircuitBreaker(2, 50*time.Millisecond, 2)
+	config := CircuitBreakerConfig{
+		MaxRequests: 2,
+		Interval:    time.Second,
+		Timeout:     50 * time.Millisecond,
+	}
+
+	cb := NewCircuitBreaker("test", config)
 
 	// Open the circuit
 	for i := 0; i < 2; i++ {
-		cb.Allow()
-		cb.RecordFailure()
+		cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
+			return nil, errors.New("failure")
+		})
 	}
-
-	assert.Equal(t, CircuitBreakerOpen, cb.State())
 
 	// Wait for timeout
 	time.Sleep(60 * time.Millisecond)
 
 	// Fail again in half-open state
-	allowed := cb.Allow()
-	assert.True(t, allowed, "First request after timeout should be allowed")
-	assert.Equal(t, CircuitBreakerHalfOpen, cb.State())
+	result, err := cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
+		return nil, errors.New("still failing")
+	})
 
-	cb.RecordFailure()
-
-	// Should transition back to open
-	assert.Equal(t, CircuitBreakerOpen, cb.State())
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	assert.Equal(t, StateOpen, cb.State()) // Should transition back to open
 }
 
-func TestCircuitBreaker_Stats(t *testing.T) {
-	cb := NewCircuitBreaker(5, time.Second, 2)
+func TestCircuitBreaker_Metrics(t *testing.T) {
+	config := CircuitBreakerConfig{
+		MaxRequests: 5,
+		Interval:    time.Second,
+		Timeout:     time.Second,
+	}
+
+	cb := NewCircuitBreaker("test", config)
 
 	// Execute some successful calls
 	for i := 0; i < 3; i++ {
-		cb.Allow()
-		cb.RecordSuccess()
+		cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
+			return "success", nil
+		})
 	}
 
 	// Execute some failed calls
 	for i := 0; i < 2; i++ {
-		cb.Allow()
-		cb.RecordFailure()
+		cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
+			return nil, errors.New("failure")
+		})
 	}
 
-	stats := cb.Stats()
-	assert.Equal(t, CircuitBreakerClosed, stats.State)
-	assert.Equal(t, 2, stats.FailureCount)
-	assert.Equal(t, 5, stats.FailureThreshold)
-	assert.Equal(t, time.Second, stats.RecoveryTimeout)
+	metrics := cb.Metrics()
+	assert.Equal(t, uint64(5), metrics.TotalRequests)
+	assert.Equal(t, uint64(3), metrics.TotalSuccesses)
+	assert.Equal(t, uint64(2), metrics.TotalFailures)
+	assert.Equal(t, StateClosed, metrics.State)
 }
 
 func TestCircuitBreaker_ConcurrentExecution(t *testing.T) {
-	cb := NewCircuitBreaker(10, time.Second, 5)
+	config := CircuitBreakerConfig{
+		MaxRequests: 10,
+		Interval:    time.Second,
+		Timeout:     time.Second,
+	}
+
+	cb := NewCircuitBreaker("test", config)
 
 	numGoroutines := 50
-	results := make(chan bool, numGoroutines)
+	results := make(chan error, numGoroutines)
 
 	// Execute concurrent calls
 	for i := 0; i < numGoroutines; i++ {
 		go func(i int) {
-			allowed := cb.Allow()
-			if allowed {
+			_, err := cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
 				time.Sleep(10 * time.Millisecond) // Simulate some work
 				if i%10 == 0 {
-					cb.RecordFailure()
-				} else {
-					cb.RecordSuccess()
+					return nil, errors.New("simulated failure")
 				}
-			}
-			results <- allowed
+				return "success", nil
+			})
+			results <- err
 		}(i)
 	}
 
 	// Collect results
-	allowedCount := 0
+	successCount := 0
+	failureCount := 0
 	for i := 0; i < numGoroutines; i++ {
-		if <-results {
-			allowedCount++
+		err := <-results
+		if err != nil {
+			failureCount++
+		} else {
+			successCount++
 		}
 	}
 
-	// Most requests should be allowed
-	assert.Greater(t, allowedCount, 40, "Most requests should be allowed")
-	// Circuit should still be closed (not enough failures)
-	assert.Equal(t, CircuitBreakerClosed, cb.State())
+	// Verify we got the expected mix of successes and failures
+	assert.Equal(t, 5, failureCount) // Every 10th call fails
+	assert.Equal(t, 45, successCount)
+	assert.Equal(t, StateClosed, cb.State()) // Should still be closed
+}
+
+func TestCircuitBreaker_ContextCancellation(t *testing.T) {
+	config := CircuitBreakerConfig{
+		MaxRequests: 5,
+		Interval:    time.Second,
+		Timeout:     time.Second,
+	}
+
+	cb := NewCircuitBreaker("test", config)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // Cancel immediately
+
+	result, err := cb.Execute(ctx, func(ctx context.Context) (interface{}, error) {
+		return "should not execute", nil
+	})
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	assert.Equal(t, context.Canceled, err)
 }
 
 func TestCircuitBreaker_Reset(t *testing.T) {
-	cb := NewCircuitBreaker(2, time.Second, 2)
+	config := CircuitBreakerConfig{
+		MaxRequests: 2,
+		Interval:    time.Second,
+		Timeout:     time.Second,
+	}
+
+	cb := NewCircuitBreaker("test", config)
 
 	// Open the circuit
 	for i := 0; i < 2; i++ {
-		cb.Allow()
-		cb.RecordFailure()
+		cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
+			return nil, errors.New("failure")
+		})
 	}
 
-	assert.Equal(t, CircuitBreakerOpen, cb.State())
+	assert.Equal(t, StateOpen, cb.State())
 
 	// Reset the circuit breaker
 	cb.Reset()
 
 	// Should be back to closed state
-	assert.Equal(t, CircuitBreakerClosed, cb.State())
+	assert.Equal(t, StateClosed, cb.State())
 
 	// Should accept calls normally
-	allowed := cb.Allow()
-	assert.True(t, allowed, "Request should be allowed after reset")
-	cb.RecordSuccess()
-	assert.Equal(t, CircuitBreakerClosed, cb.State())
-}
-
-func TestCircuitBreaker_ForceOpen(t *testing.T) {
-	cb := NewCircuitBreaker(5, time.Second, 2)
-
-	// Circuit starts closed
-	assert.Equal(t, CircuitBreakerClosed, cb.State())
-
-	// Force open
-	cb.ForceOpen()
-
-	// Should be open now
-	assert.Equal(t, CircuitBreakerOpen, cb.State())
-
-	// Requests should be denied
-	allowed := cb.Allow()
-	assert.False(t, allowed, "Request should be denied when circuit is forced open")
-}
-
-func TestCircuitBreaker_OnStateChange(t *testing.T) {
-	cb := NewCircuitBreaker(2, 50*time.Millisecond, 2)
-
-	stateChanges := make(chan string, 10)
-
-	cb.OnStateChange(func(from, to CircuitBreakerState) {
-		stateChanges <- from.String() + " -> " + to.String()
+	result, err := cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
+		return "success after reset", nil
 	})
 
-	// Open the circuit
-	for i := 0; i < 2; i++ {
-		cb.Allow()
-		cb.RecordFailure()
-	}
-
-	// Wait for callback
-	time.Sleep(10 * time.Millisecond)
-
-	select {
-	case change := <-stateChanges:
-		assert.Equal(t, "closed -> open", change)
-	default:
-		t.Error("Expected state change callback")
-	}
-
-	// Wait for timeout and transition to half-open
-	time.Sleep(60 * time.Millisecond)
-
-	cb.Allow() // This triggers the transition
-
-	// Wait for callback
-	time.Sleep(10 * time.Millisecond)
-
-	select {
-	case change := <-stateChanges:
-		assert.Equal(t, "open -> half_open", change)
-	default:
-		t.Error("Expected state change callback for half-open")
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, "success after reset", result)
 }
 
-func TestCircuitBreaker_HalfOpenMaxRequests(t *testing.T) {
-	cb := NewCircuitBreaker(2, 50*time.Millisecond, 3)
-
-	// Open the circuit
-	for i := 0; i < 2; i++ {
-		cb.Allow()
-		cb.RecordFailure()
-	}
-
-	assert.Equal(t, CircuitBreakerOpen, cb.State())
-
-	// Wait for timeout
-	time.Sleep(60 * time.Millisecond)
-
-	// Should allow up to HalfOpenMaxRequests (3)
-	for i := 0; i < 3; i++ {
-		allowed := cb.Allow()
-		assert.True(t, allowed, "Request %d should be allowed in half-open", i)
-	}
-
-	// Next request should be denied
-	allowed := cb.Allow()
-	assert.False(t, allowed, "Request should be denied after max half-open requests")
-}
-
-func TestAdaptiveCircuitBreaker_Creation(t *testing.T) {
+func TestCircuitBreaker_Name(t *testing.T) {
 	config := CircuitBreakerConfig{
-		FailureThreshold:    5,
-		RecoveryTimeout:     time.Second,
-		HalfOpenMaxRequests: 3,
-		SuccessThreshold:    3,
+		MaxRequests: 5,
+		Interval:    time.Second,
+		Timeout:     time.Second,
 	}
 
-	acb := NewAdaptiveCircuitBreaker(config)
-	assert.NotNil(t, acb)
-	assert.Equal(t, CircuitBreakerClosed, acb.State())
+	name := "test-circuit-breaker"
+	cb := NewCircuitBreaker(name, config)
 
-	stats := acb.Stats()
-	assert.Equal(t, 5, stats.FailureThreshold)
-	assert.Equal(t, time.Second, stats.RecoveryTimeout)
-	assert.Equal(t, 3, stats.HalfOpenMaxRequests)
+	assert.Equal(t, name, cb.Name())
 }
 
-func TestAdaptiveCircuitBreaker_RecordRequest(t *testing.T) {
-	config := CircuitBreakerConfig{
-		FailureThreshold:    5,
-		RecoveryTimeout:     time.Second,
-		HalfOpenMaxRequests: 3,
-		SuccessThreshold:    3,
+func TestCircuitBreakerConfig_Validation(t *testing.T) {
+	// Test valid config
+	validConfig := CircuitBreakerConfig{
+		MaxRequests: 5,
+		Interval:    time.Second,
+		Timeout:     time.Second,
 	}
 
-	acb := NewAdaptiveCircuitBreaker(config)
+	cb := NewCircuitBreaker("test", validConfig)
+	assert.NotNil(t, cb)
 
-	// Record some requests
-	for i := 0; i < 10; i++ {
-		acb.RecordRequest()
+	// Test with zero MaxRequests (should use default)
+	zeroMaxConfig := CircuitBreakerConfig{
+		MaxRequests: 0,
+		Interval:    time.Second,
+		Timeout:     time.Second,
 	}
 
-	// Record some failures
-	for i := 0; i < 2; i++ {
-		acb.RecordFailure()
-	}
+	cb = NewCircuitBreaker("test", zeroMaxConfig)
+	assert.NotNil(t, cb)
 
-	// Check failure rate
-	rate := acb.GetFailureRate()
-	assert.Greater(t, rate, 0.0, "Failure rate should be greater than 0")
-	assert.Less(t, rate, 1.0, "Failure rate should be less than 1")
+	// The circuit breaker should still function with default values
+	result, err := cb.Execute(context.Background(), func(ctx context.Context) (interface{}, error) {
+		return "test", nil
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, "test", result)
 }

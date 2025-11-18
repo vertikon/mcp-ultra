@@ -522,11 +522,7 @@ func (am *AlertManager) sendHTTPPayload(endpoint string, payload interface{}, he
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			am.logger.Warn("Failed to close response body", zap.Error(closeErr))
-		}
-	}()
+	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("HTTP error: %s", resp.Status)
@@ -652,10 +648,10 @@ func (am *AlertManager) renderTemplate(template string, alert AlertEvent) string
 
 func (am *AlertManager) getSeverityColor(severity string) string {
 	switch strings.ToLower(severity) {
-	case string(SeverityCritical):
+	case "critical":
 		return "danger"
-	case string(SeverityWarning):
-		return string(SeverityWarning)
+	case "warning":
+		return "warning"
 	case "info":
 		return "good"
 	default:
@@ -665,9 +661,9 @@ func (am *AlertManager) getSeverityColor(severity string) string {
 
 func (am *AlertManager) getSeverityColorInt(severity string) int {
 	switch strings.ToLower(severity) {
-	case string(SeverityCritical):
+	case "critical":
 		return 0xFF0000 // Red
-	case string(SeverityWarning):
+	case "warning":
 		return 0xFFA500 // Orange
 	case "info":
 		return 0x00FF00 // Green

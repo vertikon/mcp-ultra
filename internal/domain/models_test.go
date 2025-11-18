@@ -4,14 +4,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/vertikon/mcp-ultra/pkg/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewTask(t *testing.T) {
 	title := "Test Task"
 	description := "Test Description"
-	createdBy := types.New()
+	createdBy := uuid.New()
 
 	task := NewTask(title, description, createdBy)
 
@@ -20,7 +21,7 @@ func TestNewTask(t *testing.T) {
 	assert.Equal(t, createdBy, task.CreatedBy)
 	assert.Equal(t, TaskStatusPending, task.Status)
 	assert.Equal(t, PriorityMedium, task.Priority)
-	assert.NotEqual(t, types.Nil, task.ID)
+	assert.NotEqual(t, uuid.Nil, task.ID)
 	assert.False(t, task.CreatedAt.IsZero())
 	assert.False(t, task.UpdatedAt.IsZero())
 	assert.Empty(t, task.Tags)
@@ -28,7 +29,7 @@ func TestNewTask(t *testing.T) {
 }
 
 func TestTaskComplete(t *testing.T) {
-	task := NewTask("Test", "Description", types.New())
+	task := NewTask("Test", "Description", uuid.New())
 	task.Status = TaskStatusInProgress
 
 	beforeComplete := time.Now()
@@ -37,33 +38,33 @@ func TestTaskComplete(t *testing.T) {
 
 	assert.Equal(t, TaskStatusCompleted, task.Status)
 	assert.NotNil(t, task.CompletedAt)
-	assert.True(t, !task.CompletedAt.Before(beforeComplete), "CompletedAt should be after or equal to beforeComplete")
-	assert.True(t, !task.CompletedAt.After(afterComplete), "CompletedAt should be before or equal to afterComplete")
-	assert.True(t, !task.UpdatedAt.Before(beforeComplete), "UpdatedAt should be after or equal to beforeComplete")
+	assert.True(t, task.CompletedAt.After(beforeComplete))
+	assert.True(t, task.CompletedAt.Before(afterComplete))
+	assert.True(t, task.UpdatedAt.After(beforeComplete))
 }
 
 func TestTaskCancel(t *testing.T) {
-	task := NewTask("Test", "Description", types.New())
+	task := NewTask("Test", "Description", uuid.New())
 
 	beforeCancel := time.Now()
 	task.Cancel()
 	afterCancel := time.Now()
 
 	assert.Equal(t, TaskStatusCancelled, task.Status)
-	assert.True(t, !task.UpdatedAt.Before(beforeCancel), "UpdatedAt should be after or equal to beforeCancel")
-	assert.True(t, !task.UpdatedAt.After(afterCancel), "UpdatedAt should be before or equal to afterCancel")
+	assert.True(t, task.UpdatedAt.After(beforeCancel))
+	assert.True(t, task.UpdatedAt.Before(afterCancel))
 }
 
 func TestTaskUpdateStatus(t *testing.T) {
-	task := NewTask("Test", "Description", types.New())
+	task := NewTask("Test", "Description", uuid.New())
 
 	beforeUpdate := time.Now()
 	task.UpdateStatus(TaskStatusInProgress)
 	afterUpdate := time.Now()
 
 	assert.Equal(t, TaskStatusInProgress, task.Status)
-	assert.True(t, !task.UpdatedAt.Before(beforeUpdate), "UpdatedAt should be after or equal to beforeUpdate")
-	assert.True(t, !task.UpdatedAt.After(afterUpdate), "UpdatedAt should be before or equal to afterUpdate")
+	assert.True(t, task.UpdatedAt.After(beforeUpdate))
+	assert.True(t, task.UpdatedAt.Before(afterUpdate))
 }
 
 func TestTaskIsValidStatus(t *testing.T) {
@@ -119,7 +120,7 @@ func TestTaskIsValidStatus(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			task := NewTask("Test", "Description", types.New())
+			task := NewTask("Test", "Description", uuid.New())
 			task.Status = tt.currentStatus
 
 			result := task.IsValidStatus(tt.newStatus)

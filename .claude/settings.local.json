@@ -1,13 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(tree:*)",
-      "Read(//c/Users/Notebook/Meu Drive/vertikon/waba/gera-mcp-lista/**)",
-      "Read(//e/vertikon/business/SaaS/templates/mcp-ultra-sdk-custom/**)",
-      "Bash(go install:*)"
-    ]
-  },
-  "enabledMcpjsonServers": [
-    "mcp-bridge-tools"
-  ]
+      "Bash(del test_constants.go)",
+      "Bash(rm:*)",
+      "Bash(Remove-Item test_constants.go)",
+      "Bash(powershell.exe:*)",
+      "Bash(go build:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
 }

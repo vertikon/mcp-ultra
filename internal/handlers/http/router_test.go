@@ -10,12 +10,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.uber.org/zap"
-
 	"github.com/vertikon/mcp-ultra/internal/domain"
 	"github.com/vertikon/mcp-ultra/internal/services"
-	"github.com/vertikon/mcp-ultra/pkg/httpx"
-	"github.com/vertikon/mcp-ultra/pkg/types"
+	"go.uber.org/zap"
 )
 
 // MockHealthService for testing
@@ -42,21 +39,17 @@ func (m *MockHealthService) RegisterChecker(name string, checker services.Health
 	m.Called(name, checker)
 }
 
-func (m *MockHealthService) RegisterRoutes(r httpx.Router) {
-	m.Called(r)
-}
-
 // MockTaskService for testing
 type MockTaskService struct {
 	mock.Mock
 }
 
-func (m *MockTaskService) CreateTask(ctx context.Context, req services.CreateTaskRequest) (*domain.Task, error) {
+func (m *MockTaskService) CreateTask(ctx context.Context, req domain.CreateTaskRequest) (*domain.Task, error) {
 	args := m.Called(ctx, req)
 	return args.Get(0).(*domain.Task), args.Error(1)
 }
 
-func (m *MockTaskService) GetTask(ctx context.Context, taskID types.UUID) (*domain.Task, error) {
+func (m *MockTaskService) GetTask(ctx context.Context, taskID string) (*domain.Task, error) {
 	args := m.Called(ctx, taskID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -64,42 +57,19 @@ func (m *MockTaskService) GetTask(ctx context.Context, taskID types.UUID) (*doma
 	return args.Get(0).(*domain.Task), args.Error(1)
 }
 
-func (m *MockTaskService) UpdateTask(ctx context.Context, taskID types.UUID, req services.UpdateTaskRequest) (*domain.Task, error) {
+func (m *MockTaskService) UpdateTask(ctx context.Context, taskID string, req domain.UpdateTaskRequest) (*domain.Task, error) {
 	args := m.Called(ctx, taskID, req)
 	return args.Get(0).(*domain.Task), args.Error(1)
 }
 
-func (m *MockTaskService) DeleteTask(ctx context.Context, taskID types.UUID) error {
+func (m *MockTaskService) DeleteTask(ctx context.Context, taskID string) error {
 	args := m.Called(ctx, taskID)
 	return args.Error(0)
 }
 
-func (m *MockTaskService) ListTasks(ctx context.Context, filters domain.TaskFilter) (*domain.TaskList, error) {
+func (m *MockTaskService) ListTasks(ctx context.Context, filters domain.TaskFilters) (*domain.TaskList, error) {
 	args := m.Called(ctx, filters)
 	return args.Get(0).(*domain.TaskList), args.Error(1)
-}
-
-func (m *MockTaskService) CompleteTask(ctx context.Context, taskID types.UUID) (*domain.Task, error) {
-	args := m.Called(ctx, taskID)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.Task), args.Error(1)
-}
-
-func (m *MockTaskService) GetTasksByStatus(ctx context.Context, status domain.TaskStatus) ([]*domain.Task, error) {
-	args := m.Called(ctx, status)
-	return args.Get(0).([]*domain.Task), args.Error(1)
-}
-
-func (m *MockTaskService) GetTasksByAssignee(ctx context.Context, assigneeID types.UUID) ([]*domain.Task, error) {
-	args := m.Called(ctx, assigneeID)
-	return args.Get(0).([]*domain.Task), args.Error(1)
-}
-
-// ptr is a helper function to create pointer to string
-func ptr(s string) *string {
-	return &s
 }
 
 func TestNewRouter(t *testing.T) {
@@ -107,13 +77,9 @@ func TestNewRouter(t *testing.T) {
 	mockHealthService := &MockHealthService{}
 	mockTaskService := &MockTaskService{}
 
-	// Expect RegisterRoutes to be called during router initialization
-	mockHealthService.On("RegisterRoutes", mock.Anything).Return()
-
-	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
+	router := NewRouter(logger, mockHealthService, mockTaskService)
 
 	assert.NotNil(t, router)
-	mockHealthService.AssertExpectations(t)
 }
 
 func TestRouter_HealthEndpoints(t *testing.T) {
@@ -132,10 +98,9 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 			name:     "health endpoint returns healthy status",
 			endpoint: "/health",
 			setupMock: func() {
-				mockHealthService.On("RegisterRoutes", mock.Anything).Return()
 				mockHealthService.On("Check", mock.Anything).Return(map[string]services.HealthStatus{
-					"database": {Status: "healthy"},
-					"redis":    {Status: "healthy"},
+					"database": {Status: "healthy", Message: "Connected"},
+					"redis":    {Status: "healthy", Message: "Connected"},
 				})
 			},
 			expectedStatus: http.StatusOK,
@@ -144,7 +109,6 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 			name:     "ready endpoint returns true",
 			endpoint: "/ready",
 			setupMock: func() {
-				mockHealthService.On("RegisterRoutes", mock.Anything).Return()
 				mockHealthService.On("IsReady", mock.Anything).Return(true)
 			},
 			expectedStatus: http.StatusOK,
@@ -154,7 +118,6 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 			name:     "ready endpoint returns false",
 			endpoint: "/ready",
 			setupMock: func() {
-				mockHealthService.On("RegisterRoutes", mock.Anything).Return()
 				mockHealthService.On("IsReady", mock.Anything).Return(false)
 			},
 			expectedStatus: http.StatusServiceUnavailable,
@@ -164,7 +127,6 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 			name:     "live endpoint returns true",
 			endpoint: "/live",
 			setupMock: func() {
-				mockHealthService.On("RegisterRoutes", mock.Anything).Return()
 				mockHealthService.On("IsLive", mock.Anything).Return(true)
 			},
 			expectedStatus: http.StatusOK,
@@ -174,7 +136,6 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 			name:     "live endpoint returns false",
 			endpoint: "/live",
 			setupMock: func() {
-				mockHealthService.On("RegisterRoutes", mock.Anything).Return()
 				mockHealthService.On("IsLive", mock.Anything).Return(false)
 			},
 			expectedStatus: http.StatusServiceUnavailable,
@@ -189,7 +150,7 @@ func TestRouter_HealthEndpoints(t *testing.T) {
 
 			tt.setupMock()
 
-			router := NewRouter(mockTaskService, nil, mockHealthService, logger)
+			router := NewRouter(logger, mockHealthService, mockTaskService)
 			req := httptest.NewRequest(http.MethodGet, tt.endpoint, nil)
 			w := httptest.NewRecorder()
 
@@ -211,25 +172,22 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	mockHealthService := &MockHealthService{}
 	mockTaskService := &MockTaskService{}
 
-	// Expect RegisterRoutes to be called during router initialization
-	mockHealthService.On("RegisterRoutes", mock.Anything).Return()
-
-	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
+	router := NewRouter(logger, mockHealthService, mockTaskService)
 
 	t.Run("POST /tasks - create task", func(t *testing.T) {
-		creatorID := types.New()
-		taskRequest := services.CreateTaskRequest{
-			Title:       "Test Task",
-			Description: "Test Description",
-			Priority:    domain.PriorityHigh,
-			CreatedBy:   creatorID,
-		}
-
-		expectedTask := &domain.Task{
-			ID:          types.MustParse("00000000-0000-0000-0000-000000000123"),
+		taskRequest := domain.CreateTaskRequest{
 			Title:       "Test Task",
 			Description: "Test Description",
 			Priority:    "high",
+			Category:    "development",
+		}
+
+		expectedTask := &domain.Task{
+			ID:          "task-123",
+			Title:       "Test Task",
+			Description: "Test Description",
+			Priority:    "high",
+			Category:    "development",
 			Status:      "pending",
 		}
 
@@ -254,7 +212,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	})
 
 	t.Run("GET /tasks/:id - get task", func(t *testing.T) {
-		taskID := types.MustParse("00000000-0000-0000-0000-000000000123")
+		taskID := "task-123"
 		expectedTask := &domain.Task{
 			ID:          taskID,
 			Title:       "Test Task",
@@ -264,7 +222,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 
 		mockTaskService.On("GetTask", mock.Anything, taskID).Return(expectedTask, nil)
 
-		req := httptest.NewRequest(http.MethodGet, "/api/v1/tasks/"+taskID.String(), nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/tasks/"+taskID, nil)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -280,17 +238,16 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	})
 
 	t.Run("PUT /tasks/:id - update task", func(t *testing.T) {
-		taskUUID := types.MustParse("00000000-0000-0000-0000-000000000123")
-		taskID := taskUUID.String()
-		updateRequest := services.UpdateTaskRequest{
-			Title:       ptr("Updated Task"),
-			Description: ptr("Updated Description"),
+		taskID := "task-123"
+		updateRequest := domain.UpdateTaskRequest{
+			Title:  "Updated Task",
+			Status: "completed",
 		}
 
 		expectedTask := &domain.Task{
-			ID:     taskUUID,
+			ID:     taskID,
 			Title:  "Updated Task",
-			Status: domain.TaskStatusCompleted,
+			Status: "completed",
 		}
 
 		mockTaskService.On("UpdateTask", mock.Anything, taskID, updateRequest).Return(expectedTask, nil)
@@ -313,8 +270,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	})
 
 	t.Run("DELETE /tasks/:id - delete task", func(t *testing.T) {
-		taskUUID := types.MustParse("00000000-0000-0000-0000-000000000123")
-		taskID := taskUUID.String()
+		taskID := "task-123"
 
 		mockTaskService.On("DeleteTask", mock.Anything, taskID).Return(nil)
 
@@ -329,33 +285,23 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 	})
 
 	t.Run("GET /tasks - list tasks", func(t *testing.T) {
-		task1ID := types.MustParse("00000000-0000-0000-0000-000000000001")
-		task2ID := types.MustParse("00000000-0000-0000-0000-000000000002")
-
-		tasks := []*domain.Task{
-			{
-				ID:          task1ID,
-				Title:       "Task 1",
-				Description: "Test 1",
-				Status:      domain.TaskStatusPending,
-				Priority:    domain.PriorityHigh,
-			},
-			{
-				ID:          task2ID,
-				Title:       "Task 2",
-				Description: "Test 2",
-				Status:      domain.TaskStatusPending,
-				Priority:    domain.PriorityHigh,
-			},
+		filters := domain.TaskFilters{
+			Status:   "pending",
+			Priority: "high",
 		}
 
 		taskList := &domain.TaskList{
-			Items: tasks,
-			Total: len(tasks),
+			Tasks: []domain.Task{
+				{ID: "task-1", Title: "Task 1", Status: "pending", Priority: "high"},
+				{ID: "task-2", Title: "Task 2", Status: "pending", Priority: "high"},
+			},
+			Total: 2,
+			Page:  1,
+			Size:  10,
 		}
 
-		mockTaskService.On("ListTasks", mock.Anything, mock.MatchedBy(func(f domain.TaskFilter) bool {
-			return f.Limit == 10
+		mockTaskService.On("ListTasks", mock.Anything, mock.MatchedBy(func(f domain.TaskFilters) bool {
+			return f.Status == "pending" && f.Priority == "high"
 		})).Return(taskList, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/tasks?status=pending&priority=high", nil)
@@ -368,7 +314,7 @@ func TestRouter_TaskEndpoints(t *testing.T) {
 		var response domain.TaskList
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, len(response.Items))
+		assert.Equal(t, 2, len(response.Tasks))
 		assert.Equal(t, 2, response.Total)
 
 		mockTaskService.AssertExpectations(t)
@@ -380,10 +326,7 @@ func TestRouter_Middleware(t *testing.T) {
 	mockHealthService := &MockHealthService{}
 	mockTaskService := &MockTaskService{}
 
-	// Expect RegisterRoutes to be called during router initialization
-	mockHealthService.On("RegisterRoutes", mock.Anything).Return()
-
-	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
+	router := NewRouter(logger, mockHealthService, mockTaskService)
 
 	t.Run("CORS headers are set", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodOptions, "/api/v1/tasks", nil)
@@ -418,10 +361,7 @@ func TestRouter_ErrorHandling(t *testing.T) {
 	mockHealthService := &MockHealthService{}
 	mockTaskService := &MockTaskService{}
 
-	// Expect RegisterRoutes to be called during router initialization
-	mockHealthService.On("RegisterRoutes", mock.Anything).Return()
-
-	router := NewRouter(mockTaskService, nil, mockHealthService, logger)
+	router := NewRouter(logger, mockHealthService, mockTaskService)
 
 	t.Run("404 for non-existent endpoint", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/non-existent", nil)

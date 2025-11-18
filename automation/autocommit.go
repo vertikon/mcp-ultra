@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -99,7 +100,7 @@ func initializeGitRepo(config Config) error {
 
 		// Create .gitignore
 		gitignorePath := filepath.Join(repoPath, ".gitignore")
-		if err := os.WriteFile(gitignorePath, []byte(config.GitIgnore), 0644); err != nil {
+		if err := ioutil.WriteFile(gitignorePath, []byte(config.GitIgnore), 0644); err != nil {
 			log.Printf("⚠️ Failed to create .gitignore: %v", err)
 		}
 
@@ -113,7 +114,7 @@ func initializeGitRepo(config Config) error {
 			config.RepoName,
 		)
 
-		if err := os.WriteFile(readmePath, []byte(readmeContent), 0644); err != nil {
+		if err := ioutil.WriteFile(readmePath, []byte(readmeContent), 0644); err != nil {
 			log.Printf("⚠️ Failed to create README.md: %v", err)
 		}
 
@@ -195,7 +196,7 @@ func loadConfigFromFile(filename string) (Config, error) {
 		return config, nil
 	}
 
-	data, err := os.ReadFile(filename)
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return config, fmt.Errorf("failed to read config file: %w", err)
 	}
@@ -215,7 +216,7 @@ func saveConfigToFile(config Config, filename string) error {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	if err := os.WriteFile(filename, data, 0644); err != nil {
+	if err := ioutil.WriteFile(filename, data, 0644); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 

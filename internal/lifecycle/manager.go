@@ -7,15 +7,15 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 	"github.com/vertikon/mcp-ultra/internal/observability"
-	"github.com/vertikon/mcp-ultra/pkg/logger"
 )
 
-// State represents the current state of the application
-type State int32
+// LifecycleState represents the current state of the application
+type LifecycleState int32
 
 const (
-	StateInitializing State = iota
+	StateInitializing LifecycleState = iota
 	StateStarting
 	StateReady
 	StateHealthy
@@ -25,7 +25,7 @@ const (
 	StateError
 )
 
-func (s State) String() string {
+func (s LifecycleState) String() string {
 	switch s {
 	case StateInitializing:
 		return "initializing"
@@ -34,7 +34,7 @@ func (s State) String() string {
 	case StateReady:
 		return "ready"
 	case StateHealthy:
-		return string(HealthStatusHealthy)
+		return "healthy"
 	case StateDegraded:
 		return "degraded"
 	case StateStopping:
@@ -59,22 +59,22 @@ type Component interface {
 	IsHealthy() bool
 }
 
-// Event represents events during lifecycle transitions
-type Event struct {
+// LifecycleEvent represents events during lifecycle transitions
+type LifecycleEvent struct {
 	Type      string                 `json:"type"`
 	Component string                 `json:"component,omitempty"`
-	State     State                  `json:"state"`
+	State     LifecycleState         `json:"state"`
 	Message   string                 `json:"message"`
 	Timestamp time.Time              `json:"timestamp"`
 	Metadata  map[string]interface{} `json:"metadata,omitempty"`
 	Error     error                  `json:"error,omitempty"`
 }
 
-// Manager manages application lifecycle and component orchestration
-type Manager struct {
-	state         int32 // atomic State
+// LifecycleManager manages application lifecycle and component orchestration
+type LifecycleManager struct {
+	state         int32 // atomic LifecycleState
 	components    []Component
-	eventHandlers []func(Event)
+	eventHandlers []func(LifecycleEvent)
 
 	// Context and cancellation
 	ctx    context.Context
@@ -88,14 +88,14 @@ type Manager struct {
 	config Config
 
 	// Dependencies
-	logger    *logger.Logger
+	logger    logger.Logger
 	telemetry *observability.TelemetryService
 
 	// State tracking
 	startTime       time.Time
 	readyTime       time.Time
 	componentStates map[string]ComponentState
-	eventHistory    []Event
+	eventHistory    []LifecycleEvent
 	maxEventHistory int
 
 	// Health monitoring
@@ -142,25 +142,25 @@ func DefaultConfig() Config {
 	}
 }
 
-// NewManager creates a new lifecycle manager
-func NewManager(
+// NewLifecycleManager creates a new lifecycle manager
+func NewLifecycleManager(
 	config Config,
-	logger *logger.Logger,
+	logger logger.Logger,
 	telemetry *observability.TelemetryService,
-) *Manager {
+) *LifecycleManager {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	lm := &Manager{
+	lm := &LifecycleManager{
 		state:            int32(StateInitializing),
 		components:       make([]Component, 0),
-		eventHandlers:    make([]func(Event), 0),
+		eventHandlers:    make([]func(LifecycleEvent), 0),
 		ctx:              ctx,
 		cancel:           cancel,
 		config:           config,
 		logger:           logger,
 		telemetry:        telemetry,
 		componentStates:  make(map[string]ComponentState),
-		eventHistory:     make([]Event, 0, config.MaxEventHistory),
+		eventHistory:     make([]LifecycleEvent, 0, config.MaxEventHistory),
 		maxEventHistory:  config.MaxEventHistory,
 		gracefulShutdown: make(chan struct{}),
 		forceShutdown:    make(chan struct{}),
@@ -177,7 +177,7 @@ func NewManager(
 }
 
 // RegisterComponent registers a component for lifecycle management
-func (lm *Manager) RegisterComponent(component Component) {
+func (lm *LifecycleManager) RegisterComponent(component Component) {
 	lm.mu.Lock()
 	defer lm.mu.Unlock()
 
@@ -202,7 +202,7 @@ func (lm *Manager) RegisterComponent(component Component) {
 }
 
 // RegisterEventHandler registers an event handler for lifecycle events
-func (lm *Manager) RegisterEventHandler(handler func(Event)) {
+func (lm *LifecycleManager) RegisterEventHandler(handler func(LifecycleEvent)) {
 	lm.mu.Lock()
 	defer lm.mu.Unlock()
 
@@ -210,7 +210,7 @@ func (lm *Manager) RegisterEventHandler(handler func(Event)) {
 }
 
 // Start starts all registered components in priority order
-func (lm *Manager) Start(ctx context.Context) error {
+func (lm *LifecycleManager) Start(ctx context.Context) error {
 	lm.setState(StateStarting)
 	lm.startTime = time.Now()
 
@@ -257,7 +257,7 @@ func (lm *Manager) Start(ctx context.Context) error {
 }
 
 // Stop stops all components in reverse priority order
-func (lm *Manager) Stop(ctx context.Context) error {
+func (lm *LifecycleManager) Stop(ctx context.Context) error {
 	lm.setState(StateStopping)
 
 	lm.logger.Info("Stopping application lifecycle")
@@ -302,23 +302,23 @@ func (lm *Manager) Stop(ctx context.Context) error {
 }
 
 // GetState returns the current lifecycle state
-func (lm *Manager) GetState() State {
-	return State(atomic.LoadInt32(&lm.state))
+func (lm *LifecycleManager) GetState() LifecycleState {
+	return LifecycleState(atomic.LoadInt32(&lm.state))
 }
 
 // IsReady returns true if the application is ready to serve requests
-func (lm *Manager) IsReady() bool {
+func (lm *LifecycleManager) IsReady() bool {
 	state := lm.GetState()
 	return state == StateReady || state == StateHealthy || state == StateDegraded
 }
 
 // IsHealthy returns true if the application is healthy
-func (lm *Manager) IsHealthy() bool {
+func (lm *LifecycleManager) IsHealthy() bool {
 	return lm.GetState() == StateHealthy
 }
 
 // GetComponentStates returns the current state of all components
-func (lm *Manager) GetComponentStates() map[string]ComponentState {
+func (lm *LifecycleManager) GetComponentStates() map[string]ComponentState {
 	lm.mu.RLock()
 	defer lm.mu.RUnlock()
 
@@ -330,7 +330,7 @@ func (lm *Manager) GetComponentStates() map[string]ComponentState {
 }
 
 // GetEventHistory returns recent lifecycle events
-func (lm *Manager) GetEventHistory(limit int) []Event {
+func (lm *LifecycleManager) GetEventHistory(limit int) []LifecycleEvent {
 	lm.mu.RLock()
 	defer lm.mu.RUnlock()
 
@@ -340,18 +340,18 @@ func (lm *Manager) GetEventHistory(limit int) []Event {
 
 	// Return most recent events
 	start := len(lm.eventHistory) - limit
-	events := make([]Event, limit)
+	events := make([]LifecycleEvent, limit)
 	copy(events, lm.eventHistory[start:])
 
 	return events
 }
 
 // GetMetrics returns lifecycle metrics
-func (lm *Manager) GetMetrics() Metrics {
+func (lm *LifecycleManager) GetMetrics() LifecycleMetrics {
 	lm.mu.RLock()
 	defer lm.mu.RUnlock()
 
-	metrics := Metrics{
+	metrics := LifecycleMetrics{
 		State:             lm.GetState().String(),
 		ComponentCount:    len(lm.components),
 		ReadyComponents:   0,
@@ -373,7 +373,7 @@ func (lm *Manager) GetMetrics() Metrics {
 		switch state.State {
 		case "ready":
 			metrics.ReadyComponents++
-		case string(HealthStatusHealthy):
+		case "healthy":
 			metrics.HealthyComponents++
 		case "error":
 			metrics.ErrorComponents++
@@ -383,8 +383,8 @@ func (lm *Manager) GetMetrics() Metrics {
 	return metrics
 }
 
-// Metrics contains lifecycle metrics
-type Metrics struct {
+// LifecycleMetrics contains lifecycle metrics
+type LifecycleMetrics struct {
 	State             string        `json:"state"`
 	ComponentCount    int           `json:"component_count"`
 	ReadyComponents   int           `json:"ready_components"`
@@ -397,11 +397,11 @@ type Metrics struct {
 
 // Private methods
 
-func (lm *Manager) setState(state State) {
+func (lm *LifecycleManager) setState(state LifecycleState) {
 	atomic.StoreInt32(&lm.state, int32(state))
 }
 
-func (lm *Manager) getSortedComponents() []Component {
+func (lm *LifecycleManager) getSortedComponents() []Component {
 	lm.mu.RLock()
 	components := make([]Component, len(lm.components))
 	copy(components, lm.components)
@@ -419,7 +419,7 @@ func (lm *Manager) getSortedComponents() []Component {
 	return components
 }
 
-func (lm *Manager) startComponent(ctx context.Context, component Component) error {
+func (lm *LifecycleManager) startComponent(ctx context.Context, component Component) error {
 	name := component.Name()
 
 	lm.logger.Info("Starting component", "component", name)
@@ -470,7 +470,7 @@ func (lm *Manager) startComponent(ctx context.Context, component Component) erro
 	return nil
 }
 
-func (lm *Manager) stopComponent(ctx context.Context, component Component) error {
+func (lm *LifecycleManager) stopComponent(ctx context.Context, component Component) error {
 	name := component.Name()
 
 	lm.logger.Info("Stopping component", "component", name)
@@ -494,7 +494,7 @@ func (lm *Manager) stopComponent(ctx context.Context, component Component) error
 	return nil
 }
 
-func (lm *Manager) updateComponentState(name, state string, err error) {
+func (lm *LifecycleManager) updateComponentState(name, state string, err error) {
 	lm.mu.Lock()
 	defer lm.mu.Unlock()
 
@@ -503,7 +503,7 @@ func (lm *Manager) updateComponentState(name, state string, err error) {
 
 	if err != nil {
 		compState.ErrorCount++
-	} else if state == string(HealthStatusHealthy) {
+	} else if state == "healthy" {
 		compState.LastHealthy = time.Now()
 		compState.ErrorCount = 0
 	}
@@ -515,8 +515,8 @@ func (lm *Manager) updateComponentState(name, state string, err error) {
 	lm.componentStates[name] = compState
 }
 
-func (lm *Manager) emitEvent(eventType, component string, state State, message string, metadata map[string]interface{}, err error) {
-	event := Event{
+func (lm *LifecycleManager) emitEvent(eventType, component string, state LifecycleState, message string, metadata map[string]interface{}, err error) {
+	event := LifecycleEvent{
 		Type:      eventType,
 		Component: component,
 		State:     state,
@@ -542,7 +542,7 @@ func (lm *Manager) emitEvent(eventType, component string, state State, message s
 	lm.mu.RUnlock()
 
 	for _, handler := range handlers {
-		go func(h func(Event)) {
+		go func(h func(LifecycleEvent)) {
 			defer func() {
 				if r := recover(); r != nil {
 					lm.logger.Error("Event handler panicked",
@@ -556,7 +556,7 @@ func (lm *Manager) emitEvent(eventType, component string, state State, message s
 	}
 }
 
-func (lm *Manager) startHealthMonitoring() {
+func (lm *LifecycleManager) startHealthMonitoring() {
 	if lm.healthTicker == nil {
 		return
 	}
@@ -568,7 +568,7 @@ func (lm *Manager) startHealthMonitoring() {
 	}()
 }
 
-func (lm *Manager) startBackgroundTasks() {
+func (lm *LifecycleManager) startBackgroundTasks() {
 	// Start metrics collection if enabled
 	if lm.config.EnableMetrics && lm.telemetry != nil {
 		lm.wg.Add(1)
@@ -579,7 +579,7 @@ func (lm *Manager) startBackgroundTasks() {
 	}
 }
 
-func (lm *Manager) runHealthChecks() {
+func (lm *LifecycleManager) runHealthChecks() {
 	for {
 		select {
 		case <-lm.ctx.Done():
@@ -592,7 +592,7 @@ func (lm *Manager) runHealthChecks() {
 	}
 }
 
-func (lm *Manager) performHealthChecks() {
+func (lm *LifecycleManager) performHealthChecks() {
 	components := lm.getSortedComponents()
 	healthyCount := 0
 	errorCount := 0
@@ -611,7 +611,7 @@ func (lm *Manager) performHealthChecks() {
 				"error", err,
 			)
 		} else {
-			lm.updateComponentState(name, string(HealthStatusHealthy), nil)
+			lm.updateComponentState(name, "healthy", nil)
 			healthyCount++
 		}
 	}
@@ -627,7 +627,7 @@ func (lm *Manager) performHealthChecks() {
 	}
 }
 
-func (lm *Manager) collectMetrics() {
+func (lm *LifecycleManager) collectMetrics() {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 

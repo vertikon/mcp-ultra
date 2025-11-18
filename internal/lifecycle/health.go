@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vertikon/mcp-ultra/pkg/logger"
+	"github.com/vertikon/mcp-ultra-fix/pkg/logger"
 )
 
 // HealthStatus represents the health status of a component
@@ -83,7 +83,7 @@ type HealthMonitor struct {
 
 	// Configuration
 	config HealthConfig
-	logger *logger.Logger
+	logger logger.Logger
 
 	// Background monitoring
 	ticker  *time.Ticker
@@ -144,7 +144,7 @@ func DefaultHealthConfig() HealthConfig {
 }
 
 // NewHealthMonitor creates a new health monitor
-func NewHealthMonitor(config HealthConfig, version string, logger *logger.Logger) *HealthMonitor {
+func NewHealthMonitor(config HealthConfig, version string, logger logger.Logger) *HealthMonitor {
 	return &HealthMonitor{
 		checkers:     make([]HealthChecker, 0),
 		dependencies: make([]DependencyChecker, 0),
@@ -473,25 +473,17 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(report); err != nil {
-			// Handle encoding error
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
+		json.NewEncoder(w).Encode(report)
 	})
 
 	// Add readiness endpoint
 	mux.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
 		if hm.IsHealthy() || hm.IsDegraded() {
 			w.WriteHeader(http.StatusOK)
-			if _, err := w.Write([]byte("OK")); err != nil {
-				hm.logger.Warn("Failed to write readiness response", "error", err)
-			}
+			w.Write([]byte("OK"))
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			if _, err := w.Write([]byte("Not Ready")); err != nil {
-				hm.logger.Warn("Failed to write readiness response", "error", err)
-			}
+			w.Write([]byte("Not Ready"))
 		}
 	})
 
@@ -499,14 +491,10 @@ func (hm *HealthMonitor) startHTTPEndpoint() {
 	mux.HandleFunc("/live", func(w http.ResponseWriter, r *http.Request) {
 		if !hm.IsUnhealthy() {
 			w.WriteHeader(http.StatusOK)
-			if _, err := w.Write([]byte("OK")); err != nil {
-				hm.logger.Warn("Failed to write liveness response", "error", err)
-			}
+			w.Write([]byte("OK"))
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			if _, err := w.Write([]byte("Unhealthy")); err != nil {
-				hm.logger.Warn("Failed to write liveness response", "error", err)
-			}
+			w.Write([]byte("Unhealthy"))
 		}
 	})
 

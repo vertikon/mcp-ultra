@@ -15,20 +15,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Context keys for auth data
-type contextKey string
-
-const (
-	userKey     contextKey = "user"
-	userIDKey   contextKey = "user_id"
-	tenantIDKey contextKey = "tenant_id"
-)
-
-// OPAAuthorizer is the interface for OPA authorization
-type OPAAuthorizer interface {
-	IsAuthorized(ctx context.Context, claims *Claims, method, path string) bool
-}
-
 // Claims represents JWT claims
 type Claims struct {
 	UserID   string   `json:"user_id"`
@@ -54,11 +40,11 @@ type AuthService struct {
 	config     AuthConfig
 	publicKeys map[string]*rsa.PublicKey
 	logger     *zap.Logger
-	opa        OPAAuthorizer
+	opa        *OPAService
 }
 
 // NewAuthService creates a new authentication service
-func NewAuthService(config AuthConfig, logger *zap.Logger, opa OPAAuthorizer) *AuthService {
+func NewAuthService(config AuthConfig, logger *zap.Logger, opa *OPAService) *AuthService {
 	as := &AuthService{
 		config:     config,
 		publicKeys: make(map[string]*rsa.PublicKey),
@@ -114,9 +100,9 @@ func (as *AuthService) JWTMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Add user context
-		ctx := context.WithValue(r.Context(), userKey, claims)
-		ctx = context.WithValue(ctx, userIDKey, claims.UserID)
-		ctx = context.WithValue(ctx, tenantIDKey, claims.TenantID)
+		ctx := context.WithValue(r.Context(), "user", claims)
+		ctx = context.WithValue(ctx, "user_id", claims.UserID)
+		ctx = context.WithValue(ctx, "tenant_id", claims.TenantID)
 
 		// Set security headers
 		w.Header().Set("X-User-ID", claims.UserID)
@@ -180,11 +166,7 @@ func (as *AuthService) loadJWKS() error {
 	if err != nil {
 		return fmt.Errorf("fetching JWKS: %w", err)
 	}
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			as.logger.Warn("Failed to close response body", zap.Error(closeErr))
-		}
-	}()
+	defer resp.Body.Close()
 
 	var jwks struct {
 		Keys []struct {
@@ -269,24 +251,20 @@ func GetUserFromContext(ctx context.Context) (*Claims, error) {
 func (as *AuthService) writeUnauthorized(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)
-	if err := json.NewEncoder(w).Encode(map[string]string{
+	json.NewEncoder(w).Encode(map[string]string{
 		"error":   "unauthorized",
 		"message": message,
-	}); err != nil {
-		as.logger.Warn("Failed to encode unauthorized response", zap.Error(err))
-	}
+	})
 }
 
 // writeForbidden writes 403 Forbidden response
 func (as *AuthService) writeForbidden(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusForbidden)
-	if err := json.NewEncoder(w).Encode(map[string]string{
+	json.NewEncoder(w).Encode(map[string]string{
 		"error":   "forbidden",
 		"message": message,
-	}); err != nil {
-		as.logger.Warn("Failed to encode forbidden response", zap.Error(err))
-	}
+	})
 }
 
 // RequireScope middleware ensures user has required scope

@@ -10,11 +10,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	tlsVersion12 = "1.2"
-	tlsVersion13 = "1.3"
-)
-
 type TLSConfig struct {
 	Enabled            bool     `yaml:"enabled" envconfig:"TLS_ENABLED" default:"false"`
 	CertFile           string   `yaml:"cert_file" envconfig:"TLS_CERT_FILE" default:"./certs/server.crt"`
@@ -147,9 +142,9 @@ func (tm *TLSManager) setTLSVersions(tlsConfig *tls.Config) error {
 		tlsConfig.MinVersion = tls.VersionTLS10
 	case "1.1":
 		tlsConfig.MinVersion = tls.VersionTLS11
-	case tlsVersion12:
+	case "1.2":
 		tlsConfig.MinVersion = tls.VersionTLS12
-	case tlsVersion13:
+	case "1.3":
 		tlsConfig.MinVersion = tls.VersionTLS13
 	default:
 		return fmt.Errorf("unsupported minimum TLS version: %s", tm.config.MinVersion)
@@ -161,9 +156,9 @@ func (tm *TLSManager) setTLSVersions(tlsConfig *tls.Config) error {
 		tlsConfig.MaxVersion = tls.VersionTLS10
 	case "1.1":
 		tlsConfig.MaxVersion = tls.VersionTLS11
-	case tlsVersion12:
+	case "1.2":
 		tlsConfig.MaxVersion = tls.VersionTLS12
-	case tlsVersion13:
+	case "1.3":
 		tlsConfig.MaxVersion = tls.VersionTLS13
 	default:
 		return fmt.Errorf("unsupported maximum TLS version: %s", tm.config.MaxVersion)
@@ -406,7 +401,7 @@ func (config *TLSConfig) ValidateConfig() error {
 	}
 
 	// Validate TLS versions
-	validVersions := []string{"1.0", "1.1", tlsVersion12, tlsVersion13}
+	validVersions := []string{"1.0", "1.1", "1.2", "1.3"}
 	if !contains(validVersions, config.MinVersion) {
 		return fmt.Errorf("invalid minimum TLS version: %s", config.MinVersion)
 	}

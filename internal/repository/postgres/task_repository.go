@@ -5,11 +5,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/vertikon/mcp-ultra/internal/domain"
-	"github.com/vertikon/mcp-ultra/pkg/types"
 )
 
 // TaskRepository implements domain.TaskRepository using PostgreSQL
@@ -46,7 +45,7 @@ func (r *TaskRepository) Create(ctx context.Context, task *domain.Task) error {
 }
 
 // GetByID retrieves a task by ID
-func (r *TaskRepository) GetByID(ctx context.Context, id types.UUID) (*domain.Task, error) {
+func (r *TaskRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Task, error) {
 	query := `
 		SELECT id, title, description, status, priority, assignee_id, created_by,
 		       created_at, updated_at, completed_at, due_date, tags, metadata
@@ -89,7 +88,7 @@ func (r *TaskRepository) Update(ctx context.Context, task *domain.Task) error {
 }
 
 // Delete removes a task
-func (r *TaskRepository) Delete(ctx context.Context, id types.UUID) error {
+func (r *TaskRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	query := `DELETE FROM tasks WHERE id = $1`
 
 	result, err := r.db.ExecContext(ctx, query, id)
@@ -162,7 +161,7 @@ func (r *TaskRepository) List(ctx context.Context, filter domain.TaskFilter) ([]
 	}
 
 	// Count query
-	countQuery := "SELECT COUNT(*) FROM tasks " + whereClause
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM tasks %s", whereClause)
 	var total int
 	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
@@ -170,12 +169,13 @@ func (r *TaskRepository) List(ctx context.Context, filter domain.TaskFilter) ([]
 	}
 
 	// Data query
-	query := `
+	query := fmt.Sprintf(`
 		SELECT id, title, description, status, priority, assignee_id, created_by,
 		       created_at, updated_at, completed_at, due_date, tags, metadata
-		FROM tasks ` + whereClause + `
+		FROM tasks %s
 		ORDER BY created_at DESC
-		LIMIT $` + strconv.Itoa(argIndex) + ` OFFSET $` + strconv.Itoa(argIndex+1)
+		LIMIT $%d OFFSET $%d
+	`, whereClause, argIndex, argIndex+1)
 
 	limit := filter.Limit
 	if limit <= 0 {
@@ -191,9 +191,7 @@ func (r *TaskRepository) List(ctx context.Context, filter domain.TaskFilter) ([]
 	if err != nil {
 		return nil, 0, fmt.Errorf("querying tasks: %w", err)
 	}
-	defer func() {
-		_ = rows.Close() // Explicitly ignore error in defer
-	}()
+	defer rows.Close()
 
 	tasks := make([]*domain.Task, 0)
 	for rows.Next() {
@@ -220,9 +218,7 @@ func (r *TaskRepository) GetByStatus(ctx context.Context, status domain.TaskStat
 	if err != nil {
 		return nil, fmt.Errorf("querying tasks by status: %w", err)
 	}
-	defer func() {
-		_ = rows.Close() // Explicitly ignore error in defer
-	}()
+	defer rows.Close()
 
 	tasks := make([]*domain.Task, 0)
 	for rows.Next() {
@@ -237,7 +233,7 @@ func (r *TaskRepository) GetByStatus(ctx context.Context, status domain.TaskStat
 }
 
 // GetByAssignee retrieves tasks assigned to a specific user
-func (r *TaskRepository) GetByAssignee(ctx context.Context, assigneeID types.UUID) ([]*domain.Task, error) {
+func (r *TaskRepository) GetByAssignee(ctx context.Context, assigneeID uuid.UUID) ([]*domain.Task, error) {
 	query := `
 		SELECT id, title, description, status, priority, assignee_id, created_by,
 		       created_at, updated_at, completed_at, due_date, tags, metadata
@@ -249,9 +245,7 @@ func (r *TaskRepository) GetByAssignee(ctx context.Context, assigneeID types.UUI
 	if err != nil {
 		return nil, fmt.Errorf("querying tasks by assignee: %w", err)
 	}
-	defer func() {
-		_ = rows.Close() // Explicitly ignore error in defer
-	}()
+	defer rows.Close()
 
 	tasks := make([]*domain.Task, 0)
 	for rows.Next() {
@@ -287,17 +281,13 @@ func (r *TaskRepository) scanTask(scanner interface {
 
 	// Unmarshal JSON fields
 	if len(tagsJSON) > 0 {
-		if err := json.Unmarshal(tagsJSON, &task.Tags); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal tags: %w", err)
-		}
+		json.Unmarshal(tagsJSON, &task.Tags)
 	} else {
 		task.Tags = make([]string, 0)
 	}
 
 	if len(metadataJSON) > 0 {
-		if err := json.Unmarshal(metadataJSON, &task.Metadata); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal metadata: %w", err)
-		}
+		json.Unmarshal(metadataJSON, &task.Metadata)
 	} else {
 		task.Metadata = make(map[string]interface{})
 	}

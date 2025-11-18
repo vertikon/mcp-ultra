@@ -11,11 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	resourceTasks   = "tasks"
-	resourceUnknown = "unknown"
-)
-
 // OPAConfig holds OPA configuration
 type OPAConfig struct {
 	URL     string        `yaml:"url"`
@@ -102,11 +97,7 @@ func (opa *OPAService) IsAuthorized(ctx context.Context, claims *Claims, method,
 		opa.logger.Error("OPA request failed", zap.Error(err))
 		return false
 	}
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			opa.logger.Warn("Failed to close response body", zap.Error(closeErr))
-		}
-	}()
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		opa.logger.Warn("OPA returned non-200 status",
@@ -171,11 +162,7 @@ func (opa *OPAService) IsAuthorizedForResource(ctx context.Context, claims *Clai
 		opa.logger.Error("OPA resource request failed", zap.Error(err))
 		return false
 	}
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			opa.logger.Warn("Failed to close response body", zap.Error(closeErr))
-		}
-	}()
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		opa.logger.Warn("OPA resource returned non-200 status",
@@ -201,20 +188,20 @@ func (opa *OPAService) extractResourceAction(method, path string) (string, strin
 	switch method {
 	case "GET":
 		if path == "/api/v1/tasks" {
-			return resourceTasks, "list"
+			return "tasks", "list"
 		}
 		if len(path) > 0 && path[len(path)-1] != '/' {
-			return resourceTasks, "read"
+			return "tasks", "read"
 		}
-		return resourceUnknown, "read"
+		return "unknown", "read"
 	case "POST":
-		return resourceTasks, "create"
+		return "tasks", "create"
 	case "PUT", "PATCH":
-		return resourceTasks, "update"
+		return "tasks", "update"
 	case "DELETE":
-		return resourceTasks, "delete"
+		return "tasks", "delete"
 	default:
-		return resourceUnknown, resourceUnknown
+		return "unknown", "unknown"
 	}
 }
 
@@ -229,11 +216,7 @@ func (opa *OPAService) HealthCheck(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("OPA health check failed: %w", err)
 	}
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			opa.logger.Warn("Failed to close response body", zap.Error(closeErr))
-		}
-	}()
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("OPA health check returned status %d", resp.StatusCode)

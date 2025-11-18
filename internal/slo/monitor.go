@@ -12,35 +12,35 @@ import (
 	"go.uber.org/zap"
 )
 
-// Type represents the type of SLO being monitored
-type Type string
+// SLOType represents the type of SLO being monitored
+type SLOType string
 
 const (
-	TypeAvailability Type = "availability"
-	TypeLatency      Type = "latency"
-	TypeThroughput   Type = "throughput"
-	TypeErrorRate    Type = "error_rate"
-	TypeAccuracy     Type = "accuracy"
+	SLOTypeAvailability SLOType = "availability"
+	SLOTypeLatency      SLOType = "latency"
+	SLOTypeThroughput   SLOType = "throughput"
+	SLOTypeErrorRate    SLOType = "error_rate"
+	SLOTypeAccuracy     SLOType = "accuracy"
 )
 
-// Status represents the current status of an SLO
-type Status string
+// SLOStatus represents the current status of an SLO
+type SLOStatus string
 
 const (
-	StatusHealthy   Status = "healthy"
-	StatusDegraded  Status = "degraded"
-	StatusCritical  Status = "critical"
-	StatusViolation Status = "violation"
+	SLOStatusHealthy   SLOStatus = "healthy"
+	SLOStatusDegraded  SLOStatus = "degraded"
+	SLOStatusCritical  SLOStatus = "critical"
+	SLOStatusViolation SLOStatus = "violation"
 )
 
 // SLO represents a Service Level Objective
 type SLO struct {
 	// Basic identification
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Type        Type   `json:"type"`
-	Service     string `json:"service"`
-	Component   string `json:"component"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Type        SLOType `json:"type"`
+	Service     string  `json:"service"`
+	Component   string  `json:"component"`
 
 	// SLO targets and thresholds
 	Target            float64 `json:"target"`             // Primary SLO target (e.g., 99.9%)
@@ -66,10 +66,10 @@ type SLO struct {
 	Enabled   bool              `json:"enabled"`
 }
 
-// Result represents the result of an SLO evaluation
-type Result struct {
+// SLOResult represents the result of an SLO evaluation
+type SLOResult struct {
 	SLO               *SLO              `json:"slo"`
-	Status            Status            `json:"status"`
+	Status            SLOStatus         `json:"status"`
 	CurrentValue      float64           `json:"current_value"`
 	Target            float64           `json:"target"`
 	ErrorBudget       ErrorBudget       `json:"error_budget"`
@@ -101,7 +101,7 @@ type BurnRate struct {
 type CompliancePoint struct {
 	Timestamp time.Time `json:"timestamp"`
 	Value     float64   `json:"value"`
-	Status    Status    `json:"status"`
+	Status    SLOStatus `json:"status"`
 }
 
 // AlertRule represents an alerting rule for an SLO
@@ -120,7 +120,7 @@ type Monitor struct {
 	logger     *zap.Logger
 	promClient v1.API
 	slos       map[string]*SLO
-	results    map[string]*Result
+	results    map[string]*SLOResult
 	mu         sync.RWMutex
 
 	// Configuration
@@ -147,8 +147,8 @@ type AlertEvent struct {
 // StatusEvent represents an SLO status change event
 type StatusEvent struct {
 	SLOName        string    `json:"slo_name"`
-	PreviousStatus Status    `json:"previous_status"`
-	CurrentStatus  Status    `json:"current_status"`
+	PreviousStatus SLOStatus `json:"previous_status"`
+	CurrentStatus  SLOStatus `json:"current_status"`
 	Timestamp      time.Time `json:"timestamp"`
 	Reason         string    `json:"reason"`
 }
@@ -161,7 +161,7 @@ func NewMonitor(promClient api.Client, logger *zap.Logger) (*Monitor, error) {
 		logger:             logger,
 		promClient:         v1api,
 		slos:               make(map[string]*SLO),
-		results:            make(map[string]*Result),
+		results:            make(map[string]*SLOResult),
 		evaluationInterval: 1 * time.Minute,
 		retentionPeriod:    30 * 24 * time.Hour, // 30 days
 		alertChan:          make(chan AlertEvent, 100),
@@ -238,8 +238,8 @@ func (m *Monitor) GetAllSLOs() map[string]*SLO {
 	return result
 }
 
-// GetResult retrieves the latest SLO evaluation result
-func (m *Monitor) GetResult(name string) (*Result, bool) {
+// GetSLOResult retrieves the latest SLO evaluation result
+func (m *Monitor) GetSLOResult(name string) (*SLOResult, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -247,12 +247,12 @@ func (m *Monitor) GetResult(name string) (*Result, bool) {
 	return result, exists
 }
 
-// GetAllResults returns all SLO evaluation results
-func (m *Monitor) GetAllResults() map[string]*Result {
+// GetAllSLOResults returns all SLO evaluation results
+func (m *Monitor) GetAllSLOResults() map[string]*SLOResult {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	result := make(map[string]*Result, len(m.results))
+	result := make(map[string]*SLOResult, len(m.results))
 	for name, sloResult := range m.results {
 		result[name] = sloResult
 	}
@@ -339,7 +339,7 @@ func (m *Monitor) evaluateSLO(ctx context.Context, slo *SLO) error {
 	status := m.determineStatus(slo, currentValue, errorBudget, burnRate)
 
 	// Create result
-	result := &Result{
+	result := &SLOResult{
 		SLO:          slo,
 		Status:       status,
 		CurrentValue: currentValue,
@@ -381,19 +381,13 @@ func (m *Monitor) queryPrometheus(ctx context.Context, query string, timestamp t
 
 	switch result.Type() {
 	case model.ValVector:
-		vector, ok := result.(model.Vector)
-		if !ok {
-			return 0, fmt.Errorf("failed to cast result to Vector")
-		}
+		vector := result.(model.Vector)
 		if len(vector) == 0 {
 			return 0, fmt.Errorf("no data points returned")
 		}
 		return float64(vector[0].Value), nil
 	case model.ValScalar:
-		scalar, ok := result.(*model.Scalar)
-		if !ok {
-			return 0, fmt.Errorf("failed to cast result to Scalar")
-		}
+		scalar := result.(*model.Scalar)
 		return float64(scalar.Value), nil
 	default:
 		return 0, fmt.Errorf("unexpected result type: %s", result.Type())
@@ -487,23 +481,23 @@ func (m *Monitor) calculateBurnRate(ctx context.Context, slo *SLO) (BurnRate, er
 }
 
 // determineStatus determines the SLO status based on current metrics
-func (m *Monitor) determineStatus(slo *SLO, currentValue float64, errorBudget ErrorBudget, burnRate BurnRate) Status {
+func (m *Monitor) determineStatus(slo *SLO, currentValue float64, errorBudget ErrorBudget, burnRate BurnRate) SLOStatus {
 	// Check for violation (below critical threshold)
 	if currentValue < slo.CriticalThreshold {
-		return StatusViolation
+		return SLOStatusViolation
 	}
 
 	// Check for critical status (burn rate alerting or low error budget)
 	if burnRate.Alerting || errorBudget.Percentage < 10 {
-		return StatusCritical
+		return SLOStatusCritical
 	}
 
 	// Check for degraded status (below warning threshold)
 	if currentValue < slo.WarningThreshold {
-		return StatusDegraded
+		return SLOStatusDegraded
 	}
 
-	return StatusHealthy
+	return SLOStatusHealthy
 }
 
 // getComplianceHistory retrieves historical compliance data
@@ -536,11 +530,11 @@ func (m *Monitor) getComplianceHistory(ctx context.Context, slo *SLO) ([]Complia
 				value := float64(sample.Value)
 				timestamp := sample.Timestamp.Time()
 
-				status := StatusHealthy
+				status := SLOStatusHealthy
 				if value < slo.CriticalThreshold {
-					status = StatusViolation
+					status = SLOStatusViolation
 				} else if value < slo.WarningThreshold {
-					status = StatusDegraded
+					status = SLOStatusDegraded
 				}
 
 				history = append(history, CompliancePoint{
@@ -556,7 +550,7 @@ func (m *Monitor) getComplianceHistory(ctx context.Context, slo *SLO) ([]Complia
 }
 
 // storeResult stores an SLO evaluation result and checks for status changes
-func (m *Monitor) storeResult(name string, result *Result) {
+func (m *Monitor) storeResult(name string, result *SLOResult) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -584,7 +578,7 @@ func (m *Monitor) storeResult(name string, result *Result) {
 }
 
 // checkAndGenerateAlerts checks if alerts should be generated for an SLO result
-func (m *Monitor) checkAndGenerateAlerts(result *Result) {
+func (m *Monitor) checkAndGenerateAlerts(result *SLOResult) {
 	for _, rule := range result.SLO.AlertingRules {
 		if !rule.Enabled {
 			continue
@@ -605,7 +599,7 @@ func (m *Monitor) checkAndGenerateAlerts(result *Result) {
 				alertMessage = fmt.Sprintf("Burn rate high: %.2f", result.BurnRate.Current)
 			}
 		case "SLOViolation":
-			if result.Status == StatusViolation {
+			if result.Status == SLOStatusViolation {
 				shouldAlert = true
 				alertMessage = fmt.Sprintf("SLO violation: %.2f%% < %.2f%%", result.CurrentValue, result.SLO.CriticalThreshold)
 			}

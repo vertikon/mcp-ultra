@@ -1,6 +1,3 @@
-//go:build integration
-// +build integration
-
 package compliance_test
 
 import (
@@ -166,7 +163,7 @@ func TestComplianceFrameworkIntegration(t *testing.T) {
 			"email":       "test@example.com",
 			"cpf":         "12345678901",
 			"phone":       "+5511987654321",
-			"name":        "JoÃ£o Silva",
+			"name":        "João Silva",
 			"description": "Task description without PII",
 		}
 

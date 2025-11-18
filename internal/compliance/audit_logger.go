@@ -218,27 +218,6 @@ func (al *AuditLogger) LogConsentAction(ctx context.Context, subjectID string, c
 	return al.logEvent(event)
 }
 
-// LogConsent is a convenience method to log consent actions with minimal parameters
-func (al *AuditLogger) LogConsent(ctx context.Context, subjectID string, purposes []string, source, action string) error {
-	if !al.config.Enabled {
-		return nil
-	}
-
-	for _, purpose := range purposes {
-		consent := ConsentRecord{
-			SubjectID:     subjectID,
-			Purpose:       purpose,
-			ConsentSource: ConsentSource(source),
-			Granted:       action == "granted",
-		}
-		if err := al.LogConsentAction(ctx, subjectID, consent, action); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // LogDataRightsRequest logs data subject rights requests
 func (al *AuditLogger) LogDataRightsRequest(ctx context.Context, subjectID string, request DataRightRequest) error {
 	if !al.config.Enabled {
@@ -353,7 +332,7 @@ func (al *AuditLogger) LogComplianceCheck(ctx context.Context, checkType string,
 }
 
 // QueryAuditLogs queries audit logs (simplified implementation)
-func (al *AuditLogger) QueryAuditLogs(_ context.Context, _ map[string]interface{}, _ int) ([]AuditEvent, error) {
+func (al *AuditLogger) QueryAuditLogs(ctx context.Context, filters map[string]interface{}, limit int) ([]AuditEvent, error) {
 	if !al.config.Enabled {
 		return nil, fmt.Errorf("audit logging is disabled")
 	}

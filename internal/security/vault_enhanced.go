@@ -264,7 +264,7 @@ func (evs *EnhancedVaultService) rotateSecret(schedule *RotationSchedule) error 
 }
 
 // generateNewSecretValue generates a new secret value based on the type
-func (evs *EnhancedVaultService) generateNewSecretValue(_ string, currentData map[string]interface{}) (map[string]interface{}, error) {
+func (evs *EnhancedVaultService) generateNewSecretValue(secretPath string, currentData map[string]interface{}) (map[string]interface{}, error) {
 	newData := make(map[string]interface{})
 
 	// Copy non-secret metadata
@@ -293,7 +293,7 @@ func (evs *EnhancedVaultService) generateNewSecretValue(_ string, currentData ma
 }
 
 // generateSecretForField generates a new secret value for a specific field
-func (evs *EnhancedVaultService) generateSecretForField(fieldName string, _ interface{}) (string, error) {
+func (evs *EnhancedVaultService) generateSecretForField(fieldName string, currentValue interface{}) (string, error) {
 	switch fieldName {
 	case "password", "secret", "api_key", "token":
 		return evs.generateSecurePassword(32)
@@ -328,11 +328,7 @@ func (evs *EnhancedVaultService) generateEncryptionKey(keySize int) (string, err
 // generateRotationID generates a unique rotation identifier
 func (evs *EnhancedVaultService) generateRotationID() string {
 	bytes := make([]byte, 8)
-	if _, err := rand.Read(bytes); err != nil {
-		// Fallback to timestamp-based ID if random generation fails
-		evs.logger.Warn("Failed to generate random rotation ID, using timestamp", zap.Error(err))
-		return base64.URLEncoding.EncodeToString([]byte(time.Now().Format(time.RFC3339Nano)))
-	}
+	rand.Read(bytes)
 	return base64.URLEncoding.EncodeToString(bytes)
 }
 

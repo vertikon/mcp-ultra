@@ -16,19 +16,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Context keys for auth data
-type contextKey string
-
-const (
-	userIDKey     contextKey = "user_id"
-	usernameKey   contextKey = "username"
-	userRolesKey  contextKey = "user_roles"
-	sessionIDKey  contextKey = "session_id"
-	authClaimsKey contextKey = "auth_claims"
-	clientNameKey contextKey = "client_name"
-	apiKeyKey     contextKey = "api_key"
-)
-
 type AuthConfig struct {
 	JWTSecret     string        `yaml:"jwt_secret" envconfig:"JWT_SECRET" required:"true"`
 	JWTExpiry     time.Duration `yaml:"jwt_expiry" envconfig:"JWT_TOKEN_EXPIRY" default:"24h"`
@@ -107,11 +94,11 @@ func (a *AuthMiddleware) JWTAuth(next http.Handler) http.Handler {
 		)
 
 		// Add user context
-		ctx = context.WithValue(ctx, userIDKey, claims.UserID)
-		ctx = context.WithValue(ctx, usernameKey, claims.Username)
-		ctx = context.WithValue(ctx, userRolesKey, claims.Roles)
-		ctx = context.WithValue(ctx, sessionIDKey, claims.SessionID)
-		ctx = context.WithValue(ctx, authClaimsKey, claims)
+		ctx = context.WithValue(ctx, "user_id", claims.UserID)
+		ctx = context.WithValue(ctx, "username", claims.Username)
+		ctx = context.WithValue(ctx, "user_roles", claims.Roles)
+		ctx = context.WithValue(ctx, "session_id", claims.SessionID)
+		ctx = context.WithValue(ctx, "auth_claims", claims)
 
 		a.logger.Debug("JWT authentication successful",
 			zap.String("user_id", claims.UserID),
@@ -154,8 +141,8 @@ func (a *AuthMiddleware) APIKeyAuth(validAPIKeys map[string]string) func(http.Ha
 			}
 
 			// Add client context
-			ctx = context.WithValue(ctx, clientNameKey, clientName)
-			ctx = context.WithValue(ctx, apiKeyKey, apiKey[:8]+"...")
+			ctx = context.WithValue(ctx, "client_name", clientName)
+			ctx = context.WithValue(ctx, "api_key", apiKey[:8]+"...")
 
 			span.SetAttributes(
 				attribute.String("client.name", clientName),
@@ -178,7 +165,7 @@ func (a *AuthMiddleware) RequireRole(requiredRole string) func(http.Handler) htt
 			_, span := a.tracer.Start(r.Context(), "auth.role_check")
 			defer span.End()
 
-			claims, ok := r.Context().Value(authClaimsKey).(*AuthClaims)
+			claims, ok := r.Context().Value("auth_claims").(*AuthClaims)
 			if !ok {
 				span.SetStatus(codes.Error, "missing auth claims")
 				http.Error(w, "Forbidden: authentication required", http.StatusForbidden)
@@ -220,7 +207,7 @@ func (a *AuthMiddleware) RateLimitByUser(maxRequests int, window time.Duration) 
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			userID := r.Context().Value(userIDKey)
+			userID := r.Context().Value("user_id")
 			if userID == nil {
 				// If no user ID, skip rate limiting
 				next.ServeHTTP(w, r)

@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -287,13 +286,7 @@ func loadFromFile(filename string, cfg *Config) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := file.Close(); err != nil {
-			// Log error but don't return - defer already happened
-			// File was already read successfully, so this is non-critical
-			log.Printf("Warning: failed to close config file %s: %v", filename, err)
-		}
-	}()
+	defer file.Close()
 
 	decoder := yaml.NewDecoder(file)
 	return decoder.Decode(cfg)

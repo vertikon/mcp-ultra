@@ -282,8 +282,8 @@ type Dataset struct {
 	Fill            bool      `json:"fill,omitempty"`
 }
 
-// Widget represents a dashboard widget configuration
-type Widget struct {
+// DashboardWidget represents a dashboard widget configuration
+type DashboardWidget struct {
 	ID       string                 `json:"id"`
 	Type     string                 `json:"type"`
 	Title    string                 `json:"title"`
