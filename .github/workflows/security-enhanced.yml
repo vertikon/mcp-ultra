@@ -130,7 +130,7 @@ jobs:
           echo "score=$SCORE" >> $GITHUB_OUTPUT
 
       - name: 📤 Upload Security Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: security-scan-results
@@ -321,7 +321,7 @@ jobs:
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-secure
 
       - name: 📤 Upload Container Security Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: container-security-results
@@ -489,7 +489,7 @@ jobs:
           EOF
 
       - name: 📤 Upload Compliance Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: security-compliance-report
           path: security-compliance-report.json
